@@ -16,24 +16,26 @@ configure_file (
 
 
 # Flags
-set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS "-std=c++14 -O3")
 
-include_directories( 
+include_directories(
     ${PROJECT_SOURCE_DIR}/source
 )
 
 set(SRCS
     ${PROJECT_BINARY_DIR}/source/version.cpp
     source/main.cpp
+    source/Dict.cpp
+    source/Worker.cpp
 )
 
 
 add_executable(runMe ${SRCS})
 
 
-install(TARGETS runMe DESTINATION bin)
+install(TARGETS runMe DESTINATION ./)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/data
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/
         DESTINATION ./
     )
 

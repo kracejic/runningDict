@@ -35,10 +35,10 @@
                 {
                     "name":"ninja install + run",
                     "linux":{
-                        "cmd":["ninja install && cd dist/bin ; echo ; ./runMe"],
+                        "cmd":["ninja install && cd dist ; echo ; time -f %e ./runMe -d freedict-deu-eng.dict Ihre deutsch ist möglich"],
                     },
                     "windows":{
-                        "cmd":["ninja install & cd dist/bin & echo & runMe"],
+                        "cmd":["ninja install & cd dist & echo & runMe"],
                     },
                 },
 

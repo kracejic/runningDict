@@ -1,0 +1,120 @@
+
+00-database-dictfmt-1.12.1
+German-English FreeDict Dictionary
+
+ Maintainer: [up for grabs]
+
+Edition: 0.3.3
+Size: about 81000 headwords
+
+Publisher: FreeDict.
+
+
+Availability:
+
+  Copyright (C) 1999-2010 by various authors listed below. Available under
+  the terms of the GNU General Public Licence ver. 2.0 and any later
+  version. This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License as published
+  by the Free Software Foundation; either version 2 of the License, or (at
+  your option) any later version. This program is distributed in the hope
+  that it will be useful, but WITHOUT ANY WARRANTY; without even the
+  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU General Public License for more details. You should have
+  received a copy of the GNU General Public License along with this
+  program; if not, write to the Free Software Foundation, Inc., 59 Temple
+  Place - Suite 330, Boston, MA 02111-1307, USA.
+
+Published at: http://freedict.org/
+ID# (svn): $Id: deu-eng.tei 1255 2013-11-04 16:36:40Z bansp $
+
+Series: free dictionaries
+
+Notes:
+
+ * Database Status: old upstream version
+
+ * Inflected forms or irregular English verbs are not encoded nicely. They
+   appear in curly braces after the verb they belong to. Unfortunately
+   curly braces are informally used as cross references by some clients
+   presenting entries of the dictd database format. It is difficult to
+   present inflectional patterns together with the translations. The TEI
+   Guidelines cover only giving such patterns together with the headwords
+   in the <form> element.
+
+ * Prefixing verb translations by "to" is not nice. They should have
+   <pos>v</pos> instead.
+
+
+Source(s):
+
+  Home: http://dict.tu-chemnitz.de/ The Data was originally generated from
+  Frank Richter's "ding" Database. Phonetics was added through txt2pho, a
+  Text-to-Speech front end for the German inventories of the MBROLA
+  project. Mr. Portele granted the right to distribute the result of the
+  phonetic conversion within this project - thanks.
+
+The Project:
+
+  This dictionary comes to you through nice people making it available for
+  free and for good. It is part of the FreeDict project,
+  http://freedict.org/. This project aims to make translating dictionaries
+  available for free. Your contributions are welcome!
+
+Changelog:
+
+ * 2014-02-28: Conversion of the TEI source file into c5 format.
+   Stylesheet ID: $Id: teiheader2txt.xsl 1095 2011-01-06 14:57:17Z bansp$
+ * 2013-06-16 Sebastian Humenda:
+   * Fix Debian bug #630374
+   * reformat and reindent whole XML
+ * 2011-01-06 Piotr Bański:
+   Fixed bugs ## 2819917 (added Lämmergeier), 1719252 (unglaublicher),
+   1582690 (Sehnsucht - linging); as Michael Bunk remarks, much of that
+   should be fixed by reimport from ding
+   (http://dict.tu-chemnitz.de/dings.cgi); added the XML declaration.
+   Minor version +1 before a re-release.
+ * 2010-10-27 Piotr Bański:
+   Conversion of TEI P4 source into P5 via
+   tools/xsl/freedict_P4toP5.xsl; manual clean-up.
+ * 2005-08-07 Michael
+        Bunk:
+   FreeDict Maintainer
+   Fixed about 500 entries. They were mostly broken in regard of
+   braces. The first and biggest problem class were broken translation
+   equivalents. Probably during import from ding is was assumed that
+   translation equivalents were separated by commas, disregarding curly
+   braces which were used to group inflected forms of irregular verbs.
+   Another problem class affected headwords containing commas. They were
+   split into separate entries. The initial bug report from David Andersen
+   <david@andersen.gs> from 30 Aug 2004 inspired to look for broken
+   entries in regard of braces. The XSLT stylesheet used for identifying
+   the broken entries can be found in the file
+   "testing/find-lonely-braces.xsl" in the "tools" module of the FreeDict
+   CVS repository.
+ * 2005-06-23 Michael
+        Bunk:
+   FreeDict Maintainer
+   Updated header. Some fixes related to Debian Bug #154537, though it
+   seems the entry cited there was fixed already.
+ * 2004-12-28 Michael
+        Bunk:
+   FreeDict Maintainer
+   Improved header, but no more content
+ * 2002-04-13 Michael
+          Bunk:
+   Khasi-Databases Maintainer
+   Database was converted to TEI P4 format. It is now in XML.
+ * 2000-04-27 Horst
+          Eyermann:
+   Freedict Project Maintainer
+   Database was converted to TEI format and checked into CVS at
+   http://freedict.sf.net/
+ * 2000-04-10 Frank Richter:
+   Ding developer
+   The Data was originally generated from Frank Richter's "ding"
+   Database. Phonetics was added through txt2pho (a TTS front end for the
+   German inventories of the MBROLA project). Mr. Portele granted the
+   right to distribute the result of the phonetic conversion within this
+   project - thanks.
+German-English FreeDict Dictionary ver. 0.3.3
