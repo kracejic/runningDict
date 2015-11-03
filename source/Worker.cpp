@@ -6,7 +6,7 @@
 using namespace std;
 
 
-int levenshtein_distance(const std::string &s1, const std::string &s2)
+int levenshtein_distance(const std::string& s1, const std::string& s2)
 {
     // To change the type this function manipulates and returns, change
     // the return type and the types of the two variables below.
@@ -18,16 +18,16 @@ int levenshtein_distance(const std::string &s1, const std::string &s2)
     auto column = new decltype(s1len)[s1len + 1];
     std::iota(column + column_start, column + s1len + 1, column_start);
 
-    for (auto x = column_start; x <= s2len; x++) {
+    for(auto x = column_start; x <= s2len; x++)
+    {
         column[0] = x;
         auto last_diagonal = x - column_start;
-        for (auto y = column_start; y <= s1len; y++) {
+        for(auto y = column_start; y <= s1len; y++)
+        {
             auto old_diagonal = column[y];
-            auto possibilities = {
-                column[y] + 1,
-                column[y - 1] + 1,
-                last_diagonal + (s1[y - 1] == s2[x - 1]? 0 : 1)
-            };
+            auto possibilities
+                = {column[y] + 1, column[y - 1] + 1,
+                   last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
             column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
         }
@@ -39,23 +39,25 @@ int levenshtein_distance(const std::string &s1, const std::string &s2)
 
 
 
-std::map<std::string,std::vector<Result>> Worker::search(const std::vector<std::string>& words)
+std::map<std::string, std::vector<Result>>
+    Worker::search(const std::vector<std::string>& words)
 {
-    cout<<"xx"<<endl;
-    long long position {mStart};
+    cout << "xx" << endl;
+    long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
 
     // cout<<levenshtein_distance("testd", "test")<<endl;
     // return {};
-    cout<<"Words"<<endl;
+    cout << "Words" << endl;
     for(auto&& w : words)
-        cout<<"  "<<w<<endl;
+        cout << "  " << w << endl;
 
-    cout<<endl<<"----Results----"<<endl;
+    cout << endl << "----Results----" << endl;
     string german, firstLine, english, newLine;
     if(!getline(text, firstLine))
         return {};
-    while (true)
+    bool cont = true;
+    while(cont)
     {
         if(!getline(text, english))
             break;
@@ -64,33 +66,40 @@ std::map<std::string,std::vector<Result>> Worker::search(const std::vector<std::
             while(newLine[0] == ' ')
             {
                 english.append(newLine);
-                getline(text, newLine);
+                if(!getline(text, newLine))
+                {
+                    cont = false;
+                    break;
+                }
             }
         }
+        else
+            cont = false;
         german = firstLine.substr(0, firstLine.find(' '));
 
-        cout<<"  testing:"<<german<<endl;
+        // cout << "  testing:" << german << endl;
         for(auto&& w : words)
         {
             if(levenshtein_distance(w, german) < 2)
             {
-                cout<<"     *-"<<w<<" = "<<german<<" = "<<english<<endl;
+                cout << "     *-" << w << " = " << german << " = " << english
+                     << endl;
             }
         }
 
 
         firstLine = newLine;
     }
-    cout<<"xx"<<endl;
+    cout << "xx" << endl;
     return {};
 }
 //-----------------------------------------------------------------------------------
-std::map<std::string,std::vector<Result>> Worker::search(const std::vector<std::string>& words,
-                                   long long start, long long end)
+std::map<std::string, std::vector<Result>>
+    Worker::search(const std::vector<std::string>& words, long long start,
+                   long long end)
 {
     mStart = start;
     mEnd = end;
     return search(words);
 }
 //-----------------------------------------------------------------------------------
-
