@@ -47,6 +47,13 @@ cmake -G "Ninja" -DCMAKE_CXX_COMPILER="clang++" ..
 ninja install
 ```
 
+* Note for sublime text: You want to have *c:/runLinux32.bat* with this:
+```
+set MSYSTEM=MINGW32
+C:\msys64\usr\bin\bash.exe --login -c "cd - ; %*"
+```
+    * and edit makebuildrun.sh and ninjabuildrun.sh to tailor arguments
+
 ### CMAKE variables
 
 * -DCMAKE_INSTALL_PREFIX= - location for instalation

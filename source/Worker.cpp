@@ -6,43 +6,6 @@
 using namespace std;
 
 
-
-// len_s and len_t are the number of characters in string s and t respectively
-int LevenshteinDistance(const string& s, int len_s, const string& t, int len_t)
-{
-    int cost;
-    static long num = 0;
-    num++;
-    cout<<num<<endl;
-
-    /* base case: empty strings */
-    if(len_s == 0)
-        return len_t;
-    if(len_t == 0)
-        return len_s;
-
-    /* test if last characters of the strings match */
-    if(s[len_s - 1] == t[len_t - 1])
-        cost = 0;
-    else
-        cost = 1;
-
-    /* return minimum of delete char from s, delete char from t, and delete char
-     * from both */
-    return std::min({LevenshteinDistance(s, len_s - 1, t, len_t) + 1,
-                   LevenshteinDistance(s, len_s, t, len_t - 1) + 1,
-                   LevenshteinDistance(s, len_s - 1, t, len_t - 1) + cost});
-}
-
-int LevenshteinDistance(const string& s, const string& t){
-    return LevenshteinDistance(s, (int)s.size(), t, (int)t.size());
-}
-
-
-
-
-
-// TWO
 int levenshtein_distance(const std::string &s1, const std::string &s2)
 {
     // To change the type this function manipulates and returns, change
@@ -81,34 +44,42 @@ std::map<std::string,std::vector<Result>> Worker::search(const std::vector<std::
     cout<<"xx"<<endl;
     long long position {mStart};
     std::istringstream text(mDict.Dict::getContens());
-    cout<<"xx"<<endl;
 
     // cout<<levenshtein_distance("testd", "test")<<endl;
     // return {};
-    cout<<"words"<<endl;
+    cout<<"Words"<<endl;
     for(auto&& w : words)
         cout<<"  "<<w<<endl;
 
-    string one, oneC, two;
+    cout<<endl<<"----Results----"<<endl;
+    string german, firstLine, english, newLine;
+    if(!getline(text, firstLine))
+        return {};
     while (true)
     {
-        text>>one;
-        if(!getline(text, oneC))
+        if(!getline(text, english))
             break;
-        if(!getline(text, two))
-            break;
-        // cout<<one<<endl;
+        if(getline(text, newLine))
+        {
+            while(newLine[0] == ' ')
+            {
+                english.append(newLine);
+                getline(text, newLine);
+            }
+        }
+        german = firstLine.substr(0, firstLine.find(' '));
 
+        cout<<"  testing:"<<german<<endl;
         for(auto&& w : words)
         {
-            if(levenshtein_distance(w, one) < 2)
+            if(levenshtein_distance(w, german) < 2)
             {
-                cout<<w<<" = "<<one<<endl;
+                cout<<"     *-"<<w<<" = "<<german<<" = "<<english<<endl;
             }
         }
 
 
-
+        firstLine = newLine;
     }
     cout<<"xx"<<endl;
     return {};
