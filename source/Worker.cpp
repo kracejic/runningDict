@@ -5,6 +5,19 @@
 
 using namespace std;
 
+bool checkChars(const char* c1, const char* c2)
+{
+    if(*c1 & 0x80)
+    {
+        return (*c1 == *c2 ? 0 : 1);
+    }
+    else if(*c1 & 0x80)
+    {
+        return (*c1 == *c2 ? 0 : 1);
+    }
+    else
+      return (*c1 == *c2 ? 0 : 1);
+}
 
 int levenshtein_distance(const std::string& s1, const std::string& s2)
 {
@@ -27,7 +40,10 @@ int levenshtein_distance(const std::string& s1, const std::string& s2)
             auto old_diagonal = column[y];
             auto possibilities
                 = {column[y] + 1, column[y - 1] + 1,
-                   last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
+                   last_diagonal + checkChars(&(s1[y - 1]), &(s2[x - 1]))};
+            // auto possibilities
+            //     = {column[y] + 1, column[y - 1] + 1,
+            //        last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
             column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
         }
@@ -77,7 +93,7 @@ std::map<std::string, std::vector<Result>>
             cont = false;
         german = firstLine.substr(0, firstLine.find(' '));
 
-        // cout << "  testing:" << german << endl;
+        cout << "  testing:" << german << endl;
         for(auto&& w : words)
         {
             if(levenshtein_distance(w, german) < 2)
