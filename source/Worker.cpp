@@ -2,24 +2,19 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <locale>
+#include <codecvt>
+
 
 using namespace std;
 
-bool checkChars(const char* c1, const char* c2)
+template<typename T>
+bool checkChars(T* c1, T* c2)
 {
-    if(*c1 & 0x80)
-    {
-        return (*c1 == *c2 ? 0 : 1);
-    }
-    else if(*c1 & 0x80)
-    {
-        return (*c1 == *c2 ? 0 : 1);
-    }
-    else
-      return (*c1 == *c2 ? 0 : 1);
+    return (*c1 == *c2 ? 0 : 1);
 }
 
-int levenshtein_distance(const std::string& s1, const std::string& s2)
+int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
 {
     // To change the type this function manipulates and returns, change
     // the return type and the types of the two variables below.
@@ -56,17 +51,27 @@ int levenshtein_distance(const std::string& s1, const std::string& s2)
 
 
 std::map<std::string, std::vector<Result>>
-    Worker::search(const std::vector<std::string>& words)
+    Worker::search(const std::vector<std::string>& wordsIn)
 {
     cout << "xx" << endl;
     long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
 
+
+
     // cout<<levenshtein_distance("testd", "test")<<endl;
     // return {};
     cout << "Words" << endl;
-    for(auto&& w : words)
+
+    wstring_convert<codecvt_utf8<char16_t>, char16_t> utfConvertor;
+    std::vector<u16string> words;
+    for(auto&& w : wordsIn)
+    {
         cout << "  " << w << endl;
+        words.emplace_back(utfConvertor.from_bytes(w));
+    }
+
+
 
     cout << endl << "----Results----" << endl;
     string german, firstLine, english, newLine;
@@ -93,13 +98,16 @@ std::map<std::string, std::vector<Result>>
             cont = false;
         german = firstLine.substr(0, firstLine.find(' '));
 
-        cout << "  testing:" << german << endl;
+        // cout << "  testing:" << german << endl;
+        u16string german2;
         for(auto&& w : words)
         {
-            if(levenshtein_distance(w, german) < 2)
+            german2 = utfConvertor.from_bytes(german);
+            int dist = levenshtein_distance(w, german2);
+            if(dist < 2)
             {
-                cout << "     *-" << w << " = " << german << " = " << english
-                     << endl;
+                cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
+                     << " = " << german << " = " << english << endl;
             }
         }
 
