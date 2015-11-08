@@ -30,7 +30,9 @@ set(SRCS
 )
 
 
+find_package (Threads)
 add_executable(runMe ${SRCS})
+target_link_libraries (runMe ${CMAKE_THREAD_LIBS_INIT})
 
 
 install(TARGETS runMe DESTINATION ./)

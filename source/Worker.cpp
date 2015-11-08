@@ -54,7 +54,6 @@ std::map<std::string, std::vector<Result>>
     Worker::search(const std::vector<std::string>& wordsIn)
 {
     std::map<std::string, std::vector<Result>> result;
-    cout << "xx" << endl;
     long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
 
@@ -62,19 +61,14 @@ std::map<std::string, std::vector<Result>>
 
     // cout<<levenshtein_distance("testd", "test")<<endl;
     // return {};
-    cout << "Words" << endl;
 
     wstring_convert<codecvt_utf8<char16_t>, char16_t> utfConvertor;
     std::vector<u16string> words;
     for(auto&& w : wordsIn)
-    {
-        cout << "  " << w << endl;
         words.emplace_back(utfConvertor.from_bytes(w));
-    }
 
 
 
-    cout << endl << "----Results----" << endl;
     string german, firstLine, english, newLine;
     if(!getline(text, firstLine))
         return {};
@@ -107,19 +101,28 @@ std::map<std::string, std::vector<Result>>
         {
             german2 = utfConvertor.from_bytes(german);
             int dist = levenshtein_distance(w, german2);
-            if(dist < 2)
+            if(dist < (w.size()/3+2))
             {
                 // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
                 //      << " = " << german << " = " << english << endl;
-                result[utfConvertor.to_bytes(w)].emplace_back(dist, english);
+                result[utfConvertor.to_bytes(w)].emplace_back(mBonus+dist, english);
                 // result[utfConvertor.to_bytes(w)].emplace_back(english);
             }
         }
 
 
+
         firstLine = newLine;
     }
-    cout << "xx" << endl;
+
+    for(auto&& w : result)
+    {
+        sort(w.second.begin(), w.second.end(),
+                [](auto& x, auto& y) {return x.score < y.score; }
+                );
+    }
+
+
     return result;
 }
 //-----------------------------------------------------------------------------------
