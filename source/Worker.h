@@ -7,6 +7,7 @@
 
 struct Result
 {
+    Result(float sc, std::string st) : score(sc), words(st) {};
     float score;
     std::string words;
 };

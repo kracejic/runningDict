@@ -63,6 +63,19 @@ int main(int argc, char const* argv[])
         Worker worker{dict};
         auto res = worker.search(words);
 
+        for(auto&& rr : res)
+        {
+            sort(rr.second.begin(), rr.second.end(),
+                [](auto& x, auto& y) {return x.score < y.score; }
+                );
+            cout<<rr.first<<endl;
+            for(auto&& r : rr.second)
+            {
+                cout<<"  "<<r.score<<" -"<<r.words<<endl;
+            }
+        }
+
+
     }
 
 

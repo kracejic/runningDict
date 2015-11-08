@@ -53,6 +53,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
 std::map<std::string, std::vector<Result>>
     Worker::search(const std::vector<std::string>& wordsIn)
 {
+    std::map<std::string, std::vector<Result>> result;
     cout << "xx" << endl;
     long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
@@ -96,7 +97,9 @@ std::map<std::string, std::vector<Result>>
         }
         else
             cont = false;
-        german = firstLine.substr(0, firstLine.find(' '));
+        german = firstLine.substr(0, firstLine.find('/'));
+        if(german[german.size()-1] == ' ')
+            german.resize(german.size()-1);
 
         // cout << "  testing:" << german << endl;
         u16string german2;
@@ -106,8 +109,10 @@ std::map<std::string, std::vector<Result>>
             int dist = levenshtein_distance(w, german2);
             if(dist < 2)
             {
-                cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
-                     << " = " << german << " = " << english << endl;
+                // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
+                //      << " = " << german << " = " << english << endl;
+                result[utfConvertor.to_bytes(w)].emplace_back(dist, english);
+                // result[utfConvertor.to_bytes(w)].emplace_back(english);
             }
         }
 
@@ -115,7 +120,7 @@ std::map<std::string, std::vector<Result>>
         firstLine = newLine;
     }
     cout << "xx" << endl;
-    return {};
+    return result;
 }
 //-----------------------------------------------------------------------------------
 std::map<std::string, std::vector<Result>>
