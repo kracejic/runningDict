@@ -42,6 +42,16 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/
     )
 
 
+# Copy MINGW libraries
+if(MINGW)
+  get_filename_component(GCC_PATH ${CMAKE_C_COMPILER} PATH)
+  install(FILES ${GCC_PATH}/libgcc_s_dw2-1.dll
+      ${GCC_PATH}/libwinpthread-1.dll
+      ${GCC_PATH}/libstdc++-6.dll
+      DESTINATION ./
+    )
+endif(MINGW)
+
 
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -55,3 +65,9 @@ message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message(STATUS "")
 
+if(MINGW) 
+  # MESSAGE (STATUS "* Will copy MINGW libs to install folder: " ${GCC_PATH}) 
+  MESSAGE (STATUS "* Will copy MINGW libs to install folder: ") 
+endif(MINGW)
+
+message(STATUS "")

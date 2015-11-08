@@ -72,57 +72,47 @@ int main(int argc, char const* argv[])
     }
     // process rest of the free arguments. EG. file list, word list
     for(; argIt < argc; ++argIt)
-    {
-        // cout << argv[argIt] << endl;
         words.emplace_back(argv[argIt]);
-    }
 
 
+    // launch testing
     vector<future<std::map<std::string, std::vector<Result>>>> fut;
     for(auto&& dict : dicts)
     {
-        cout<<"running dict"<<endl;
-        // Worker worker{dict.second};
-        // auto res = worker.search(words);
-        //
-
-        fut.push_back(std::async(std::launch::async, [&words,&dict]()
-                   {
-                        Worker worker{dict.second, (int)dict.first};
-                        return worker.search(words);
-                   }));
+        fut.push_back(
+            std::async(std::launch::async, [&words, &dict]()
+                       {
+                           Worker worker{dict.second, dict.first};
+                           return worker.search(words);
+                       }));
     }
 
-    for(auto&& f : fut)
-        f.wait();
-    cout<<"all finished"<<endl;
 
-
-    //fill complete results
-    std::map<std::string, std::vector<Result>> results;
-    for(auto&& f : fut)
-    {
-        auto res = f.get();
-        for(auto&& wordRes : res)
-        {
+    // collect results
+    workerResult results;
+    for(auto&& worker : fut)
+        for(auto&& wordRes : worker.get())
             results[wordRes.first].insert(results[wordRes.first].end(),
                                           wordRes.second.begin(),
                                           wordRes.second.end());
-        }
-    }
 
 
+    // Process results
     for(auto&& rr : results)
     {
-        sort(rr.second.begin(), rr.second.end(),
-            [](auto& x, auto& y) {return x.score < y.score; }
-            );
+        //sort
+        sort(rr.second.begin(), rr.second.end(), [](auto& x, auto& y)
+             {
+                 return x.score < y.score;
+             });
+        //erase doubles
         rr.second.erase(unique(rr.second.begin(), rr.second.end(),
                                [](const auto& x, const auto& y)
                                {
                                    return x.words == y.words && x.score == y.score;
                                }),
                         rr.second.end());
+        //leave only best matches for each word
         int max = 5;
         rr.second.erase(find_if(rr.second.begin(), rr.second.end(),
                                 [max](const auto& x) mutable
@@ -134,11 +124,13 @@ int main(int argc, char const* argv[])
                         rr.second.end());
     }
 
-
-    for(auto&& rr : results)
+    cout<<"-----RESULTS-----"<<endl;
+    //print results
+    for(auto&& w : words)
     {
-        cout<<rr.first<<endl;
-        for(auto&& r : rr.second)
+        auto& rr = results[w];
+        cout<<w<<endl;
+        for(auto&& r : rr)
         {
             cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }

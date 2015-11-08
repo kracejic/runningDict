@@ -48,25 +48,33 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     return result;
 }
 
-
-
-std::map<std::string, std::vector<Result>>
-    Worker::search(const std::vector<std::string>& wordsIn)
+// utility wrapper to adapt locale-bound facets for wstring/wbuffer convert
+template <class Facet> struct deletable_facet : Facet
 {
-    std::map<std::string, std::vector<Result>> result;
+    template <class... Args>
+    deletable_facet(Args&&... args) : Facet(std::forward<Args>(args)...) {}
+    ~deletable_facet() {}
+};
+
+workerResult Worker::search(const std::vector<std::string>& wordsIn)
+{
+    workerResult result;
     long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
 
-
-
-    // cout<<levenshtein_distance("testd", "test")<<endl;
-    // return {};
-
-    wstring_convert<codecvt_utf8<char16_t>, char16_t> utfConvertor;
+    // convert words to char16
+    wstring_convert<deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>,
+                    char16_t> utfConvertor;
     std::vector<u16string> words;
     for(auto&& w : wordsIn)
+    {
+        // cout<<"  converting: \""<<w<<"\" size="<<w.size()<<endl;
         words.emplace_back(utfConvertor.from_bytes(w));
+    }
 
+    // cout<<"mStart = "<<mStart<<endl;
+    // cout<<"mEnd = "<<mEnd<<endl;
+    // cout<<"xxxx = "<<text.tellg()<<endl;
 
 
     string german, firstLine, english, newLine;
@@ -116,19 +124,16 @@ std::map<std::string, std::vector<Result>>
     }
 
     for(auto&& w : result)
-    {
         sort(w.second.begin(), w.second.end(),
                 [](auto& x, auto& y) {return x.score < y.score; }
                 );
-    }
 
 
     return result;
 }
 //-----------------------------------------------------------------------------------
-std::map<std::string, std::vector<Result>>
-    Worker::search(const std::vector<std::string>& words, long long start,
-                   long long end)
+workerResult Worker::search(const std::vector<std::string>& words,
+                            long long start, long long end)
 {
     mStart = start;
     mEnd = end;

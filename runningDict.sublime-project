@@ -39,7 +39,7 @@
                 {
                     "name":"ninja install + run",
                     "cmd":["../ninjabuildrun.sh"],
-                    "windows":{"cmd":["c:/runLinux32.bat","../ninjabuildrun.sh"]},
+                    "windows":{"shell_cmd":"c:/runLinux32.bat ../ninjabuildrun.sh"},
                 },
 
             ]

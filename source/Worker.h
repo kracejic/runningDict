@@ -12,6 +12,7 @@ struct Result
     std::string words;
 };
 
+using workerResult = std::map<std::string,std::vector<Result>>;
 
 class Worker
 {
@@ -30,7 +31,7 @@ class Worker
         : mDict(dict), mBonus(bonus){
             mEnd = dict.getContens().size();
         };
-    std::map<std::string,std::vector<Result>> search(const std::vector<std::string>& words, long long start,
+    workerResult search(const std::vector<std::string>& words, long long start,
                                long long end);
-    std::map<std::string,std::vector<Result>> search(const std::vector<std::string>& words);
+    workerResult search(const std::vector<std::string>& words);
 };
