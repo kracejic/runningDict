@@ -4,26 +4,23 @@
 #include <sstream>
 #include <locale>
 #include <codecvt>
+#include <algorithm>
 
 
 using namespace std;
-
-template<typename T>
-bool checkChars(T* c1, T* c2)
-{
-    return (*c1 == *c2 ? 0 : 1);
-}
 
 int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
 {
     // To change the type this function manipulates and returns, change
     // the return type and the types of the two variables below.
     int s1len = s1.size();
+    s1len = min(512, s1len);
     int s2len = s2.size();
 
     auto column_start = (decltype(s1len))1;
 
-    auto column = new decltype(s1len)[s1len + 1];
+    // auto column = new decltype(s1len)[s1len + 1];
+    int column[512];
     std::iota(column + column_start, column + s1len + 1, column_start);
 
     for(auto x = column_start; x <= s2len; x++)
@@ -37,10 +34,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
             auto old_diagonal = column[y];
             auto possibilities
                 = {column[y] + 1, column[y - 1] + 1,
-                   last_diagonal + checkChars(&(s1[y - 1]), &(s2[x - 1]))};
-            // auto possibilities
-            //     = {column[y] + 1, column[y - 1] + 1,
-            //        last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
+                   last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
             column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
             // cout<<"("<<y<<"="<<column[y]<<" ) ";
@@ -56,7 +50,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
 
     }
     auto result = column[s1len];
-    delete[] column;
+    // delete[] column;
     return result;
 }
 
