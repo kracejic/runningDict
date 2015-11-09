@@ -30,7 +30,9 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     {
         column[0] = x;
         auto last_diagonal = x - column_start;
-        for(auto y = column_start; y <= s1len; y++)
+        int y;
+        // cout<<"num"<<x<<" = "<<endl<<"  ";
+        for(y = column_start; y <= s1len; y++)
         {
             auto old_diagonal = column[y];
             auto possibilities
@@ -41,7 +43,17 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
             //        last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
             column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
+            // cout<<"("<<y<<"="<<column[y]<<" ) ";
         }
+        // cout<<endl<<endl;
+
+        if(x == 4)
+            if(column[4] >= 4)
+            {
+                column[s1len] = 100;
+                break;
+            }
+
     }
     auto result = column[s1len];
     delete[] column;
