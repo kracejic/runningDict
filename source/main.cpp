@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stdio.h>
+#include <cstdio>
 #include <future>
 
 #include "version.h"
@@ -31,6 +32,7 @@ int main(int argc, char const* argv[])
 
     // process parameters
     int argIt;
+    int numthreads = 3;
     for(argIt = 1; argIt < argc; ++argIt)
     {
         string tmp = argv[argIt];
@@ -66,6 +68,12 @@ int main(int argc, char const* argv[])
                 }
             }
         }
+        else if(tmp[0] == '-' && tmp[1] == 'j')
+        {
+            sscanf(tmp.c_str(), "-j%d", &numthreads);
+            numthreads = (numthreads > 0) ? numthreads : 1;
+            // cout<<"THREADS: "<<numthreads<<endl;
+        }
         else
             break;
 
@@ -75,16 +83,37 @@ int main(int argc, char const* argv[])
         words.emplace_back(argv[argIt]);
 
 
-    // launch testing
-    vector<future<std::map<std::string, std::vector<Result>>>> fut;
+    long long sum = accumulate(dicts.begin(), dicts.end(), 0,
+                               [](long long sum, const auto& x) {
+                                   return sum + x.second.getContens().size();
+                               });
+    vector<long long> threadsForDict;
     for(auto&& dict : dicts)
     {
-        fut.push_back(
-            std::async(std::launch::async, [&words, &dict]()
-                       {
-                           Worker worker{dict.second, dict.first};
-                           return worker.search(words);
-                       }));
+        threadsForDict.push_back(
+            1 + (((numthreads - 1) * (long long)dict.second.getContens().size())
+                 / sum));
+        // cout<<"  threads: "<<threadsForDict.back()<<endl;
+    }
+
+
+    // launch testing
+    vector<future<std::map<std::string, std::vector<Result>>>> fut;
+    for(int dictI = 0; dictI < dicts.size(); ++dictI)
+    {
+        auto& dict = dicts[dictI];
+        long long size = dict.second.getContens().size();
+        for(int i = 0; i < threadsForDict[dictI]; ++i)
+        {
+            long long start = (i * size) / threadsForDict[dictI];
+            long long end = ((i + 1) * size) / threadsForDict[dictI];
+            fut.push_back(std::async(std::launch::async,
+                                     [&words, &dict, start, end]()
+                                     {
+                                         Worker worker{dict.second, dict.first};
+                                         return worker.search(words, start, end);
+                                     }));
+        }
     }
 
 

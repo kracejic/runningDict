@@ -78,9 +78,18 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
         words.emplace_back(utfConvertor.from_bytes(w));
     }
 
-    // cout<<"mStart = "<<mStart<<endl;
-    // cout<<"mEnd = "<<mEnd<<endl;
-    // cout<<"xxxx = "<<text.tellg()<<endl;
+    //some overlap is neccessary for start if not starting from the beginning
+    if(mStart > 0)
+    {
+        mStart = (mStart > 256) ? (mStart - 256) : 0;
+        text.seekg(mStart);
+        string tmp;
+        do { // reset line position
+            getline(text, tmp);
+        } while(tmp[0] == ' ');
+    }
+    if(mEnd > mDict.getContens().size())
+        mEnd = mDict.getContens().size();
 
 
     string german, firstLine, english, newLine;
@@ -127,6 +136,8 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
 
 
         firstLine = newLine;
+        if(text.tellg() > mEnd)
+            break;
     }
 
     for(auto&& w : result)

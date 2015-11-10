@@ -65,9 +65,9 @@ message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message(STATUS "")
 
-if(MINGW) 
-  # MESSAGE (STATUS "* Will copy MINGW libs to install folder: " ${GCC_PATH}) 
-  MESSAGE (STATUS "* Will copy MINGW libs to install folder: ") 
+if(MINGW)
+  # MESSAGE (STATUS "* Will copy MINGW libs to install folder: " ${GCC_PATH})
+  MESSAGE (STATUS "* Will copy MINGW libs to install folder: ")
 endif(MINGW)
 
 message(STATUS "")

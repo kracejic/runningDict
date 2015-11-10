@@ -1,14 +1,30 @@
-# EmptyCppProject
+# RunningDict
 
-This is a frame for project in C++.
-These tools are in mind:
+## Command line arguments
 
-    * Sublime text
-        * build system defined for *make* or *ninja*
-        * cppinabox support
-    * CMake based build
-    * YCMD
+* -d
+* -D
+* -j[num] - number of threads
+* -h --help - prints help
 
+
+## Speed reference table
+
+Measured on i7-4770 (4cores + HT) @ Linux 3.16.0
+
+| # of threads | time | speedUp |
+|-------|-------|------|
+|  12   | 84    | 2.6  |
+|  10   | 87    | 2.5  |
+|  9    | 84    | 2.6  |
+|  8    | 76    | 2.93 |
+|  7    | 81    | 2.7  |
+|  6    | 89    | 2.5  |
+|  5    | 96    | 2.3  |
+|  4    | 101   | 2.2  |
+|  3    | 91    | 2.4  |
+|  2    | 121   | 1.84 |
+|  1    | 223   | 1    |
 
 
 ## Building
