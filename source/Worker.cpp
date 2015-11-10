@@ -65,7 +65,6 @@ template <class Facet> struct deletable_facet : Facet
 workerResult Worker::search(const std::vector<std::string>& wordsIn)
 {
     workerResult result;
-    long long position{mStart};
     std::istringstream text(mDict.Dict::getContens());
 
     // convert words to char16
@@ -124,7 +123,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
         {
             german2 = utfConvertor.from_bytes(german);
             int dist = levenshtein_distance(w, german2);
-            if(dist < (w.size()/3+2))
+            if(dist < (int)(w.size()/3+1))
             {
                 // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
                 //      << " = " << german << " = " << english << endl;

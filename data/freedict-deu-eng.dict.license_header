@@ -117,4 +117,8 @@ Changelog:
    German inventories of the MBROLA project). Mr. Portele granted the
    right to distribute the result of the phonetic conversion within this
    project - thanks.
+  * 2015-11-10 Jiri Ohnheiser
+    license was splitted into special file
+    all was converted to lower case to speed up work
+
 German-English FreeDict Dictionary ver. 0.3.3

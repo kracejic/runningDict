@@ -16,7 +16,7 @@ configure_file (
 
 
 # Flags
-set(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall")
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/source
@@ -27,6 +27,7 @@ set(SRCS
     source/main.cpp
     source/Dict.cpp
     source/Worker.cpp
+    source/Processer.cpp
 )
 
 
