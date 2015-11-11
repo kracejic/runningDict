@@ -27,6 +27,7 @@ private:
     std::vector<Word> words;
 
 public:
+    Processer(char const* text);
     Processer(int argstart, int argc, char const* argv[]);
     std::vector<std::string> getAllWordsBig();
     std::vector<std::string> getAllWordsSmall();

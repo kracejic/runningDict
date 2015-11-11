@@ -11,6 +11,7 @@
 #include "Worker.h"
 #include "Processer.h"
 #include "SpeedTimer.h"
+#include "Search.h"
 
 using namespace std;
 
@@ -39,15 +40,7 @@ Parsing CamelCase:
     cout<<help<<endl;
 }
 
-int finder(int argc, char const* argv[]);
-
-
 int main(int argc, char const* argv[])
-{
-    return finder(argc, argv);
-}
-
-int finder(int argc, char const* argv[])
 {
     bool verbose {false};
     SpeedTimer completeTimer{true};
@@ -119,95 +112,17 @@ int finder(int argc, char const* argv[])
     //     words.emplace_back(argv[argIt]);
     Processer processer{argIt, argc, argv};
     std::vector<string> words = processer.getAllWordsSmall();
-
-
-
-    if(verbose)
-    {
-        cout<<"Words to process:"<<endl<<"  ";
-        for(auto&& i : words) 
-            cout<<i<<", ";
-        cout<<endl<<endl;
-    }
-    
-
-
-    long long sum = accumulate(dicts.begin(), dicts.end(), 0,
-                               [](long long sum, const auto& x) {
-                                   return sum + x.second.getContens().size();
-                               });
-    vector<long long> threadsForDict;
-    for(auto&& dict : dicts)
-    {
-        threadsForDict.push_back(
-            1 + (((numthreads - 1) * (long long)dict.second.getContens().size())
-                 / sum));
-        // cout<<"  threads: "<<threadsForDict.back()<<endl;
-    }
-
     initTimer.end();
+
+
     SpeedTimer execTimer{true};
-
-    // launch testing
-    vector<future<std::map<std::string, std::vector<Result>>>> fut;
-    for(int dictI = 0; dictI < (int)dicts.size(); ++dictI)
-    {
-        auto& dict = dicts[dictI];
-        long long size = dict.second.getContens().size();
-        for(int i = 0; i < threadsForDict[dictI]; ++i)
-        {
-            long long start = (i * size) / threadsForDict[dictI];
-            long long end = ((i + 1) * size) / threadsForDict[dictI];
-            fut.push_back(std::async(std::launch::async,
-                                     [&words, &dict, start, end]()
-                                     {
-                                         Worker worker{dict.second, dict.first};
-                                         return worker.search(words, start, end);
-                                     }));
-        }
-    }
-
-
-    // collect results
-    workerResult results;
-    for(auto&& worker : fut)
-        for(auto&& wordRes : worker.get())
-            results[wordRes.first].insert(results[wordRes.first].end(),
-                                          wordRes.second.begin(),
-                                          wordRes.second.end());
-
-
+    //TODO
+    workerResult results = _search(dicts, numthreads, words, verbose);
+    //TODO
     execTimer.end();
-    SpeedTimer finTimer{true};
 
-    // Process results
-    for(auto&& rr : results)
-    {
-        //sort
-        sort(rr.second.begin(), rr.second.end(), [](auto& x, auto& y)
-             {
-                 return x.score < y.score;
-             });
-        //erase doubles
-        rr.second.erase(unique(rr.second.begin(), rr.second.end(),
-                               [](const auto& x, const auto& y)
-                               {
-                                   return x.words == y.words && x.score == y.score;
-                               }),
-                        rr.second.end());
-        //leave only best matches for each word
-        int max = 5;
-        rr.second.erase(find_if(rr.second.begin(), rr.second.end(),
-                                [max](const auto& x) mutable
-                                {
-                                    bool ret = max < x.score;
-                                    max = x.score;
-                                    return ret;
-                                }),
-                        rr.second.end());
-    }
 
-    
+
     if(verbose)
         cout<<"-----RESULTS-----"<<endl;
     //print results
@@ -221,17 +136,12 @@ int finder(int argc, char const* argv[])
         }
     }
 
-    finTimer.end();
     completeTimer.end();
     if(verbose)
     {
         cout<<endl<<"Speed results:"<<endl;
         cout<<"  init = "<<initTimer.str()<<endl;
         cout<<"  exec = "<<execTimer.str()<<endl;
-        cout<<"  fin  = "<<finTimer.str()<<endl<<endl;
         cout<<"  Copmlete  = "<<completeTimer.str()<<endl;
     }
-
-
-    return 0;
 }

@@ -10,7 +10,7 @@ using namespace std;
 string getLowerCase(const string& txt)
 {
     string res {txt};
-    for(auto&& i : res) 
+    for(auto&& i : res)
     {
         i = tolower(i);
     }
@@ -18,14 +18,14 @@ string getLowerCase(const string& txt)
 }
 
 
-Word::Word(const std::string& txt) : text(txt) 
+Word::Word(const std::string& txt) : text(txt)
 {
     int it1 = 0, it2 = 1;
     bool wasUpperCase = false;
     //handle first character upper case
     if(std::isupper(txt[1]))
         wasUpperCase = true;
-    
+
     //fix CObjectThing to parse as ObjectThing
     if(txt[0] == 'C' && std::isupper(txt[1])){
         it1 = 1;
@@ -44,14 +44,23 @@ Word::Word(const std::string& txt) : text(txt)
         }
         else
         {
-            if(wasUpperCase && ((it2 - it1) > 1))
-            {
-                words1.push_back(getLowerCase(txt.substr(it1, it2 - it1 - 1)));
-                // printf("   catch2 %d %d - %s\n", it1, it2, words1.back().c_str());
-                it2--;
+            if(txt[it2] == '_'){
+                words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
+                // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
+                ++it2;
                 it1 = it2;
+                wasUpperCase = true;
             }
-            wasUpperCase = false;
+            else{
+                if(wasUpperCase && ((it2 - it1) > 1))
+                {
+                    words1.push_back(getLowerCase(txt.substr(it1, it2 - it1 - 1)));
+                    // printf("   catch2 %d %d - %s\n", it1, it2, words1.back().c_str());
+                    --it2;
+                    it1 = it2;
+                }
+                wasUpperCase = false;
+            }
         }
     }
     words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
@@ -87,6 +96,18 @@ std::vector<std::string> Word::getAllWordsSmall()
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
+Processer::Processer(char const* text)
+{
+    istringstream txt(text);
+    while(txt)
+    {
+        string word;
+        txt >> word;
+        if(word.size() > 0) {
+            words.emplace_back(word);
+        }
+    }
+}
 Processer::Processer(int argstart, int argc, char const* argv[])
 {
     for (int i = argstart; i < argc; ++i)
@@ -98,11 +119,10 @@ Processer::Processer(int argstart, int argc, char const* argv[])
             string word;
             txt >> word;
             if(word.size() > 0) {
-                // cout<<"   word: "<<word<<endl;
                 words.emplace_back(word);
             }
         }
-        
+
     }
     // cout<<"words size: "<<words.size()<<endl;
 
@@ -111,7 +131,7 @@ Processer::Processer(int argstart, int argc, char const* argv[])
 std::vector<std::string> Processer::getAllWordsBig()
 {
     std::vector<std::string> res;
-    for(auto&& w : words) 
+    for(auto&& w : words)
     {
         std::vector<std::string> add = w.getAllWordsBig();
         res.insert(res.end(), add.begin(), add.end());
@@ -122,7 +142,7 @@ std::vector<std::string> Processer::getAllWordsBig()
 std::vector<std::string> Processer::getAllWordsSmall()
 {
     std::vector<std::string> res;
-    for(auto&& w : words) 
+    for(auto&& w : words)
     {
         std::vector<std::string> add = w.getAllWordsSmall();
         res.insert(res.end(), add.begin(), add.end());

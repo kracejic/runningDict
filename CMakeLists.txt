@@ -24,19 +24,23 @@ include_directories(
 
 set(SRCS
     ${PROJECT_BINARY_DIR}/source/version.cpp
-    source/main.cpp
     source/Dict.cpp
     source/Worker.cpp
+    source/Search.cpp
     source/Processer.cpp
 )
 
 
 find_package (Threads)
-add_executable(runMe ${SRCS})
+add_executable(runMe source/main.cpp ${SRCS})
 target_link_libraries (runMe ${CMAKE_THREAD_LIBS_INIT})
+
+add_library(RunningDict SHARED source/LibInterface.cpp ${SRCS})
+target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
 
 
 install(TARGETS runMe DESTINATION ./)
+install(TARGETS RunningDict DESTINATION ./)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/
         DESTINATION ./
