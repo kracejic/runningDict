@@ -1,3 +1,4 @@
+#include "Dict.h"
 #include "LibInterface.h"
 #include "Search.h"
 #include "Processer.h"
@@ -7,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <string>
+#include <algorithm>
 
 
 std::vector<std::pair<int, Dict>> dicts {};
@@ -17,6 +19,12 @@ char *data{nullptr};
 
 bool addDictionary(const char *filename, bool priority)
 {
+    if (any_of(dicts.begin(), dicts.end(), [&filename](auto& x) {
+            return x.second.getFilename() == filename; }))
+    {
+        return true;
+    }
+
     dicts.emplace_back();
     if (priority)
         dicts.back().first = -1;

@@ -7,13 +7,17 @@ Dict::Dict()
 
 }
 //-----------------------------------------------------------------------------------
+const std::string& Dict::getFilename() const{
+    return mFilename;
+}
+//-----------------------------------------------------------------------------------
 bool Dict::open(std::string filename)
 {
     file.open(filename);
 
     if (!file.is_open())
         return false;
-
+    mFilename = filename;
 
     file.seekg(0, std::ios::end);
     mContents.reserve(file.tellg());
