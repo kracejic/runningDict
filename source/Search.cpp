@@ -19,9 +19,13 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
 
 
     long long sum = accumulate(dicts.begin(), dicts.end(), 0,
-                               [](long long sum, const auto& x) {
-                                   return sum + x.second.getContens().size();
-                               });
+        [](long long sum, const auto& x)
+        {
+            if(x.second.getContens().size() > 100000)
+                return sum + x.second.getContens().size();
+            else
+                return sum;
+        });
     vector<long long> threadsForDict;
     for(auto&& dict : dicts)
     {
@@ -42,12 +46,12 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
         {
             long long start = (i * size) / threadsForDict[dictI];
             long long end = ((i + 1) * size) / threadsForDict[dictI];
-            fut.push_back(std::async(std::launch::async,
-                                     [&words, &dict, start, end]()
-                                     {
-                                         Worker worker{dict.second, dict.first};
-                                         return worker.search(words, start, end);
-                                     }));
+            fut.push_back(
+                std::async(std::launch::async, [&words, &dict, start, end]()
+                    {
+                        Worker worker{dict.second, dict.first};
+                        return worker.search(words, start, end);
+                    }));
         }
     }
 
@@ -57,8 +61,7 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
     for(auto&& worker : fut)
         for(auto&& wordRes : worker.get())
             results[wordRes.first].insert(results[wordRes.first].end(),
-                                          wordRes.second.begin(),
-                                          wordRes.second.end());
+                wordRes.second.begin(), wordRes.second.end());
 
 
 

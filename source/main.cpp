@@ -116,9 +116,7 @@ int main(int argc, char const* argv[])
 
 
     SpeedTimer execTimer{true};
-    //TODO
     workerResult results = _search(dicts, numthreads, words, verbose);
-    //TODO
     execTimer.end();
 
 

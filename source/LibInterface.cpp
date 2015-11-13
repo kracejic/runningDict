@@ -2,6 +2,7 @@
 #include "LibInterface.h"
 #include "Search.h"
 #include "Processer.h"
+#include "SpeedTimer.h"
 
 
 #include <stdio.h>
@@ -9,11 +10,15 @@
 #include <stdio.h>
 #include <string>
 #include <algorithm>
+#include <vector>
+
 
 
 std::vector<std::pair<int, Dict>> dicts {};
 
 using namespace std;
+
+int numthreads {0};
 
 char *data{nullptr};
 
@@ -36,30 +41,46 @@ bool addDictionary(const char *filename, bool priority)
     return true;
 }
 //-----------------------------------------------------------------------------------
+void setNumberOfThreads(int x)
+{
+    if(x > 0)
+    {
+        numthreads = x;
+    }
+}
+//-----------------------------------------------------------------------------------
 char* search(const char* words)
 {
+    SpeedTimer timer{true};
     Processer proc{words};
     auto words2 = proc.getAllWordsSmall();
-    workerResult results = _search(dicts, 8, words2, false);
-        // std::vector<std::pair<int, Dict>>& dicts,
-    //                  int numthreads, const std::vector<std::string>& words,
-    //                  bool verbose);
 
-    string ret{"[ "};
+    if(numthreads == 0)
+        numthreads = std::thread::hardware_concurrency();
+
+    workerResult results = _search(dicts, numthreads, words2, false);
+
+    string ret{"{\"results\":[ "};
     for(auto&& w : words2)
     {
         auto& rr = results[w];
-        ret.append(string("{\"")+w+"\":[ ");
+        ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
         for(auto&& r : rr)
         {
             ret.append(string("\"")+r.words+"\",");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();
-        ret.append("]},");
+        ret.append("]");
+        if(rr.size() > 0)
+            ret.append(",\"score\":"s + to_string(rr[0].score));
+        ret.append("},");
     }
     ret.pop_back();
-    ret.append("]");
+    ret.append("], \"speed\":");
+    timer.end();
+    ret.append(to_string(timer.getSec()));
+    ret.append("}");
 
     if (data != nullptr)
         free(data);
@@ -70,9 +91,4 @@ char* search(const char* words)
 }
 //-----------------------------------------------------------------------------------
 
-int test()
-{
-    return 2;
-}
-//-----------------------------------------------------------------------------------
 

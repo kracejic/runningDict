@@ -2,8 +2,8 @@
 
 ## Command line arguments
 
-* -d
-* -D
+* -d [file]   dictionary file
+* -D [file]   dictionary with higher priority, gets also partial words
 * -j[num] - number of threads
 * -h --help - prints help
 
