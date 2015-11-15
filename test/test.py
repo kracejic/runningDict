@@ -2,14 +2,20 @@
 
 
 import ctypes
-testlib = ctypes.CDLL("./libRunningDict")
+import platform
+
+print(platform.system())
+if platform.system() == "Linux":
+    testlib = ctypes.CDLL("./libRunningDict.so")
+else:
+    testlib = ctypes.CDLL("./libRunningDict")
 testlib.search.restype = ctypes.c_char_p
 
 testlib.addDictionary.restype = ctypes.c_bool
 print (testlib.addDictionary(b'test.dict', True))
 print (testlib.addDictionary(b'freedict-deu-eng.dict', False))
 
-testlib.setNumberOfThreads(ctypes.c_int(3))
+testlib.setNumberOfThreads(ctypes.c_int(8))
 
 import json
 

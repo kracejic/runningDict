@@ -30,14 +30,14 @@ set(SRCS
     source/Processer.cpp
 )
 
-add_library(COMMON_OBJS OBJECT ${SRCS})
+# add_library(COMMON_OBJS OBJECT ${SRCS})
 
 
 find_package (Threads)
-add_executable(runMe source/main.cpp $<TARGET_OBJECTS:COMMON_OBJS>)
+add_executable(runMe source/main.cpp ${SRCS})
 target_link_libraries (runMe ${CMAKE_THREAD_LIBS_INIT})
 
-add_library(RunningDict SHARED source/LibInterface.cpp $<TARGET_OBJECTS:COMMON_OBJS>)
+add_library(RunningDict SHARED source/LibInterface.cpp ${SRCS})
 target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
 
 

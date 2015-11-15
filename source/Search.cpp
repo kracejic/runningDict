@@ -22,9 +22,9 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
         [](long long sum, const auto& x)
         {
             if(x.second.getContens().size() > 100000)
-                return sum + x.second.getContens().size();
+                return (long long)(sum + x.second.getContens().size());
             else
-                return sum;
+                return (long long)sum;
         });
     vector<long long> threadsForDict;
     for(auto&& dict : dicts)

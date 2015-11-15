@@ -17,7 +17,6 @@ using workerResult = std::map<std::string,std::vector<Result>>;
 class Worker
 {
   private:
-    long long mPosition{0};
     long long mStart{0};
     long long mEnd{0};
     const Dict& mDict;
