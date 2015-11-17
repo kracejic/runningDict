@@ -43,6 +43,7 @@ Parsing CamelCase:
 int main(int argc, char const* argv[])
 {
     bool verbose {false};
+    bool performanceTest {false};
     SpeedTimer completeTimer{true};
     SpeedTimer initTimer{true};
     std::vector<std::pair<int, Dict>> dicts;
@@ -99,6 +100,9 @@ int main(int argc, char const* argv[])
         else if(tmp == "-v"){
             verbose = true;
         }
+        else if(tmp == "-p"){
+            performanceTest = true;
+        }
         else if(tmp == "--in"){
             ++argIt;
             break;
@@ -117,6 +121,15 @@ int main(int argc, char const* argv[])
 
     SpeedTimer execTimer{true};
     workerResult results = _search(dicts, numthreads, words, verbose);
+    if (performanceTest)
+    {
+        for (int i = 0; i < 10; ++i)
+        {
+            results = _search(dicts, numthreads, words, verbose);
+            // if(results.empty())
+            //     return 0;
+        }
+    }
     execTimer.end();
 
 

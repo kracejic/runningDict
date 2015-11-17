@@ -16,7 +16,7 @@ configure_file (
 
 
 # Flags
-set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall")
+set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall -fno-omit-frame-pointer -g -fno-rtti -fno-inline -fno-unroll-loops")
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/source

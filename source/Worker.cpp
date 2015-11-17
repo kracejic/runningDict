@@ -17,21 +17,21 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     s1len = min(512, s1len);
     int s2len = s2.size();
 
-    auto column_start = (decltype(s1len))1;
+    int column_start = (decltype(s1len))1;
 
     // auto column = new decltype(s1len)[s1len + 1];
     int column[512];
     std::iota(column + column_start, column + s1len + 1, column_start);
 
-    for(auto x = column_start; x <= s2len; x++)
+    for(int x = column_start; x <= s2len; x++)
     {
         column[0] = x;
-        auto last_diagonal = x - column_start;
+        int last_diagonal = x - column_start;
         int y;
         // cout<<"num"<<x<<" = "<<endl<<"  ";
         for(y = column_start; y <= s1len; y++)
         {
-            auto old_diagonal = column[y];
+            int old_diagonal = column[y];
             auto possibilities
                 = {column[y] + 1, column[y - 1] + 1,
                    last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
@@ -49,7 +49,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
             }
 
     }
-    auto result = column[s1len];
+    int result = column[s1len];
     // delete[] column;
     return result;
 }
@@ -70,11 +70,11 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
     // convert words to char16
     wstring_convert<deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>,
                     char16_t> utfConvertor;
-    std::vector<u16string> words;
+    std::vector<pair<u16string, int>> words;
     for(auto&& w : wordsIn)
     {
         // cout<<"  converting: \""<<w<<"\" size="<<w.size()<<endl;
-        words.emplace_back(utfConvertor.from_bytes(w));
+        words.emplace_back(utfConvertor.from_bytes(w), w.size()/3+1);
     }
 
     //some overlap is neccessary for start if not starting from the beginning
@@ -92,6 +92,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
 
 
     string german, firstLine, english, newLine;
+    u16string german2;
     if(!getline(text, firstLine))
         return {};
     bool cont = true;
@@ -118,18 +119,17 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
             german.resize(german.size()-1);
 
         // cout << "  testing:" << german << endl;
-        u16string german2;
         for(auto&& w : words)
         {
             german2 = utfConvertor.from_bytes(german);
-            int dist = levenshtein_distance(w, german2);
-            if(dist < (int)(w.size()/3+1))
+            int dist = levenshtein_distance(w.first, german2);
+            if(dist < w.second)
             {
-                // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w)
+                // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w.first)
                 //      << " = " << german << " = " << english << endl;
-                result[utfConvertor.to_bytes(w)].emplace_back(mBonus + dist,
+                result[utfConvertor.to_bytes(w.first)].emplace_back(mBonus + dist,
                     english.c_str()+1 ); //first character is space
-                // result[utfConvertor.to_bytes(w)].emplace_back(english);
+                // result[utfConvertor.to_bytes(w.first)].emplace_back(english);
             }
         }
 
