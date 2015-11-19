@@ -87,7 +87,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
             getline(text, tmp);
         } while(tmp[0] == ' ');
     }
-    if(mEnd > mDict.getContens().size())
+    if(mEnd > (int)mDict.getContens().size())
         mEnd = mDict.getContens().size();
 
 

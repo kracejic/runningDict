@@ -11,8 +11,22 @@ const std::string& Dict::getFilename() const{
     return mFilename;
 }
 //-----------------------------------------------------------------------------------
+bool Dict::reload()
+{
+    if(!is_open())
+        return false;
+    return (open(mFilename));
+}
+//-----------------------------------------------------------------------------------
 bool Dict::open(std::string filename)
 {
+    if(is_open())
+    {
+        file.close();
+        mContents.clear();
+        mIs_open = false;
+    }
+
     file.open(filename);
 
     if (!file.is_open())

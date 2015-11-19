@@ -22,6 +22,28 @@ int numthreads {0};
 
 char *data{nullptr};
 
+
+int clearDictionaries()
+{
+    int num = dicts.size();
+    dicts.clear();
+    return num;
+}
+//-----------------------------------------------------------------------------------
+bool addDictionaryForce(const char *filename, bool priority)
+{
+    auto dict = std::find_if(dicts.begin(), dicts.end(), [&filename](auto &x){ return x.second.getFilename() == filename;});
+    if(dict != dicts.end())
+    {
+        cout<<"xxxxxxxx = "<<dict->second.getFilename()<<endl;
+        dict->first = priority;
+        return dict->second.reload();
+    }
+    else
+        addDictionary(filename, priority);
+    return true;
+}
+//-----------------------------------------------------------------------------------
 bool addDictionary(const char *filename, bool priority)
 {
     if (any_of(dicts.begin(), dicts.end(), [&filename](auto& x) {

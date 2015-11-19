@@ -1,4 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
+message(STATUS "")
+message(STATUS "    == RunningDict configuration ==")
+message(STATUS "")
 
 # Project setup
 project (emptyProject)
@@ -16,7 +19,12 @@ configure_file (
 
 
 # Flags
-set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall -fno-omit-frame-pointer -g -fno-rtti -fno-inline -fno-unroll-loops")
+option(PERF_TESTING "Turn ON to disable some compiler optimizations in order to ease analysis of performance" FALSE)
+if(PERF_TESTING)
+  set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall -fno-omit-frame-pointer -g -fno-rtti -fno-inline -fno-unroll-loops")
+else()
+  set(CMAKE_CXX_FLAGS "-std=c++14 -O3 -Wall -Wextra")
+endif()
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/source
@@ -54,11 +62,22 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/test/
 
 # Copy MINGW libraries
 if(MINGW)
-  get_filename_component(GCC_PATH ${CMAKE_C_COMPILER} PATH)
-  install(FILES ${GCC_PATH}/libgcc_s_dw2-1.dll
-      ${GCC_PATH}/libwinpthread-1.dll
-      ${GCC_PATH}/libstdc++-6.dll
-      DESTINATION ./
+    message(STATUS "MinGW detected")
+    get_filename_component(GCC_PATH ${CMAKE_C_COMPILER} PATH)
+    if(${GCC_PATH} MATCHES "mingw64/bin")
+        set(libgcc "libgcc_s_seh-1.dll") #64bit
+        set_target_properties(RunningDict PROPERTIES OUTPUT_NAME "RunningDict64")
+        message(STATUS "  64bit dlls is building")
+    else()
+        set(libgcc "libgcc_s_dw2-1.dll") #32bit
+        set_target_properties(RunningDict PROPERTIES OUTPUT_NAME "RunningDict32")
+        message(STATUS "  32bit dlls is building")
+    endif()
+
+    install(FILES ${GCC_PATH}/${libgcc}
+        ${GCC_PATH}/libwinpthread-1.dll
+        ${GCC_PATH}/libstdc++-6.dll
+        DESTINATION ./
     )
 endif(MINGW)
 
@@ -74,6 +93,7 @@ message(STATUS "Version: ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION} ${VE
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message(STATUS "")
+
 
 if(MINGW)
   # MESSAGE (STATUS "* Will copy MINGW libs to install folder: " ${GCC_PATH})
