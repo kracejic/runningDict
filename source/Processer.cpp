@@ -44,7 +44,7 @@ Word::Word(const std::string& txt) : text(txt)
         }
         else
         {
-            if(txt[it2] == '_' || txt[it2] == '-' || txt[it2] == '.' || txt[it2] == '/' || txt[it2] == '\\'){
+            if(std::ispunct(txt[it2])){
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
                 // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
                 ++it2;
