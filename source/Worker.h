@@ -10,6 +10,7 @@ struct Result
     Result(int sc, std::string st) : score(sc), words(st) {};
     int score;
     std::string words;
+    std::string match;
 };
 
 using workerResult = std::map<std::string,std::vector<Result>>;

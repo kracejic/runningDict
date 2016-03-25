@@ -43,16 +43,15 @@ Parsing CamelCase:
 int main(int argc, char const* argv[])
 {
     bool verbose {false};
-    bool performanceTest {false};
-    SpeedTimer completeTimer{true};
-    SpeedTimer initTimer{true};
+    SpeedTimer completeTimer{true};  //speed measurments
+    SpeedTimer initTimer{true};      //speed measurments
     std::vector<std::pair<int, Dict>> dicts;
 
     // Print help if no arguments are given
     if(argc == 1)
         printHelp();
 
-    // process parameters
+    // process arguments
     int argIt;
     int numthreads = std::thread::hardware_concurrency();
     numthreads = (numthreads > 1) ? numthreads : 1;
@@ -95,13 +94,9 @@ int main(int argc, char const* argv[])
         {
             sscanf(tmp.c_str(), "-j%d", &numthreads);
             numthreads = (numthreads > 0) ? numthreads : 1;
-            // cout<<"THREADS: "<<numthreads<<endl;
         }
         else if(tmp == "-v"){
             verbose = true;
-        }
-        else if(tmp == "-p"){
-            performanceTest = true;
         }
         else if(tmp == "--in"){
             ++argIt;
@@ -111,9 +106,7 @@ int main(int argc, char const* argv[])
             break;
 
     }
-    // process rest of the free arguments. EG. file list, word list
-    // for(; argIt < argc; ++argIt)
-    //     words.emplace_back(argv[argIt]);
+    // process rest of the free arguments and split them into subwords
     Processer processer{argIt, argc, argv};
     std::vector<string> words = processer.getAllWordsSmall();
     initTimer.end();
@@ -121,16 +114,13 @@ int main(int argc, char const* argv[])
 
     SpeedTimer execTimer{true};
     workerResult results = _search(dicts, numthreads, words, verbose);
-    if (performanceTest)
-        for (int i = 0; i < 10; ++i)
-            results = _search(dicts, numthreads, words, verbose);
+    results = _search(dicts, numthreads, words, verbose);
     execTimer.end();
 
 
 
     if(verbose)
         cout<<"-----RESULTS-----"<<endl;
-    //print results
     for(auto&& w : words)
     {
         auto& rr = results[w];
@@ -149,4 +139,6 @@ int main(int argc, char const* argv[])
         cout<<"  exec = "<<execTimer.str()<<endl;
         cout<<"  Copmlete  = "<<completeTimer.str()<<endl;
     }
+
+    return 0;
 }

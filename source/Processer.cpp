@@ -84,6 +84,9 @@ std::vector<std::string> Word::getAllWordsBig()
     return res;
 }
 //-----------------------------------------------------------------------------------
+/**
+ * Returns list of small splitted up words
+ */
 std::vector<std::string> Word::getAllWordsSmall()
 {
     std::vector<std::string> res;
@@ -139,6 +142,10 @@ std::vector<std::string> Processer::getAllWordsBig()
     return res;
 }
 //-----------------------------------------------------------------------------------
+
+/**
+ * Returns list of small splitted up words
+ */
 std::vector<std::string> Processer::getAllWordsSmall()
 {
     std::vector<std::string> res;
