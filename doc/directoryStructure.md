@@ -12,7 +12,8 @@
                 - **doc**
                     + **RunningDict**
                         * doxygen documentation lives here 
-    - **data** - contain data
+    - **data** - contains some test data
+    - **test** - contains some tests and test data
     - **doc** - contains documentation
         + **doxygen**
             * doxygen settings, and modern style config

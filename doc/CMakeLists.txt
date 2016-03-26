@@ -21,12 +21,21 @@ if(BUILD_DOCUMENTATION)
     set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in)
     set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     configure_file(${doxyfile_in} ${doxyfile} @ONLY)
-
-    add_custom_target(doc
+    add_custom_target(doc_build_only
         COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM)
+    #install the test
+    add_custom_target(doc
+        COMMAND ${CMAKE_BUILD_TOOL} install
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS doc_build_only
+        )
 
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ DESTINATION ./share/doc/${PROJECT_NAME})
+
+
+    install(
+        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+        DESTINATION ./share/doc/${PROJECT_NAME})
 endif()

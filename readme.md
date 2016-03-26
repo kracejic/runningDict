@@ -87,41 +87,36 @@ Standard Makefiles:
 ~~~
 mkdir build ; cd build
 cmake ..
-make -j8
+make -j8 install
 ~~~
 
 
 Ninja build witch clang, build all+doc and install it to dist folder:
 ~~~
 mkdir build ; cd build
-cmake -GNinja -DCMAKE_CXX_COMPILER="clang++-3.8" ..
+cmake -GNinja -DCMAKE_CXX_COMPILER="clang++-3.7" ..
 ninja all doc install
 ~~~
 
-
-#### Running tests
-
-CTest integration supports only Makefile generator.
+There are basic tests which can be exuted by building **check** target.
 
 ~~~
 mkdir build ; cd build
 cmake ..
-make -j8
-cd test
-ctest
+make check
 ~~~
 
 
 ### Build on windows
 
-* note on call graphs and rest. Since there is no package in MSYS2, getting more graphs to work could be challenging.
+* note on call graphs and rest: Since there is no package in MSYS2, getting more graphs to work could be challenging.
 
 
 #### Build on windows using MSYS2 + ninja
 
 On windows prefer Ninja since it is **MUCH** faster than make.
 
-With gcc:
+With gcc build and install (default is build/dist):
 ~~~
 mkdir build ; cd build
 cmake -GNinja ..

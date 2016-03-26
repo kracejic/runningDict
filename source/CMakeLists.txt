@@ -4,11 +4,8 @@ configure_file (
   )
 
 # Flags
-option(PERF_TESTING "Turn ON to disable some compiler optimizations in order to ease analysis of performance" FALSE)
-if(PERF_TESTING)
-  set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -fno-omit-frame-pointer -g -fno-rtti -fno-inline -fno-unroll-loops")
-else()
-  set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra")
+if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 endif()
 
 include_directories(
@@ -30,17 +27,20 @@ set(SRCS
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS})
 target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
+set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 add_library(RunningDict SHARED LibInterface.cpp ${SRCS})
 target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
+set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
 #copy of executables
 install(TARGETS runningDict DESTINATION ./)
 install(TARGETS RunningDict DESTINATION ./)
 
-# install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
 
+# no data needed
+# install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
 
 #-------------------------------------------------------------------------------
 # Copy MINGW libraries
