@@ -9,6 +9,7 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
     if(verbose)
     {
         cout<<"Threads:"<<numthreads<<endl  ;
+        cout<<"Dicts:"<<dicts.size()<<endl  ;
 
         cout<<"Words to process:"<<endl<<"  ";
         for(auto&& i : words)
@@ -21,18 +22,15 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
     long long sum = accumulate(dicts.begin(), dicts.end(), 0,
         [](long long sum, const auto& x)
         {
-            if(x.second.getContens().size() > 100000)
-                return (long long)(sum + x.second.getContens().size());
-            else
-                return (long long)sum;
+            return (long long)(sum + x.second.getContens().size());
         });
     vector<long long> threadsForDict;
     for(auto&& dict : dicts)
     {
         threadsForDict.push_back(
-            1 + (((numthreads - 1) * (long long)dict.second.getContens().size())
-                 / sum));
-        // cout<<"  threads: "<<threadsForDict.back()<<endl;
+            1 + (((numthreads - 1) * (long long)dict.second.getContens().size()) / sum));
+        if(verbose)
+            cout<<"* Dict has x threads: "<<threadsForDict.back()<<endl;
     }
 
 

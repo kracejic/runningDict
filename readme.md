@@ -1,6 +1,6 @@
 # RunningDict
 
-This project is fast translator for programmers. It is capable of dissasembling camelCases and similar techniques. It internaly can use dictd type dictionaries.
+This project is fast translator for programmers. It is capable of dissasembling camelCases, underscore_case and CThisIsClass names. It internaly uses dictd-like dictionaries.
 
 
 There is extra support for these:
@@ -12,17 +12,68 @@ There is extra support for these:
 * Feel free to delete these files.
 
 
-## Command line arguments reference
+## Binary files
+
+There are two options how to use this. Executable from command line, or library with C interface.
+
+## Executable
+
+Executable has the name runningDict(.exe). For implementation see main.cpp.
+
+*Command line arguments reference:*
 
 * -d [file]   dictionary file
 * -D [file]   dictionary with higher priority, gets also partial words
 * -j[num] - number of threads, defaults to number of cores
 * -h --help - prints help
 
-## Usage exaple
+*Usage exaple:*
 
 `./runMe -j8 -d freedict-deu-eng.dict -D test.dict Ihre deutsch ist CStrukturKeine`
 
+
+## Library
+
+libRunningDict.so or libRunningDict64.dll or libRunningDict32.dll. For interface see LibInterface.h file. Library has advantage of needing to load dictionary only once and then only processing new searches. Command line application has to load dictionaries every time it is executed.
+
+For example response to "CKeineKatz ihre" can match following JSON object:
+~~~
+{
+    "results": [
+        {
+            "word": "keine"
+            "score": 0,
+            "matches": [
+                ["keine", "neither; no; none"]
+            ],
+        },
+        {
+            "word": "katz"
+            "score": 1,
+            "matches": [
+                ["latz", "bib"],
+                ["katze", "cat; tabby"],
+                ["satz", "clause; dart; jerk; phrase; record; sentence; set"],
+                ["kauz", "codger; fogey"]
+            ],
+        },
+        {
+            "word": "ihre"
+            "score": 0,
+            "matches": [
+                ["ihre", "her; hers; their; theirs"],
+                ["ihre", "your"]
+            ],
+        }
+    ],
+    "speed": 0.018015
+}
+~~~
+
+Note the type in Katze word. Library will return four possible translations and they can be presented to user and he can then better understand which one is correct.
+
+
+## Build
 
 ### Prerequisites for build
 
@@ -45,6 +96,19 @@ Ninja build witch clang, build all+doc and install it to dist folder:
 mkdir build ; cd build
 cmake -GNinja -DCMAKE_CXX_COMPILER="clang++-3.8" ..
 ninja all doc install
+~~~
+
+
+#### Running tests
+
+CTest integration supports only Makefile generator.
+
+~~~
+mkdir build ; cd build
+cmake ..
+make -j8
+cd test
+ctest
 ~~~
 
 
@@ -96,7 +160,7 @@ and you can now open a `.sln` file with Visual Studio. You need to RMB click on 
 
 Measured on i7-4770 (4cores + HT) @ Linux 3.16.0
 
-| # of threads | time | speedUp |
+| # of threads | time [ms] | speedUp |
 |-------|-------|------|
 |  12   | 84    | 2.6  |
 |  10   | 87    | 2.5  |

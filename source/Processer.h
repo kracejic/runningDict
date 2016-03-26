@@ -7,35 +7,22 @@
 
 
 
-
-class Word
-{
-public:
-    std::string text;
-    Word(const std::string& txt);
-
-    std::vector<std::string> words1;
-    std::vector<std::string> words2;
-    std::vector<std::string> words3;
-
-    std::vector<std::string> getAllWordsBig();
-    std::vector<std::string> getAllWordsSmall();
-};
+namespace Processer {
+    /**
+     * Returns list of small splitted up words
+     * @param  text
+     * @return
+     */
+    std::vector<std::string> splitToWords(char const* text);
 
 
-class Processer
-{
-private:
-    std::vector<Word> words;
-
-public:
-    Processer(char const* text);
-    Processer(int argstart, int argc, char const* argv[]);
-    std::vector<std::string> getAllWordsBig();
-    std::vector<std::string> getAllWordsSmall();
-
-    void process (const workerResult& results);
-};
-
-
-
+    /**
+     * Returns list of small splitted up words
+     * @param  startIndex
+     * @param  endIndex
+     * @param  array
+     * @return
+     */
+    std::vector<std::string> splitToWords(int startIndex, int endIndex,
+                                          char const *array[]);
+}

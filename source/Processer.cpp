@@ -2,9 +2,27 @@
 #include <sstream>
 #include <iostream>
 #include <cctype>
+#include <stdio.h>
+
 // #include <clocale>
 
 using namespace std;
+
+using namespace Processer;
+
+class Word
+{
+public:
+    std::string text;
+    Word(const std::string& txt);
+
+    std::vector<std::string> words1;
+    std::vector<std::string> words2;
+    std::vector<std::string> words3;
+
+    std::vector<std::string> getAllWordsBig();
+    std::vector<std::string> getAllWordsSmall();
+};
 
 
 string getLowerCase(const string& txt)
@@ -99,55 +117,55 @@ std::vector<std::string> Word::getAllWordsSmall()
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
-Processer::Processer(char const* text)
-{
-    istringstream txt(text);
-    while(txt)
+
+
+std::vector<std::string> Processer::splitToWords(char const *text) {
+    std::vector<Word> words;
+
+    //process words
+    [&words, text]()
     {
-        string word;
-        txt >> word;
-        if(word.size() > 0) {
-            words.emplace_back(word);
-        }
-    }
-}
-Processer::Processer(int argstart, int argc, char const* argv[])
-{
-    for (int i = argstart; i < argc; ++i)
-    {
-        // cout<<"working: "<<argv[i]<<endl;
-        istringstream txt(argv[i]);
+        istringstream txt{text};
         while(txt)
         {
             string word;
             txt >> word;
-            if(word.size() > 0) {
+            if(word.size() > 0)
                 words.emplace_back(word);
-            }
         }
+    }();
 
-    }
-    // cout<<"words size: "<<words.size()<<endl;
 
-}
-//-----------------------------------------------------------------------------------
-std::vector<std::string> Processer::getAllWordsBig()
-{
+    //construct result
     std::vector<std::string> res;
     for(auto&& w : words)
     {
-        std::vector<std::string> add = w.getAllWordsBig();
+        std::vector<std::string> add = w.getAllWordsSmall();
         res.insert(res.end(), add.begin(), add.end());
     }
-    return res;
-}
-//-----------------------------------------------------------------------------------
-
-/**
- * Returns list of small splitted up words
- */
-std::vector<std::string> Processer::getAllWordsSmall()
+    return res;}
+//------------------------------------------------------------------------------
+std::vector<std::string> Processer::splitToWords(int startIndex, int endIndex,
+                                      char const *array[])
 {
+    std::vector<Word> words;
+
+    //process words
+    for (int i = startIndex; i < endIndex; ++i)
+    {
+        istringstream txt(array[i]);
+        while(txt)
+        {
+            string word;
+            txt >> word;
+            if(word.size() > 0)
+                words.emplace_back(word);
+        }
+    }
+    // cout<<"start: "<<startIndex<<", endIndex: "<<endIndex<<endl;
+    // cout<<"words size: "<<words.size()<<endl;
+
+    //construct result
     std::vector<std::string> res;
     for(auto&& w : words)
     {
@@ -156,5 +174,4 @@ std::vector<std::string> Processer::getAllWordsSmall()
     }
     return res;
 }
-//-----------------------------------------------------------------------------------
-
+//------------------------------------------------------------------------------

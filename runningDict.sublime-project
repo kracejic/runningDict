@@ -11,6 +11,12 @@
     ],
     "settings":
     {
+         "sublimegdb_workingdir": "/media/home1/xohnheis/cpp/tools/runningDict/build/dist/",
+         // put your arguments hear
+         "sublimegdb_arguments": " -v -d test.dict rsuAtest aaa",
+         // NOTE: You MUST provide --interpreter=mi for the plugin to work
+         "sublimegdb_commandline": "gdb --interpreter=mi runningDict",
+
         "cppinabox":{
             "enable":true
         },
@@ -58,22 +64,22 @@
             "windows":{"shell_cmd":"c:/runLinux32.bat make"},
             "variants": [
                 {
-                    "name":"make install",
-                    "cmd":["make install"],
+                    "name":"make -j8 install",
+                    "cmd":["make -j8 install"],
                     "windows":{"shell_cmd":"c:/runLinux32.bat make install"},
                 },
                 {
-                    "name":"make doc all install",
-                    "cmd":["make doc all install"],
+                    "name":"make -j8 doc all install",
+                    "cmd":["make -j8 doc all install"],
                     "windows":{"shell_cmd":"c:/runLinux32.bat make doc all install"},
                 },
                 {
-                    "name":"make clean",
-                    "cmd":["make clean"],
+                    "name":"make -j8 clean",
+                    "cmd":["make -j8 clean"],
                     "windows":{"shell_cmd":"c:/runLinux32.bat make clean"},
                 },
                 {
-                    "name":"make install + run",
+                    "name":"make -j8 install + run",
                     "cmd":["../makebuildrun.sh"],
                     "windows":{"shell_cmd":"c:/runLinux32.bat ../makebuildrun.sh"},
                 },

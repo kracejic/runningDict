@@ -39,12 +39,8 @@ target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
 install(TARGETS runningDict DESTINATION ./)
 install(TARGETS RunningDict DESTINATION ./)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/
-        DESTINATION ./
-    )
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/test/
-        DESTINATION ./
-    )
+# install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
+
 
 #-------------------------------------------------------------------------------
 # Copy MINGW libraries

@@ -7,7 +7,10 @@
 
 struct Result
 {
-    Result(int sc, std::string st) : score(sc), words(st) {};
+    Result(int sc, std::string st, std::string _match)
+        : score(sc)
+        , words(st)
+        , match(_match){};
     int score;
     std::string words;
     std::string match;

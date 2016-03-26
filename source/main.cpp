@@ -107,14 +107,12 @@ int main(int argc, char const* argv[])
 
     }
     // process rest of the free arguments and split them into subwords
-    Processer processer{argIt, argc, argv};
-    std::vector<string> words = processer.getAllWordsSmall();
+    std::vector<string> words = Processer::splitToWords(argIt, argc, argv);
     initTimer.end();
 
 
     SpeedTimer execTimer{true};
     workerResult results = _search(dicts, numthreads, words, verbose);
-    results = _search(dicts, numthreads, words, verbose);
     execTimer.end();
 
 
@@ -127,7 +125,7 @@ int main(int argc, char const* argv[])
         cout<<w<<endl;
         for(auto&& r : rr)
         {
-            cout<<"  "<<r.score<<" -"<<r.words<<endl;
+            cout<<"  "<<r.score<<":"<<r.match<<" -"<<r.words<<endl;
         }
     }
 

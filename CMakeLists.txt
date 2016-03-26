@@ -5,8 +5,8 @@ message(STATUS "    == ${PROJECT_NAME} configuration ==")
 message(STATUS "")
 
 # Project setup
-set(MAJOR_VERSION 0 CACHE STRING "major version" FORCE)
-set(MINOR_VERSION 1 CACHE STRING "minor version" FORCE)
+set(MAJOR_VERSION 1 CACHE STRING "major version" FORCE)
+set(MINOR_VERSION 0 CACHE STRING "minor version" FORCE)
 set(PATCH_VERSION 0 CACHE STRING "patch version" FORCE)
 set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
 site_name(VERSION_HOST)

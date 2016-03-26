@@ -127,8 +127,11 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
             {
                 // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w.first)
                 //      << " = " << german << " = " << english << endl;
-                result[utfConvertor.to_bytes(w.first)].emplace_back(mBonus + dist,
-                    english.c_str()+1 ); //first character is space
+                result[utfConvertor.to_bytes(w.first)].emplace_back(
+                    mBonus + dist,
+                    english.c_str() + 1, // first character is space
+                    german
+                    );
                 // result[utfConvertor.to_bytes(w.first)].emplace_back(english);
             }
         }

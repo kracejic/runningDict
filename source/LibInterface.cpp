@@ -35,7 +35,6 @@ bool addDictionaryForce(const char *filename, bool priority)
     auto dict = std::find_if(dicts.begin(), dicts.end(), [&filename](auto &x){ return x.second.getFilename() == filename;});
     if(dict != dicts.end())
     {
-        cout<<"xxxxxxxx = "<<dict->second.getFilename()<<endl;
         dict->first = priority;
         return dict->second.reload();
     }
@@ -74,11 +73,12 @@ void setNumberOfThreads(int x)
 char* search(const char* words)
 {
     SpeedTimer timer{true};
-    Processer proc{words};
-    auto words2 = proc.getAllWordsSmall();
+    auto words2 = Processer::splitToWords(words);
 
     if(numthreads == 0)
         numthreads = std::thread::hardware_concurrency();
+    if(numthreads == 0)
+        numthreads = 1;
 
     workerResult results = _search(dicts, numthreads, words2, false);
 
@@ -89,7 +89,7 @@ char* search(const char* words)
         ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
         for(auto&& r : rr)
         {
-            ret.append(string("\"")+r.words+"\",");
+            ret.append(string("[\"")+r.match+"\",\""+r.words+"\"],");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();

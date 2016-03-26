@@ -33,7 +33,8 @@ howMany = 40
 sumOfTimes = 0
 print("Testing:")
 for x in range(0,howMany):
-    rawBytes = testlib.search(b'CKeine_katze_CANTO_Tag_RSUUnit_KatzeUnd ihre')
+    # rawBytes = testlib.search(b'CKeine_katze_CANTO_Tag_RSUUnit_KatzeUnd ihre')
+    rawBytes = testlib.search(b'CKeineKatz ihre')
     decodeData = rawBytes.decode("utf-8")
     jsonResult = json.loads(decodeData)
     sumOfTimes = sumOfTimes + jsonResult["speed"]
@@ -42,7 +43,7 @@ for x in range(0,howMany):
 
 
 
-# print (json.dumps(jsonResult, sort_keys=True, indent=4, separators=(',', ': ')))
+print (json.dumps(jsonResult, sort_keys=True, indent=4, separators=(',', ': ')))
 
 print("\navg time = " + str(sumOfTimes/howMany) + "s")
 
