@@ -21,15 +21,24 @@ set(SRCS
     Processer.cpp
 )
 
+set(HEADERS
+    version.h
+    Dict.h
+    Worker.h
+    Search.h
+    Processer.h
+    SpeedTimer.h
+)
+
 # add_library(COMMON_OBJS OBJECT ${SRCS})
 
 
 find_package (Threads)
-add_executable(runningDict main.cpp ${SRCS})
+add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
 target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
-add_library(RunningDict SHARED LibInterface.cpp ${SRCS})
+add_library(RunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
 target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 

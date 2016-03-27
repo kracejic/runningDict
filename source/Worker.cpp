@@ -5,6 +5,7 @@
 #include <locale>
 #include <codecvt>
 #include <algorithm>
+#include <numeric>
 
 
 using namespace std;

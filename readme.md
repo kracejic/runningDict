@@ -153,6 +153,8 @@ cmake -G "Visual Studio 14 2015" ..
 
 and you can now open a `.sln` file with Visual Studio. You need to RMB click on executable target and *Set as StartUp project*. To really see the console window you want to do *Start without debugging*, when run in debug mode, console widow is closed too fast.
 
+**Note:** as of 03/2016 Visual studio has a [bug](https://social.msdn.microsoft.com/Forums/en-US/8f40dcd8-c67f-4eba-9134-a19b9178e481/vs-2015-rc-linker-stdcodecvt-error?forum=vcgeneral) which prevents this project being built. 
+
 
 
 ## Notes

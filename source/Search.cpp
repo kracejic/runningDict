@@ -1,4 +1,6 @@
 #include "Search.h"
+#include <algorithm>
+#include <numeric>
 
 using namespace std;
 
@@ -16,7 +18,6 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
             cout<<i<<", ";
         cout<<endl<<endl;
     }
-
 
 
     long long sum = accumulate(dicts.begin(), dicts.end(), 0,
