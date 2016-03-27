@@ -9,7 +9,7 @@ There is extra support for these:
     - Works in Vim, Sublime Text 3, Atom
 * Sublime text 3 project file
     - Build system defined for *make* or *ninja*
-* Feel free to delete these files.
+* Feel free to delete these files if you have no use for them.
 
 
 ## Binary files
@@ -22,10 +22,11 @@ Executable has the name runningDict(.exe). For implementation see main.cpp.
 
 *Command line arguments reference:*
 
-* -d [file]   dictionary file
-* -D [file]   dictionary with higher priority, gets also partial words
+* -d [file] - dictionary file
+* -D [file] - dictionary with higher priority, gets also partial words
 * -j[num] - number of threads, defaults to number of cores
 * -h --help - prints help
+* --in - after this command all others are handled like input arguments
 
 *Usage exaple:*
 
@@ -79,6 +80,8 @@ Note the type in Katze word. Library will return four possible translations and 
 
 * CMake 3.2 and newer
 * Doxygen for docs (*Graphviz for more graphs in docs*)
+* C++14 capable compiler
+* Python3 for running tests
 
 
 ### Build on linux
@@ -151,7 +154,10 @@ cmake -G "Visual Studio 14 2015" ..
 and you can now open a `.sln` file with Visual Studio. You need to RMB click on executable target and *Set as StartUp project*. To really see the console window you want to do *Start without debugging*, when run in debug mode, console widow is closed too fast.
 
 
-## Speed reference table
+
+## Notes
+
+### Speed reference table
 
 Measured on i7-4770 (4cores + HT) @ Linux 3.16.0
 
@@ -169,7 +175,11 @@ Measured on i7-4770 (4cores + HT) @ Linux 3.16.0
 |  2    | 121   | 1.84 |
 |  1    | 223   | 1    |
 
+### Sublime text
 
+In sublime project file there are defined two build systems - one for *make* and second for *ninja*. For build output higlighting you need package [cppinabox](https://github.com/kracejic/cppinabox). And all builds contains running of tests. :)
+
+If you get "Error loading syntax file" during build, that means, you do not have cppinabox installed and you either need to install it, or remove *syntax* from build system in sublime-project file.
 
 
 ## Developing

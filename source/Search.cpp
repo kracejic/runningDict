@@ -99,6 +99,5 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
 
 
 
-
     return results;
 }

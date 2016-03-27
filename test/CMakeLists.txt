@@ -7,8 +7,10 @@ enable_testing()
 
 # Create custom targets which executes CTEST and has
 # dependecy of both binary files.
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS runningDict RunningDict)
+add_custom_target(check
+    COMMAND echo [----] Running tests
+    COMMAND ${CMAKE_CTEST_COMMAND}
+    DEPENDS runningDict RunningDict)
 
 
 # Basic tests
