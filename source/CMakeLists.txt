@@ -43,6 +43,36 @@ target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
+set(GUISRC
+    gui/guiMain.cpp
+)
+
+
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK3MM gtkmm-3.0)
+# pkg_check_modules(GTKMM gtkmm-2.4)
+
+# find_package (GTK)
+if(GTK3MM_FOUND)
+    message(STATUS "GTK was found, building GUI")
+
+    add_executable(runningDictGui ${GUISRC})
+    target_include_directories(runningDictGui PUBLIC ${GTK3MM_INCLUDE_DIRS})
+    target_link_libraries (runningDictGui ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
+    set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
+
+    install(TARGETS runningDictGui DESTINATION ./)
+
+else()
+    message(STATUS "GTKMM-3 was not found")
+endif()
+
+
+
+
+
+
 #copy of executables
 install(TARGETS runningDict DESTINATION ./)
 install(TARGETS RunningDict DESTINATION ./)
