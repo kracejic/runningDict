@@ -1,6 +1,11 @@
 #include "MainWindow.h"
 
 #include <gtkmm/application.h>
+#include <cstdlib>
+
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -12,3 +17,4 @@ int main(int argc, char *argv[])
     // // Shows the window and returns when it is closed.
     return app->run(mainWindow);
 }
+

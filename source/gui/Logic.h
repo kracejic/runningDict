@@ -18,6 +18,9 @@ class Logic
         ignore(argc);
         ignore(argv);
     };
+    ~Logic(){
+        saveConfig();
+    };
 
     void refreshFiles();
     std::vector<std::pair<int, Dict>> mDicts;
