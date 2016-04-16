@@ -6,6 +6,10 @@ Dict::Dict()
 {
 
 }
+Dict::Dict(string filename)
+{
+    mFilename = filename;
+}
 //-----------------------------------------------------------------------------------
 const std::string& Dict::getFilename() const{
     return mFilename;
@@ -13,7 +17,7 @@ const std::string& Dict::getFilename() const{
 //-----------------------------------------------------------------------------------
 bool Dict::reload()
 {
-    if(!is_open())
+    if(!is_open() && mFilename == "")
         return false;
     return (open(mFilename));
 }

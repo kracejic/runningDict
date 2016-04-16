@@ -60,6 +60,8 @@ flags = [
 '/usr/include',
 '-isystem',
 '/usr/local/include',
+'-isystem/usr/lib/gtkmm-3.0/include',
+'-isystem/usr/include/gtkmm-3.0',
 "-isystemD:/work/msys64/mingw32/include/c++/5.2.0",
 "-isystemD:/work/msys64/mingw32/include/c++/5.2.0/i686-w64-mingw32",
 "-isystemD:/work/msys64/mingw32/include/c++/5.2.0/backward",

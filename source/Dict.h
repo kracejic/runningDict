@@ -8,10 +8,11 @@ private:
     bool mIs_open {false};
     std::ifstream file;
     std::string mContents;
-    std::string mFilename;
+    std::string mFilename{""};
 
 public:
     Dict();
+    Dict(std::string filename);
     bool open(std::string filename);
     bool is_open();
     bool reload();

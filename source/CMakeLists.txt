@@ -45,6 +45,8 @@ set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 set(GUISRC
     gui/guiMain.cpp
+    gui/MainWindow.cpp
+    gui/Logic.cpp
 )
 
 
@@ -57,9 +59,9 @@ pkg_check_modules(GTK3MM gtkmm-3.0)
 if(GTK3MM_FOUND)
     message(STATUS "GTK was found, building GUI")
 
-    add_executable(runningDictGui ${GUISRC})
+    add_executable(runningDictGui ${GUISRC} ${SRCS})
     target_include_directories(runningDictGui PUBLIC ${GTK3MM_INCLUDE_DIRS})
-    target_link_libraries (runningDictGui ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
+    target_link_libraries (runningDictGui ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES} stdc++fs)
     set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
 
     install(TARGETS runningDictGui DESTINATION ./)
