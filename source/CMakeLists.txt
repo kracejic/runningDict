@@ -51,7 +51,7 @@ set(GUISRC
 
 
 
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig)
 pkg_check_modules(GTK3MM gtkmm-3.0)
 # pkg_check_modules(GTKMM gtkmm-2.4)
 

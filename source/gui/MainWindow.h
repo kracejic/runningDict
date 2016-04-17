@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+
+#include <gtkmm.h>
 #include <gtkmm/button.h>
 #include <gtkmm/window.h>
 #include <gtkmm/box.h>
@@ -11,12 +14,25 @@ class MainWindow : public Gtk::Window
 {
   private:
     Logic& mLogic;
+    std::string mOldTextInEntry{""};
+
+    bool mIgnoreClipboardChange{true};
+    std::string mOldClipboard{""};
 
   public:
     MainWindow(Logic& logic);
 
     // Signal handlers:
     void on_button_clicked();
+    void on_clipboard_received(const Gtk::SelectionData &data);
+
+
+    void executeSearch(std::string text);
+
+    //clock function
+    bool pulse(int num);
+
+    sigc::connection mPulseConnection;
 
     // Member widgets:
     Gtk::Grid mGrid;

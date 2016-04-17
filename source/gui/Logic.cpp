@@ -12,7 +12,7 @@ namespace fs = std::experimental::filesystem;
 using json = nlohmann::json;
 
 
-void Logic::refreshFiles()
+void Logic::refreshAvailableFiles()
 {
 
     //recursively go through child directories and find .dict files
@@ -32,7 +32,7 @@ void Logic::refreshFiles()
                     return (fs::equivalent(val.second.getFilename(), file.path()));
                 }))
             {
-                mDicts.emplace_back(0, file.path().string());
+                mDicts.emplace_back(1, file.path().string());
                 std::cout<<"Found new dict: "<<file<<std::endl;
             }
         }
@@ -58,6 +58,10 @@ void Logic::loadConfig()
                 {
                     cout << "importing new dict: " << filename << endl;
                     mDicts.emplace_back(dict[0], filename);
+                    int prio = dict[0];
+                    //TODO make it background task
+                    if(prio < 20)
+                        mDicts.back().second.reload();
                 }
             }
         }

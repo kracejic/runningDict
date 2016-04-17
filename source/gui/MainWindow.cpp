@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 MainWindow::MainWindow(Logic& logic)
     : mLogic(logic)
     , mAddWordButton("+")
@@ -28,9 +30,59 @@ MainWindow::MainWindow(Logic& logic)
     mWordInput.set_hexpand();
 
     this->show_all_children();
+
+    //make pulse repeated every 100ms
+    sigc::slot<bool> my_slot = sigc::bind(
+        sigc::mem_fun(*this, &MainWindow::pulse), 0);
+    mPulseConnection = Glib::signal_timeout().connect(my_slot, 150);
 }
 //-----------------------------------------------------------------------------------
+bool MainWindow::pulse(int num)
+{
 
+    //check if text has changed
+    string tmp = mWordInput.get_text();
+    if( mOldTextInEntry != tmp)
+    {
+        mOldTextInEntry = tmp;
+        std::cout << "changed..." << std::endl;
+        //todo max size of the text
+
+        executeSearch(tmp);
+    }
+
+    Glib::RefPtr<Gtk::Clipboard> refClipboard = Gtk::Clipboard::get();
+    refClipboard->request_contents("UTF8_STRING",
+    sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
+
+    // string clip =
+
+    return true;
+}
+//------------------------------------------------------------------------------
+void MainWindow::executeSearch(string text)
+{
+
+}
+//------------------------------------------------------------------------------
+void MainWindow::on_clipboard_received(const Gtk::SelectionData &data)
+{
+    // check if new text is in the clipboard
+    string text = data.get_data_as_string();
+    if(mOldClipboard != text)
+    {
+        mOldClipboard = text;
+        if(!mIgnoreClipboardChange)
+        {
+            std::cout << "Clipboard changed..." << std::endl;
+            mWordInput.set_text(text);
+            // we do not need to execute search, since pulse does that for us
+            // when text is changed.
+        }
+        mIgnoreClipboardChange = false;
+    }
+}
+//------------------------------------------------------------------------------
 void MainWindow::on_button_clicked()
 {
   std::cout << "Hello World" << std::endl;

@@ -10,7 +10,7 @@ enable_testing()
 add_custom_target(check
     COMMAND echo [----] Running tests
     COMMAND ${CMAKE_CTEST_COMMAND}
-    DEPENDS runningDict RunningDict)
+    DEPENDS runningDict runningDictGui RunningDict)
 
 
 # Basic tests

@@ -3,6 +3,8 @@
 #include "Processer.h"
 #include "SpeedTimer.h"
 
+
+//TODO temporary
 template <class T> void ignore(const T &) {}
 
 class Logic
@@ -10,11 +12,10 @@ class Logic
   public:
     Logic(int argc, char *argv[])
     {
-        // TODO load settings first
         loadConfig();
+        refreshAvailableFiles();
 
-        refreshFiles();
-        refreshFiles(); // TODO delete this
+
         ignore(argc);
         ignore(argv);
     };
@@ -22,7 +23,7 @@ class Logic
         saveConfig();
     };
 
-    void refreshFiles();
+    void refreshAvailableFiles();
     std::vector<std::pair<int, Dict>> mDicts;
 
     void loadConfig();
