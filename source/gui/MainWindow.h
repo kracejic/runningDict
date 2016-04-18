@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <thread>
+#include <mutex>
 
 #include <gtkmm.h>
 #include <gtkmm/button.h>
@@ -18,6 +20,12 @@ class MainWindow : public Gtk::Window
 
     bool mIgnoreClipboardChange{true};
     std::string mOldClipboard{""};
+
+
+    std::string mWaitingToTranslate;
+    std::mutex mWaitingToTranslateMutex;
+    std::string mBeingTranslated;
+    std::mutex mBeingTranslatedMutex;
 
   public:
     MainWindow(Logic& logic);

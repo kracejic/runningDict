@@ -62,7 +62,8 @@ bool MainWindow::pulse(int num)
 //------------------------------------------------------------------------------
 void MainWindow::executeSearch(string text)
 {
-
+    lock_guard<mutex> guard(mWaitingToTranslateMutex);
+    mWaitingToTranslateMutex.try_lock();
 }
 //------------------------------------------------------------------------------
 void MainWindow::on_clipboard_received(const Gtk::SelectionData &data)
