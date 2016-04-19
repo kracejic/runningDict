@@ -22,10 +22,12 @@ class MainWindow : public Gtk::Window
     std::string mOldClipboard{""};
 
 
+    //guarded by mutex
     std::string mWaitingToTranslate;
-    std::mutex mWaitingToTranslateMutex;
-    std::string mBeingTranslated;
-    std::mutex mBeingTranslatedMutex;
+    std::mutex mSearchMutex;
+    bool mSearchInProgress{false};
+
+    std::thread mSearchThread;
 
   public:
     MainWindow(Logic& logic);

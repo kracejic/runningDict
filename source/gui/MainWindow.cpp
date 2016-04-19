@@ -62,8 +62,39 @@ bool MainWindow::pulse(int num)
 //------------------------------------------------------------------------------
 void MainWindow::executeSearch(string text)
 {
-    lock_guard<mutex> guard(mWaitingToTranslateMutex);
-    mWaitingToTranslateMutex.try_lock();
+    unique_lock<mutex> guard(mSearchMutex);
+    mWaitingToTranslate = text;
+
+    if(!mSearchInProgress)
+    {
+        //TODO run in searchThread
+        mSearchInProgress = true;
+    }
+
+    guard.unlock();
+
+}
+//------------------------------------------------------------------------------
+void MainWindow::searchThread()
+{
+    string text;
+
+    //load text
+    unique_lock<mutex> guard(mSearchMutex);
+
+    while(true)
+    {
+        text = mWaitingToTranslate;
+        mWaitingToTranslate = "";
+        guard.unlock();
+
+        guard.lock();
+        mSearchInProgress = false;
+        if(mWaitingToTranslate == "")
+            break;
+    }
+
+    mSearchInProgress = false;
 }
 //------------------------------------------------------------------------------
 void MainWindow::on_clipboard_received(const Gtk::SelectionData &data)
