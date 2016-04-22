@@ -1,4 +1,6 @@
 #include "./MainWindow.h"
+#include "../Search.h"
+#include "../Processer.h"
 
 #include <iostream>
 
@@ -11,7 +13,9 @@ MainWindow::MainWindow(Logic& logic)
 {
     // Sets the border width of the window.
     set_border_width(10);
-    set_default_size(500, 250);
+    set_default_size(mLogic.mSizeX, mLogic.mSizeY);
+    this->move(mLogic.mPositionX, mLogic.mPositionY);
+    set_keep_above(true);
 
     // When the button receives the "clicked" signal, it will call the
     // on_button_clicked() method defined below.
@@ -36,6 +40,17 @@ MainWindow::MainWindow(Logic& logic)
         sigc::mem_fun(*this, &MainWindow::pulse), 0);
     mPulseConnection = Glib::signal_timeout().connect(my_slot, 150);
 }
+//------------------------------------------------------------------------------
+#include <gtk/gtk.h>
+MainWindow::~MainWindow()
+{
+    // present refreshes window position
+    this->present();
+
+    //saves data to logic, this is then saved to json config file
+    this->get_position(mLogic.mPositionX, mLogic.mPositionY);
+    this->get_size(mLogic.mSizeX, mLogic.mSizeY);
+}
 //-----------------------------------------------------------------------------------
 bool MainWindow::pulse(int num)
 {
@@ -55,23 +70,22 @@ bool MainWindow::pulse(int num)
     refClipboard->request_contents("UTF8_STRING",
     sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
 
-    // string clip =
-
     return true;
 }
 //------------------------------------------------------------------------------
 void MainWindow::executeSearch(string text)
 {
-    unique_lock<mutex> guard(mSearchMutex);
+    unique_lock<mutex> guard{mSearchMutex};
     mWaitingToTranslate = text;
 
     if(!mSearchInProgress)
     {
         //TODO run in searchThread
         mSearchInProgress = true;
+        guard.unlock();
+        std::thread thread {&MainWindow::searchThread, this};
+        thread.detach();
     }
-
-    guard.unlock();
 
 }
 //------------------------------------------------------------------------------
@@ -84,16 +98,39 @@ void MainWindow::searchThread()
 
     while(true)
     {
+        //load string and set it to empty
         text = mWaitingToTranslate;
         mWaitingToTranslate = "";
         guard.unlock();
 
+        //translate, during translation can Pulse add new string to translate
+        int numthreads = std::thread::hardware_concurrency();
+        numthreads = (numthreads > 1) ? numthreads : 1;
+        std::vector<string> words = Processer::splitToWords(text.c_str());
+        numthreads = 1; //TODO increase
+
+        workerResult results = _search(mLogic.mDicts, numthreads, words, false);
+        cout << "results are here" << endl;
+        // for(auto &&w : words)
+        // {
+        //     auto &rr = results[w];
+        //     cout << w << endl;
+        //     for(auto &&r : rr)
+        //     {
+        //         cout << "  " << r.score << ":" << r.match << " -" << r.words
+        //              << endl;
+        //     }
+        // }
+
+        //lock and test if there is another string to translate
         guard.lock();
-        mSearchInProgress = false;
+        mTranslationResult = results;
+        mNewTranslationAvailable = true;
         if(mWaitingToTranslate == "")
             break;
     }
 
+    cout<<"Finish"<<endl;
     mSearchInProgress = false;
 }
 //------------------------------------------------------------------------------

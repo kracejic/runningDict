@@ -66,6 +66,19 @@ void Logic::loadConfig()
             }
         }
 
+        if(cfg.count("position") && cfg["position"].size() == 2)
+        {
+            cout<<"loading position"<<endl;
+            mPositionX = cfg["position"][0];
+            mPositionY = cfg["position"][1];
+        }
+        if(cfg.count("size") && cfg["size"].size() == 2)
+        {
+            cout<<"loading size"<<endl;
+            mSizeX = cfg["size"][0];
+            mSizeY = cfg["size"][1];
+        }
+
 
         // cout << std::setw(4) << cfg <<endl;
     }
@@ -78,6 +91,9 @@ void Logic::saveConfig()
     json cfg;
     for(auto& dict : mDicts)
         cfg["dicts"].push_back({dict.first, dict.second.getFilename()});
+
+    cfg["size"] = {mSizeX, mSizeY};
+    cfg["position"] = {mPositionX, mPositionY};
 
     //save settings
     ofstream outFile("./config.json");

@@ -23,6 +23,10 @@ class Logic
         saveConfig();
     };
 
+    int mSizeX{500}, mSizeY{300};
+    int mPositionX{0}, mPositionY{0};
+
+
     void refreshAvailableFiles();
     std::vector<std::pair<int, Dict>> mDicts;
 

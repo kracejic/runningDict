@@ -11,6 +11,7 @@
 #include <gtkmm/entry.h>
 
 #include "Logic.h"
+#include "../Worker.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -26,11 +27,13 @@ class MainWindow : public Gtk::Window
     std::string mWaitingToTranslate;
     std::mutex mSearchMutex;
     bool mSearchInProgress{false};
+    bool mNewTranslationAvailable{false};
+    workerResult mTranslationResult;
 
-    std::thread mSearchThread;
 
   public:
     MainWindow(Logic& logic);
+    ~MainWindow();
 
     // Signal handlers:
     void on_button_clicked();
@@ -38,6 +41,7 @@ class MainWindow : public Gtk::Window
 
 
     void executeSearch(std::string text);
+    void searchThread();
 
     //clock function
     bool pulse(int num);

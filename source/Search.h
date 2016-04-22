@@ -13,4 +13,4 @@
 
 workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
                      int numthreads, const std::vector<std::string>& words,
-                     bool verbose);
+                     bool verbose=false);

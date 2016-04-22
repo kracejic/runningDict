@@ -29,7 +29,10 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
     for(auto&& dict : dicts)
     {
         if(dict.first > 20)
+        {
+            threadsForDict.push_back(0);
             continue;
+        }
         threadsForDict.push_back(
             1 + (((numthreads - 1) * (long long)dict.second.getContens().size()) / sum));
         if(verbose)
