@@ -13,6 +13,24 @@
 #include "Logic.h"
 #include "../Worker.h"
 
+class ModelColumns : public Gtk::TreeModelColumnRecord
+{
+  public:
+    ModelColumns()
+    {
+        add(mGerman);
+        add(mGerman_found);
+        add(mEnglish);
+        add(mScore);
+    }
+
+    Gtk::TreeModelColumn<Glib::ustring> mGerman;
+    Gtk::TreeModelColumn<Glib::ustring> mGerman_found;
+    Gtk::TreeModelColumn<Glib::ustring> mEnglish;
+    Gtk::TreeModelColumn<int> mScore;
+};
+
+
 class MainWindow : public Gtk::Window
 {
   private:
@@ -22,6 +40,10 @@ class MainWindow : public Gtk::Window
     bool mIgnoreClipboardChange{true};
     std::string mOldClipboard{""};
 
+    ModelColumns mColumns;
+    Glib::RefPtr<Gtk::ListStore> mRefListStore;
+    Gtk::TreeView mTreeView;
+
 
     //guarded by mutex
     std::string mWaitingToTranslate;
@@ -29,6 +51,7 @@ class MainWindow : public Gtk::Window
     bool mSearchInProgress{false};
     bool mNewTranslationAvailable{false};
     workerResult mTranslationResult;
+    std::vector<std::string> mTranslationWords;
 
 
   public:
@@ -50,6 +73,7 @@ class MainWindow : public Gtk::Window
 
     // Member widgets:
     Gtk::Grid mGrid;
+    Gtk::Grid mResultGrid;
     Gtk::Entry mWordInput;
     Gtk::Button mAddWordButton;
     Gtk::Button mSettingsButton;

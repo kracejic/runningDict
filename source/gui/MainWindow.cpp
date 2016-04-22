@@ -3,6 +3,7 @@
 #include "../Processer.h"
 
 #include <iostream>
+#include <gdkmm/rgba.h>
 
 using namespace std;
 
@@ -28,9 +29,23 @@ MainWindow::MainWindow(Logic& logic)
     mGrid.add(mWordInput);
     mGrid.add(mAddWordButton);
     mGrid.add(mSettingsButton);
+    mGrid.attach(mResultGrid, 0,1,10,1);
 
+    Gdk::RGBA col;
+    // col.set_rgba(1,0.8,1);
+    // mResultGrid.override_background_color(col);
+    mResultGrid.set_vexpand();
+    mResultGrid.set_hexpand();
+    mResultGrid.add(mTreeView);
+    mRefListStore = Gtk::ListStore::create(mColumns);
+    mTreeView.set_model(mRefListStore);
+    mTreeView.append_column("Word", mColumns.mGerman);
+    mTreeView.append_column("Match", mColumns.mGerman_found);
+    mTreeView.append_column("Translation", mColumns.mEnglish);
+    mTreeView.append_column("Score", mColumns.mScore);
 
-    mWordInput.set_text("Put here text to translation...");
+    // mWordInput.set_text("Put here text to translation...");
+    mWordInput.set_text("Das ist eine CKatze...");
     mWordInput.set_hexpand();
 
     this->show_all_children();
@@ -69,6 +84,39 @@ bool MainWindow::pulse(int num)
     Glib::RefPtr<Gtk::Clipboard> refClipboard = Gtk::Clipboard::get();
     refClipboard->request_contents("UTF8_STRING",
     sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
+
+
+    unique_lock<mutex> guard{mSearchMutex};
+    if(mNewTranslationAvailable)
+    {
+        mRefListStore->clear();
+        Gtk::TreeModel::iterator iter = mRefListStore->append();
+        Gtk::TreeModel::Row row = *iter;
+        row[mColumns.mGerman] = "ss";
+
+        for(auto &&w : mTranslationWords)
+        {
+            auto &rr = mTranslationResult[w];
+            bool first = true;
+            // cout << w << endl;
+            for(auto &&r : rr)
+            {
+                Gtk::TreeModel::iterator iter = mRefListStore->append();
+                Gtk::TreeModel::Row row = *iter;
+                if (first)
+                    row[mColumns.mGerman] = w;
+                first = false;
+                row[mColumns.mGerman_found] = r.match;
+                row[mColumns.mEnglish] = r.words;
+                row[mColumns.mScore] = r.score;
+
+        //         cout << "  " << r.score << ":" << r.match << " -" << r.words
+        //              << endl;
+            }
+        }
+        mNewTranslationAvailable = false;
+    }
+
 
     return true;
 }
@@ -125,6 +173,7 @@ void MainWindow::searchThread()
         //lock and test if there is another string to translate
         guard.lock();
         mTranslationResult = results;
+        mTranslationWords = words;
         mNewTranslationAvailable = true;
         if(mWaitingToTranslate == "")
             break;
