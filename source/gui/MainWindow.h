@@ -53,6 +53,7 @@ class MainWindow : public Gtk::Window
     workerResult mTranslationResult;
     std::vector<std::string> mTranslationWords;
 
+    Gtk::CellRendererText mCellRenderer;
 
   public:
     MainWindow(Logic& logic);

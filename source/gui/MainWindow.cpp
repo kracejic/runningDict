@@ -29,28 +29,91 @@ MainWindow::MainWindow(Logic& logic)
     mGrid.add(mWordInput);
     mGrid.add(mAddWordButton);
     mGrid.add(mSettingsButton);
-    mGrid.attach(mResultGrid, 0,1,10,1);
 
-    Gdk::RGBA col;
+    mGrid.attach(mResultGrid, 0,2,10,1);
+    // Gdk::RGBA col;
     // col.set_rgba(1,0.8,1);
     // mResultGrid.override_background_color(col);
     mResultGrid.set_vexpand();
     mResultGrid.set_hexpand();
     mResultGrid.add(mTreeView);
+    mResultGrid.set_margin_top(10);
+
     mRefListStore = Gtk::ListStore::create(mColumns);
     mTreeView.set_model(mRefListStore);
-    mTreeView.append_column("Word", mColumns.mGerman);
-    mTreeView.append_column("Match", mColumns.mGerman_found);
-    mTreeView.append_column("Translation", mColumns.mEnglish);
-    mTreeView.append_column("Score", mColumns.mScore);
+    mTreeView.set_hexpand();
+    mTreeView.set_vexpand();
+
+    //Word Culumn
+    {
+        mTreeView.append_column("Word", mColumns.mGerman);
+        Gtk::TreeViewColumn *pColumn = mTreeView.get_column(0);
+        Gdk::Color col("#ffaa00");
+        static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
+            ->property_foreground_gdk()
+            .set_value(col);
+    }
+    //Match Culumn
+    {
+        mTreeView.append_column("Match", mColumns.mGerman_found);
+        Gtk::TreeViewColumn *pColumn = mTreeView.get_column(1);
+        pColumn->set_cell_data_func(
+            *pColumn->get_first_cell(),
+            [this](Gtk::CellRenderer *renderer,
+                   const Gtk::TreeModel::iterator &iter)
+            {
+                Gtk::TreeModel::Row row = *iter;
+                Gdk::Color col("#ff0000");
+                auto score = row[this->mColumns.mScore];
+                if(score < 0)
+                    score = 0;
+                if(score > 4)
+                    score = 4;
+                switch (score)
+                {
+                    case 0:
+                        col.set("#40B640");
+                        break;
+                    case 1:
+                        col.set("#82B640");
+                        break;
+                    case 2:
+                        col.set("#AFB640");
+                        break;
+                    case 3:
+                        col.set("#B67E40");
+                        break;
+                    case 4:
+                        col.set("#B64640");
+                        break;
+                    default:
+                        break;
+                }
+                static_cast<Gtk::CellRendererText *>(renderer)
+                    ->property_foreground_gdk()
+                    .set_value(col);
+            });
+    }
+    //Translation Culumn
+    {
+        mTreeView.append_column("Translation", mColumns.mEnglish);
+        Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
+        pColumn->set_expand(true);
+        static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
+            ->property_wrap_mode()
+            .set_value(Pango::WRAP_WORD_CHAR);
+
+    }
+    // mTreeView.append_column("Score", mColumns.mScore);
+
 
     // mWordInput.set_text("Put here text to translation...");
-    mWordInput.set_text("Das ist eine CKatze...");
+    mWordInput.set_text("Das ist einee CKatze Katzeee Prufekeit begeststellenai...");
     mWordInput.set_hexpand();
 
     this->show_all_children();
 
-    //make pulse repeated every 100ms
+    //make pulse called repeatedly every 100ms
     sigc::slot<bool> my_slot = sigc::bind(
         sigc::mem_fun(*this, &MainWindow::pulse), 0);
     mPulseConnection = Glib::signal_timeout().connect(my_slot, 150);
@@ -90,15 +153,12 @@ bool MainWindow::pulse(int num)
     if(mNewTranslationAvailable)
     {
         mRefListStore->clear();
-        Gtk::TreeModel::iterator iter = mRefListStore->append();
-        Gtk::TreeModel::Row row = *iter;
-        row[mColumns.mGerman] = "ss";
 
+        //for all words, push results to ListStore
         for(auto &&w : mTranslationWords)
         {
             auto &rr = mTranslationResult[w];
             bool first = true;
-            // cout << w << endl;
             for(auto &&r : rr)
             {
                 Gtk::TreeModel::iterator iter = mRefListStore->append();
@@ -109,9 +169,11 @@ bool MainWindow::pulse(int num)
                 row[mColumns.mGerman_found] = r.match;
                 row[mColumns.mEnglish] = r.words;
                 row[mColumns.mScore] = r.score;
-
-        //         cout << "  " << r.score << ":" << r.match << " -" << r.words
-        //              << endl;
+            }
+            //if no match found, still display atleast the word
+            if (first){
+                Gtk::TreeModel::iterator iter = mRefListStore->append();
+                (*iter)[mColumns.mGerman] = w;
             }
         }
         mNewTranslationAvailable = false;
@@ -128,7 +190,6 @@ void MainWindow::executeSearch(string text)
 
     if(!mSearchInProgress)
     {
-        //TODO run in searchThread
         mSearchInProgress = true;
         guard.unlock();
         std::thread thread {&MainWindow::searchThread, this};
@@ -141,9 +202,7 @@ void MainWindow::searchThread()
 {
     string text;
 
-    //load text
     unique_lock<mutex> guard(mSearchMutex);
-
     while(true)
     {
         //load string and set it to empty
@@ -155,7 +214,6 @@ void MainWindow::searchThread()
         int numthreads = std::thread::hardware_concurrency();
         numthreads = (numthreads > 1) ? numthreads : 1;
         std::vector<string> words = Processer::splitToWords(text.c_str());
-        numthreads = 1; //TODO increase
 
         workerResult results = _search(mLogic.mDicts, numthreads, words, false);
         cout << "results are here" << endl;

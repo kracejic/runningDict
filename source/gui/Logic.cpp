@@ -32,7 +32,7 @@ void Logic::refreshAvailableFiles()
                     return (fs::equivalent(val.second.getFilename(), file.path()));
                 }))
             {
-                mDicts.emplace_back(1, file.path().string());
+                mDicts.emplace_back(255, file.path().string());
                 std::cout<<"Found new dict: "<<file<<std::endl;
             }
         }
