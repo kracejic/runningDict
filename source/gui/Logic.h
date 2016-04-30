@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Dict.h"
 #include "Search.h"
 #include "Processer.h"

@@ -46,6 +46,7 @@ set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 set(GUISRC
     gui/guiMain.cpp
     gui/MainWindow.cpp
+    gui/SettingsWindow.cpp
     gui/Logic.cpp
 )
 

@@ -64,7 +64,6 @@ class MainWindow : public Gtk::Window
     void on_button_clicked();
     void on_clipboard_received(const Gtk::SelectionData &data);
 
-
     void executeSearch(std::string text);
     void searchThread();
 
@@ -75,7 +74,8 @@ class MainWindow : public Gtk::Window
 
     // Member widgets:
     Gtk::Grid mGrid;
-    Gtk::Grid mResultGrid;
+    // Gtk::Grid mResultGrid;
+    Gtk::ScrolledWindow mScrollForResults;
     Gtk::Entry mWordInput;
     Gtk::Button mAddWordButton;
     Gtk::Button mSettingsButton;
