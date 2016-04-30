@@ -50,6 +50,7 @@ class MainWindow : public Gtk::Window
     std::mutex mSearchMutex;
     bool mSearchInProgress{false};
     bool mNewTranslationAvailable{false};
+    bool mRedrawNeeded{false};
     workerResult mTranslationResult;
     std::vector<std::string> mTranslationWords;
 

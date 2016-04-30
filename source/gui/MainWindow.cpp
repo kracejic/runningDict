@@ -34,7 +34,7 @@ MainWindow::MainWindow(Logic& logic)
     // Gdk::RGBA col;
     // col.set_rgba(1,0.8,1);
     // mResultGrid.override_background_color(col);
-    mResultGrid.set_vexpand();
+    // mResultGrid.set_vexpand();
     mResultGrid.set_hexpand();
     mResultGrid.add(mTreeView);
     mResultGrid.set_margin_top(10);
@@ -48,6 +48,7 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Word", mColumns.mGerman);
         Gtk::TreeViewColumn *pColumn = mTreeView.get_column(0);
+        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
         Gdk::Color col("#ffaa00");
         static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
             ->property_foreground_gdk()
@@ -57,6 +58,7 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Match", mColumns.mGerman_found);
         Gtk::TreeViewColumn *pColumn = mTreeView.get_column(1);
+        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
         pColumn->set_cell_data_func(
             *pColumn->get_first_cell(),
             [this](Gtk::CellRenderer *renderer,
@@ -98,17 +100,52 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Translation", mColumns.mEnglish);
         Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
+        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
         pColumn->set_expand(true);
         static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
-            ->property_wrap_mode()
-            .set_value(Pango::WRAP_WORD_CHAR);
-
+            ->property_wrap_mode().set_value(Pango::WRAP_WORD_CHAR);
     }
     // mTreeView.append_column("Score", mColumns.mScore);
 
+    //deal with resizing
+    this->signal_check_resize().connect([this]()
+    {
+        static bool x = false;
+        static int c = 0;
+        ++c;
+        Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
+        auto width = this->get_allocated_width()
+            - mTreeView.get_column(0)->get_width()
+            - mTreeView.get_column(1)->get_width()-10;
+        auto ren = static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell());
+
+        if(width < 350)
+            width = 350;
+
+
+        ren->property_wrap_width().set_value(width);
+        ren->property_width().set_value(width - (width-300)/10);
+
+        x = ! x;
+        if (x)
+            return;
+        unique_lock<mutex> guard{this->mSearchMutex};
+        // this->mNewTranslationAvailable = true;
+        this->mRedrawNeeded = true;
+        // mTreeView.check_resize();
+        // mTreeView.unset_model();
+        // mTreeView.columns_autosize ();
+        // mTreeView.hide();
+        // mTreeView.show();
+        // mTreeView.set_model(mRefListStore);
+        cout << "R" << c << ", " << this->get_allocated_width() << " - "
+             << this->get_width() << endl;
+        //TODO debounce
+    });
+
 
     // mWordInput.set_text("Put here text to translation...");
-    mWordInput.set_text("Das ist einee CKatze Katzeee Prufekeit begeststellenai...");
+    mWordInput.set_text("Das ist einee CKatze Katzeee abbestellt begeststellenai...");
     mWordInput.set_hexpand();
 
     this->show_all_children();
@@ -150,7 +187,7 @@ bool MainWindow::pulse(int num)
 
 
     unique_lock<mutex> guard{mSearchMutex};
-    if(mNewTranslationAvailable)
+    if(mNewTranslationAvailable || mRedrawNeeded)
     {
         mRefListStore->clear();
 
@@ -177,6 +214,7 @@ bool MainWindow::pulse(int num)
             }
         }
         mNewTranslationAvailable = false;
+        mRedrawNeeded = false;
     }
 
 
