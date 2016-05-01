@@ -12,10 +12,35 @@
 
 #include "Logic.h"
 
-class SettingsWindow : public Gtk::TreeModelColumnRecord
+class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
 {
+  public:
+    ModelColumns_dicts()
+    {
+        add(mEnabled);
+        add(mPath);
+        add(mPriority);
+    }
+
+    Gtk::TreeModelColumn<bool> mEnabled;
+    Gtk::TreeModelColumn<Glib::ustring> mPath;
+    Gtk::TreeModelColumn<bool> mPriority;
+};
+
+
+
+class SettingsWindow : public Gtk::Window
+{
+private:
+    Logic& mLogic;
+
+    Gtk::ScrolledWindow mScrollView;
+    ModelColumns_dicts mDictViewModel;
+    Gtk::TreeView mTreeView;
+    Glib::RefPtr<Gtk::ListStore> mRefListStore;
+
 public:
-    SettingsWindow();
+    SettingsWindow(Logic& logic);
     ~SettingsWindow();
 
 };

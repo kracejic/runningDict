@@ -5,6 +5,7 @@
 #include <iostream>
 #include <gdkmm/rgba.h>
 #include <gtk/gtk.h>
+#include "SettingsWindow.h"
 
 using namespace std;
 
@@ -21,8 +22,13 @@ MainWindow::MainWindow(Logic& logic)
 
     // When the button receives the "clicked" signal, it will call the
     // on_button_clicked() method defined below.
-    // mbutton.signal_clicked().connect(sigc::memfun(*this,
-    //             &MainWindow::on_button_clicked));
+    mSettingsButton.signal_clicked().connect(
+        [this](){
+            SettingsWindow *setings;
+            setings = new SettingsWindow(mLogic);
+            // setings->signal_hide().connect(sigc::mem_fun(*this, &MainWindow::aboutWinClose));
+            setings->show();
+        });
 
 
     add(mGrid);
