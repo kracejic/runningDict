@@ -1,5 +1,6 @@
 #include "SettingsWindow.h"
 #include "Logic.h"
+#include <string>
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
@@ -35,10 +36,32 @@ SettingsWindow::SettingsWindow(Logic& logic)
     //deal with enabling of dicts
     static_cast<Gtk::CellRendererToggle *>(
         mTreeView.get_column(0)->get_first_cell())
-        ->signal_toggled().connect([](const auto &path)
+        ->signal_toggled().connect([this](const std::string &path)
         {
-            //TODO implement
-            std::cout << "path = " << path << std::endl;
+            try
+            {
+                int index = std::stoi(path);
+                mLogic.mDicts.at(index).toogle_enable();
+            }
+            catch(const std::exception& e)
+                {std::cerr << e.what() << '\n';}
+        });
+
+    //deal with changing prio of dicts
+    static_cast<Gtk::CellRendererToggle *>(
+        mTreeView.get_column(2)->get_first_cell())
+        ->signal_toggled().connect([this](const std::string &path)
+        {
+            try
+            {
+                int index = std::stoi(path);
+                if(mLogic.mDicts.at(index).mBonus<0)
+                    mLogic.mDicts.at(index).mBonus = 0;
+                else
+                    mLogic.mDicts.at(index).mBonus = -1;
+            }
+            catch(const std::exception& e)
+                {std::cerr << e.what() << '\n';}
         });
 
 

@@ -20,14 +20,17 @@ MainWindow::MainWindow(Logic& logic)
     this->move(mLogic.mPositionX, mLogic.mPositionY);
     set_keep_above(true);
 
-    // When the button receives the "clicked" signal, it will call the
-    // on_button_clicked() method defined below.
+    // settings button clicked shows settings window
     mSettingsButton.signal_clicked().connect(
         [this](){
             SettingsWindow *setings;
             setings = new SettingsWindow(mLogic);
-            // setings->signal_hide().connect(sigc::mem_fun(*this, &MainWindow::aboutWinClose));
             setings->show();
+
+            //refresh on settings closed
+            setings->signal_hide().connect([this](){
+                    this->executeSearch(mWordInput.get_text());
+                });
         });
 
 
