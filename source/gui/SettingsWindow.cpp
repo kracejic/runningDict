@@ -4,12 +4,18 @@
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
+    , mToogleFirstCatch("Translate clipboard at start")
 {
     set_border_width(10);
     set_default_size(900, 400);
-    add(mScrollView);
+    add(mGrid);
+    mGrid.attach(mToogleFirstCatch, 0,0,1,1);
+    if (mLogic.mTranslateClipboardAtStart)
+        mToogleFirstCatch.set_active();
+
 
     //setup scrollView
+    mGrid.attach(mScrollView, 0,6,10,1);
     mScrollView.set_hexpand();
     mScrollView.set_vexpand();
     mScrollView.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC,
@@ -83,6 +89,6 @@ SettingsWindow::SettingsWindow(Logic& logic)
 //------------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow()
 {
-
+    mLogic.mTranslateClipboardAtStart = mToogleFirstCatch.get_active();
 }
 //------------------------------------------------------------------------------

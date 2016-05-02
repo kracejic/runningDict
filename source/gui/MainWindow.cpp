@@ -14,6 +14,9 @@ MainWindow::MainWindow(Logic& logic)
     , mAddWordButton("+")
     , mSettingsButton("O")
 {
+    //Load settings
+    mIgnoreClipboardChange = !mLogic.mTranslateClipboardAtStart;
+
     // Sets the border width of the window.
     set_border_width(10);
     set_default_size(mLogic.mSizeX, mLogic.mSizeY);
@@ -26,10 +29,13 @@ MainWindow::MainWindow(Logic& logic)
             SettingsWindow *setings;
             setings = new SettingsWindow(mLogic);
             setings->show();
+            this->set_keep_above(false);
 
             //refresh on settings closed
-            setings->signal_hide().connect([this](){
+            setings->signal_hide().connect([this, setings](){
                     this->executeSearch(mWordInput.get_text());
+                    this->set_keep_above(true);
+                    delete setings;
                 });
         });
 
@@ -286,6 +292,9 @@ void MainWindow::on_clipboard_received(const Gtk::SelectionData &data)
 {
     // check if new text is in the clipboard
     string text = data.get_data_as_string();
+    if (text.size() > 256)
+        text = text.substr(0, 256);
+
     if(mOldClipboard != text)
     {
         mOldClipboard = text;

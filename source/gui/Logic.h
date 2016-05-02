@@ -28,6 +28,8 @@ class Logic
     int mSizeX{500}, mSizeY{300};
     int mPositionX{0}, mPositionY{0};
 
+    bool mTranslateClipboardAtStart{false};
+
 
     void refreshAvailableFiles();
     std::vector<Dict> mDicts;

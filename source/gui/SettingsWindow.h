@@ -9,6 +9,7 @@
 #include <gtkmm/box.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/checkbutton.h>
 
 #include "Logic.h"
 
@@ -38,9 +39,11 @@ private:
     ModelColumns_dicts mDictViewModel;
     Gtk::TreeView mTreeView;
     Glib::RefPtr<Gtk::ListStore> mRefListStore;
+    Gtk::Grid mGrid;
+    Gtk::CheckButton mToogleFirstCatch;
 
 public:
     SettingsWindow(Logic& logic);
-    ~SettingsWindow();
+    ~SettingsWindow() override;
 
 };

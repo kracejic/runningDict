@@ -74,6 +74,9 @@ void Logic::loadConfig()
             mSizeX = cfg["size"][0];
             mSizeY = cfg["size"][1];
         }
+        if(cfg.count("translateClipboardAtStart") > 0)
+            mTranslateClipboardAtStart
+                = cfg["translateClipboardAtStart"];
 
 
         // cout << std::setw(4) << cfg <<endl;
@@ -91,6 +94,7 @@ void Logic::saveConfig()
 
     cfg["size"] = {mSizeX, mSizeY};
     cfg["position"] = {mPositionX, mPositionY};
+    cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
 
     //save settings
     ofstream outFile("./config.json");
