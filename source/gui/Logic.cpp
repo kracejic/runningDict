@@ -29,10 +29,10 @@ void Logic::refreshAvailableFiles()
         {
             if(none_of(mDicts.begin(), mDicts.end(), [&file](auto &val)
                 {
-                    return (fs::equivalent(val.second.getFilename(), file.path()));
+                    return (fs::equivalent(val.getFilename(), file.path()));
                 }))
             {
-                mDicts.emplace_back(255, file.path().string());
+                mDicts.emplace_back(file.path().string(), 0, false);
                 std::cout<<"Found new dict: "<<file<<std::endl;
             }
         }
@@ -53,15 +53,11 @@ void Logic::loadConfig()
         if(cfg.count("dicts") && cfg["dicts"].is_array()){
             for (json& dict : cfg["dicts"])
             {
-                string filename = dict[1];
+                string filename = dict[0];
                 if( fs::exists(filename) )
                 {
                     cout << "importing new dict: " << filename << endl;
-                    mDicts.emplace_back(dict[0], filename);
-                    int prio = dict[0];
-                    //TODO make it background task
-                    if(prio < 20)
-                        mDicts.back().second.reload();
+                    mDicts.emplace_back(filename, dict[1], dict[2]);
                 }
             }
         }
@@ -90,7 +86,8 @@ void Logic::saveConfig()
     cout<<"Saving config"<<endl;
     json cfg;
     for(auto& dict : mDicts)
-        cfg["dicts"].push_back({dict.first, dict.second.getFilename()});
+        cfg["dicts"].push_back(
+            {dict.getFilename(), dict.mBonus, dict.is_enabled()});
 
     cfg["size"] = {mSizeX, mSizeY};
     cfg["position"] = {mPositionX, mPositionY};

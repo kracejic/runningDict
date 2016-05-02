@@ -7,7 +7,7 @@
 
 
 //TODO temporary
-template <class T> void ignore(const T &) {}
+template <class T> void ignore_arg(const T &) {}
 
 class Logic
 {
@@ -18,8 +18,8 @@ class Logic
         refreshAvailableFiles();
 
 
-        ignore(argc);
-        ignore(argv);
+        ignore_arg(argc);
+        ignore_arg(argv);
     };
     ~Logic(){
         saveConfig();
@@ -30,7 +30,7 @@ class Logic
 
 
     void refreshAvailableFiles();
-    std::vector<std::pair<int, Dict>> mDicts;
+    std::vector<Dict> mDicts;
 
     void loadConfig();
     void saveConfig();

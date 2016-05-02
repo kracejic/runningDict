@@ -45,7 +45,7 @@ int main(int argc, char const* argv[])
     bool verbose {false};
     SpeedTimer completeTimer{true};  //speed measurments
     SpeedTimer initTimer{true};      //speed measurments
-    std::vector<std::pair<int, Dict>> dicts;
+    std::vector<Dict> dicts;
 
     // Print help if no arguments are given
     if(argc == 1)
@@ -69,7 +69,7 @@ int main(int argc, char const* argv[])
             {
                 argIt++;
                 dicts.emplace_back();
-                if(!dicts.back().second.open(argv[argIt]))
+                if(!dicts.back().open(argv[argIt]))
                 {
                     cout<<"Error opening "<<argv[argIt]<<" file."<<endl;
                     return 1;
@@ -82,8 +82,8 @@ int main(int argc, char const* argv[])
             {
                 argIt++;
                 dicts.emplace_back();
-                dicts.back().first = -1;
-                if(!dicts.back().second.open(argv[argIt]))
+                dicts.back().mBonus = -1;
+                if(!dicts.back().open(argv[argIt]))
                 {
                     cout<<"Error opening "<<argv[argIt]<<" file."<<endl;
                     return 1;

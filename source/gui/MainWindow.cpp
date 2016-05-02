@@ -168,6 +168,7 @@ MainWindow::~MainWindow()
 //-----------------------------------------------------------------------------------
 bool MainWindow::pulse(int num)
 {
+    ignore_arg(num);
 
     //check if text has changed
     string tmp = mWordInput.get_text();

@@ -19,12 +19,12 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
     {
         add(mEnabled);
         add(mPath);
-        add(mPriority);
+        add(mBonus);
     }
 
     Gtk::TreeModelColumn<bool> mEnabled;
     Gtk::TreeModelColumn<Glib::ustring> mPath;
-    Gtk::TreeModelColumn<bool> mPriority;
+    Gtk::TreeModelColumn<bool> mBonus;
 };
 
 
