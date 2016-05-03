@@ -1,14 +1,19 @@
 #include "./Logic.h"
-#include <experimental/filesystem>
 #include <iostream>
 #include <algorithm>
 #include "json.hpp"
 #include <fstream>
 
+
+#ifdef USE_BOOST_FILESYSTEM
+    #include <boost/filesystem.hpp>
+    namespace fs = boost::filesystem;
+#else
+    #include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#endif
+
 using namespace std;
-
-namespace fs = std::experimental::filesystem;
-
 using json = nlohmann::json;
 
 
@@ -53,8 +58,14 @@ void Logic::refreshAvailableFiles()
     //recursively go through child directories and find .dict files
     //Add them if they are not added
     int safetyNum = 0;
+
+    #ifdef USE_BOOST_FILESYSTEM
+    for(const auto &file : fs::recursive_directory_iterator(
+            fs::current_path()))
+    #else
     for(const auto &file : fs::recursive_directory_iterator(
             fs::current_path(), fs::directory_options::skip_permission_denied))
+    #endif
     {
         //early return if structure is too deep
         if(++safetyNum > 1000)
