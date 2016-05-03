@@ -12,6 +12,41 @@ namespace fs = std::experimental::filesystem;
 using json = nlohmann::json;
 
 
+/**
+ * Returns relative path from *from* to *to*.
+ */
+fs::path relativeTo(fs::path from, fs::path to)
+{
+   // Start at the root path and while they are the same then do nothing then when they first
+   // diverge take the remainder of the two path and replace the entire from path with ".."
+   // segments.
+   fs::path::const_iterator fromIter = from.begin();
+   fs::path::const_iterator toIter = to.begin();
+
+   // Loop through both
+   while (fromIter != from.end() && toIter != to.end() && (*toIter) == (*fromIter))
+   {
+      ++toIter;
+      ++fromIter;
+   }
+
+   fs::path finalPath;
+   while (fromIter != from.end())
+   {
+      finalPath /= "..";
+      ++fromIter;
+   }
+
+   while (toIter != to.end())
+   {
+      finalPath /= *toIter;
+      ++toIter;
+   }
+
+   return finalPath;
+}
+
+
 void Logic::refreshAvailableFiles()
 {
 
@@ -32,8 +67,10 @@ void Logic::refreshAvailableFiles()
                     return (fs::equivalent(val.getFilename(), file.path()));
                 }))
             {
-                mDicts.emplace_back(file.path().string(), 0, false);
+                auto relPath = relativeTo(fs::current_path(), file.path());
+                mDicts.emplace_back(relPath.string(), 0, false);
                 std::cout<<"Found new dict: "<<file<<std::endl;
+                std::cout<<"      rel path: "<<relPath.string()<<std::endl;
             }
         }
     }
