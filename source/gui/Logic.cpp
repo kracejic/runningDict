@@ -107,6 +107,11 @@ void Logic::loadConfig()
                     cout << "importing new dict: " << filename << endl;
                     mDicts.emplace_back(filename, dict[1], dict[2]);
                 }
+                else{
+                    // mDicts.emplace_back(filename, dict[1], dict[2]);
+                    cerr << "dictionary does not exist: '" << filename << "'"
+                         << endl;
+                }
             }
         }
 

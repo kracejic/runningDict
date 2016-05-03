@@ -14,8 +14,25 @@ class Logic
   public:
     Logic(int argc, char *argv[])
     {
-        loadConfig();
-        refreshAvailableFiles();
+        try
+        {
+            loadConfig();
+        }
+        catch(const std::exception &e)
+        {
+            std::cerr << "Error during load configuration file: " << e.what()
+                      << '\n';
+        }
+
+        try
+        {
+            refreshAvailableFiles();
+        }
+        catch(const std::exception &e)
+        {
+            std::cerr << "Error during serching for new dictionaries: "
+                      << e.what() << '\n';
+        }
 
 
         ignore_arg(argc);

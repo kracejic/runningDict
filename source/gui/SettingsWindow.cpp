@@ -44,6 +44,23 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mTreeView.append_column_editable("Priority", mDictViewModel.mBonus);
 
 
+    Gtk::TreeViewColumn *pColumn = mTreeView.get_column(1);
+    pColumn->set_cell_data_func(
+        *pColumn->get_first_cell(),
+        [this](Gtk::CellRenderer *renderer,
+               const Gtk::TreeModel::iterator &iter)
+        {
+            Gtk::TreeModel::Row row = *iter;
+            if( row[this->mDictViewModel.mError])
+            {
+                Gdk::Color col("#B65E40");
+                static_cast<Gtk::CellRendererText *>(renderer)
+                    ->property_foreground_gdk()
+                    .set_value(col);
+            }
+
+        });
+
     //deal with enabling of dicts
     static_cast<Gtk::CellRendererToggle *>(
         mTreeView.get_column(0)->get_first_cell())
@@ -85,6 +102,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         row[mDictViewModel.mEnabled] = dict.is_enabled();
         row[mDictViewModel.mPath] = dict.getFilename();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
+        row[mDictViewModel.mError] = (dict.mErrorState < 0);
 
 
     }

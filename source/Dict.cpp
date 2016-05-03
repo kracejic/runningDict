@@ -61,6 +61,10 @@ bool Dict::enable(bool state)
 //------------------------------------------------------------------------------
 bool Dict::open(std::string filename)
 {
+    //presume problems, reseted later
+    mErrorState = true;
+
+    //if open, close
     if(is_open())
     {
         file.close();
@@ -68,6 +72,7 @@ bool Dict::open(std::string filename)
         mIs_open = false;
     }
 
+    //reopen
     file.open(filename);
 
     if (!file.is_open())
@@ -80,6 +85,7 @@ bool Dict::open(std::string filename)
     mContents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
     mIs_open = true;
+    mErrorState = false;
 
 
 
