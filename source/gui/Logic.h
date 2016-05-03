@@ -29,6 +29,7 @@ class Logic
     int mPositionX{0}, mPositionY{0};
 
     bool mTranslateClipboardAtStart{false};
+    bool mAlwaysOnTop{true};
 
 
     void refreshAvailableFiles();

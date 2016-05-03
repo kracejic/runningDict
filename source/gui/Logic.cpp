@@ -126,6 +126,9 @@ void Logic::loadConfig()
             mTranslateClipboardAtStart
                 = cfg["translateClipboardAtStart"];
 
+        if(cfg.count("alwaysOnTop") > 0)
+            mAlwaysOnTop = cfg["alwaysOnTop"];
+
 
         // cout << std::setw(4) << cfg <<endl;
     }
@@ -143,6 +146,7 @@ void Logic::saveConfig()
     cfg["size"] = {mSizeX, mSizeY};
     cfg["position"] = {mPositionX, mPositionY};
     cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
+    cfg["alwaysOnTop"] = mAlwaysOnTop;
 
     //save settings
     ofstream outFile("./config.json");

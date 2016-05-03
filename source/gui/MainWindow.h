@@ -11,6 +11,7 @@
 #include <gtkmm/entry.h>
 
 #include "Logic.h"
+#include "SettingsWindow.h"
 #include "../Worker.h"
 
 class ModelColumns : public Gtk::TreeModelColumnRecord
@@ -34,6 +35,8 @@ class ModelColumns : public Gtk::TreeModelColumnRecord
 class MainWindow : public Gtk::Window
 {
   private:
+    std::unique_ptr<SettingsWindow> mSettingsWindow;
+
     Logic& mLogic;
     std::string mOldTextInEntry{""};
 

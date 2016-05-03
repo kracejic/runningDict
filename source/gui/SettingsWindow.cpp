@@ -5,6 +5,7 @@
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
     , mToogleFirstCatch("Translate clipboard at start")
+    , mToogleAlwaysOnTop("Main window stays always on top")
 {
     set_border_width(10);
     set_default_size(900, 400);
@@ -12,6 +13,10 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mGrid.attach(mToogleFirstCatch, 0,0,1,1);
     if (mLogic.mTranslateClipboardAtStart)
         mToogleFirstCatch.set_active();
+
+    mGrid.attach(mToogleAlwaysOnTop, 0,1,1,1);
+    if (mLogic.mAlwaysOnTop)
+        mToogleAlwaysOnTop.set_active();
 
 
     //setup scrollView
@@ -90,5 +95,6 @@ SettingsWindow::SettingsWindow(Logic& logic)
 SettingsWindow::~SettingsWindow()
 {
     mLogic.mTranslateClipboardAtStart = mToogleFirstCatch.get_active();
+    mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
 }
 //------------------------------------------------------------------------------

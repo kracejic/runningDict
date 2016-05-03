@@ -41,6 +41,7 @@ private:
     Glib::RefPtr<Gtk::ListStore> mRefListStore;
     Gtk::Grid mGrid;
     Gtk::CheckButton mToogleFirstCatch;
+    Gtk::CheckButton mToogleAlwaysOnTop;
 
 public:
     SettingsWindow(Logic& logic);

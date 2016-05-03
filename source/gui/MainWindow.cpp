@@ -21,21 +21,23 @@ MainWindow::MainWindow(Logic& logic)
     set_border_width(10);
     set_default_size(mLogic.mSizeX, mLogic.mSizeY);
     this->move(mLogic.mPositionX, mLogic.mPositionY);
-    set_keep_above(true);
+    set_keep_above(mLogic.mAlwaysOnTop);
 
     // settings button clicked shows settings window
     mSettingsButton.signal_clicked().connect(
         [this](){
-            SettingsWindow *setings;
-            setings = new SettingsWindow(mLogic);
-            setings->show();
+            if(mSettingsWindow)
+                return;
+            mSettingsWindow.reset(new SettingsWindow(mLogic));
+            mSettingsWindow->show();
             this->set_keep_above(false);
 
             //refresh on settings closed
-            setings->signal_hide().connect([this, setings](){
+            mSettingsWindow->signal_hide().connect([this](){
+                    // delete mSettingsWindow;
+                    mSettingsWindow.reset(); //destructor is called
                     this->executeSearch(mWordInput.get_text());
-                    this->set_keep_above(true);
-                    delete setings;
+                    this->set_keep_above(mLogic.mAlwaysOnTop);
                 });
         });
 
