@@ -96,7 +96,7 @@ if(GTK3MM_FOUND)
     add_executable(runningDictGui ${GUISRC} ${SRCS})
     target_include_directories(runningDictGui PUBLIC ${GTK3MM_INCLUDE_DIRS})
     target_link_libraries (runningDictGui
-        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES} stdc++fs)
+        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
     set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
 
     install(TARGETS runningDictGui DESTINATION ./)
@@ -104,7 +104,7 @@ if(GTK3MM_FOUND)
     #windows MSYS2 support
     macro(installMSYS2lib FilePattern)
         install(DIRECTORY ${GCC_PATH}/ DESTINATION ./
-            FILES_MATCHING PATTERN FilePattern)
+            FILES_MATCHING PATTERN ${FilePattern})
     endmacro()
     if(MINGW)
         installMSYS2lib("libatk-1.0-0.dll")
@@ -157,6 +157,10 @@ if(GTK3MM_FOUND)
         target_link_libraries(runningDictGui ${Boost_FILESYSTEM_LIBRARY}
             ${Boost_SYSTEM_LIBRARY})
         #TODO install boost dll on windows
+        installMSYS2lib("libboost_filesystem-mt.dll")
+        installMSYS2lib("libboost_system-mt.dll")
+    else()
+        target_link_libraries(runningDictGui  stdc++fs)
     endif()
 
 else()

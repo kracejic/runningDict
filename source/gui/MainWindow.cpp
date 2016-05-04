@@ -129,11 +129,16 @@ MainWindow::MainWindow(Logic& logic)
     //deal with resizing
     this->signal_check_resize().connect([this]()
     {
+        #ifdef _WIN32
+        const int padding_for_wrap_def = 160;
+        #else
+        const int padding_for_wrap_def = 30;
+        #endif
         //calculate remaining size
         Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
         auto width = this->get_allocated_width()
             - mTreeView.get_column(0)->get_width()
-            - mTreeView.get_column(1)->get_width()-30;
+            - mTreeView.get_column(1)->get_width()-padding_for_wrap_def;
 
         //minimum reasonable size for column
         if(width < 150)
