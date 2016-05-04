@@ -68,7 +68,7 @@ void Logic::refreshAvailableFiles()
     #endif
     {
         //early return if structure is too deep
-        if(++safetyNum > 1000)
+        if(++safetyNum > 10000)
             break;
 
         if(file.path().has_extension() == true && file.path().extension() == ".dict" )

@@ -92,8 +92,13 @@ pkg_check_modules(GTK3MM gtkmm-3.0)
 if(GTK3MM_FOUND)
     message(STATUS "GTK was found, building GUI")
 
-    #executable setup
-    add_executable(runningDictGui ${GUISRC} ${SRCS})
+    #executable setup WIN32 forces no command line window
+    if(MINGW)
+        add_executable(runningDictGui WIN32 ${GUISRC} ${SRCS})
+    else()
+        add_executable(runningDictGui ${GUISRC} ${SRCS})
+    endif()
+
     target_include_directories(runningDictGui PUBLIC ${GTK3MM_INCLUDE_DIRS})
     target_link_libraries (runningDictGui
         ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
@@ -152,6 +157,7 @@ if(GTK3MM_FOUND)
         find_package(Boost COMPONENTS filesystem system REQUIRED)
         target_compile_definitions(runningDictGui
             PRIVATE USE_BOOST_FILESYSTEM)
+
         target_include_directories(runningDictGui
             SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
         target_link_libraries(runningDictGui ${Boost_FILESYSTEM_LIBRARY}

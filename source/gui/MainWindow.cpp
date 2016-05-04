@@ -22,6 +22,7 @@ MainWindow::MainWindow(Logic& logic)
     set_default_size(mLogic.mSizeX, mLogic.mSizeY);
     this->move(mLogic.mPositionX, mLogic.mPositionY);
     set_keep_above(mLogic.mAlwaysOnTop);
+    set_title("Dictionary");
 
     // settings button clicked shows settings window
     mSettingsButton.signal_clicked().connect(
@@ -43,13 +44,15 @@ MainWindow::MainWindow(Logic& logic)
 
 
     add(mGrid);
+    mGrid.set_column_spacing(5);
 
     mGrid.add(mWordInput);
     mGrid.add(mAddWordButton);
     mGrid.add(mSettingsButton);
 
+
     //scrolling area
-    mGrid.attach(mScrollForResults, 0,2,10,1);
+    mGrid.attach(mScrollForResults, 0,2,3,1);
     mScrollForResults.set_hexpand();
     mScrollForResults.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC,
                                  Gtk::PolicyType::POLICY_ALWAYS);
