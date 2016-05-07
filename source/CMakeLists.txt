@@ -38,15 +38,15 @@ add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
 target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
-add_library(RunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
-target_link_libraries (RunningDict ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET RunningDict PROPERTY CXX_STANDARD 14) # we want C++14
+add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
+target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
+set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
 
 #copy of executables
 install(TARGETS runningDict DESTINATION ./)
-install(TARGETS RunningDict DESTINATION ./)
+install(TARGETS libRunningDict DESTINATION ./)
 
 
 # no data needed
@@ -59,11 +59,11 @@ if(MINGW)
     get_filename_component(GCC_PATH ${CMAKE_C_COMPILER} PATH)
     if(${GCC_PATH} MATCHES "mingw64/bin")
         set(libgcc "libgcc_s_seh-1.dll") #64bit
-        set_target_properties(RunningDict PROPERTIES OUTPUT_NAME "RunningDict64")
+        set_target_properties(libRunningDict PROPERTIES OUTPUT_NAME "RunningDict64")
         message(STATUS "  64bit dlls is building")
     else()
         set(libgcc "libgcc_s_dw2-1.dll") #32bit
-        set_target_properties(RunningDict PROPERTIES OUTPUT_NAME "RunningDict32")
+        set_target_properties(libRunningDict PROPERTIES OUTPUT_NAME "RunningDict32")
         message(STATUS "  32bit dlls is building")
     endif()
 
@@ -77,7 +77,7 @@ endif(MINGW)
 
 
 #-------------------------------------------------------------------------------
-# RunningDictGui
+# RunningDict2Gui
 
 set(GUISRC
     gui/guiMain.cpp

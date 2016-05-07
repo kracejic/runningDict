@@ -10,7 +10,7 @@ enable_testing()
 add_custom_target(check
     COMMAND echo [----] Running tests
     COMMAND ${CMAKE_CTEST_COMMAND}
-    DEPENDS runningDict runningDictGui RunningDict)
+    DEPENDS runningDict runningDictGui libRunningDict)
 
 
 # Basic tests
@@ -54,5 +54,5 @@ add_test(NAME "search_w2_d2"
 
 #Test searching with library
 add_test(NAME "testLibrary"
-    COMMAND python3 testLib.py $<TARGET_FILE:RunningDict>
+    COMMAND python3 testLib.py $<TARGET_FILE:libRunningDict>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
