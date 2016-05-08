@@ -48,6 +48,18 @@ class Dict
      */
     bool reload();
 
+
+    /**
+     * Add new word to dictionary.
+     * This causes write to harddrive.
+     *
+     * @return             was this succesfull?
+     */
+    bool addWord(const std::string& word, const std::string& translation);
+
+
+    void saveDictionary();
+
     const std::string &getFilename() const;
     const std::string &getContens() const;
     long long getContensSize() const;

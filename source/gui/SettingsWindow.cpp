@@ -102,7 +102,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         row[mDictViewModel.mEnabled] = dict.is_enabled();
         row[mDictViewModel.mPath] = dict.getFilename();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
-        row[mDictViewModel.mError] = (dict.mErrorState < 0);
+        row[mDictViewModel.mError] = (dict.mErrorState);
 
 
     }

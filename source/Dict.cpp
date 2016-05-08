@@ -1,5 +1,6 @@
 #include "Dict.h"
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -109,4 +110,26 @@ long long Dict::getContensSize() const
     return mContents.size();
 }
 //------------------------------------------------------------------------------
+bool Dict::addWord(const std::string& word, const std::string& translation)
+{
+    if(not mIs_open)
+        return false;
+
+
+    mContents.erase(std::find_if(mContents.rbegin(), mContents.rend(),
+                         std::not1(std::ptr_fun<int, int>(std::isspace)))
+                .base(), mContents.end());
+
+    //TODO
+    return true;
+}
+//------------------------------------------------------------------------------
+void Dict::saveDictionary()
+{
+    std::ofstream outfile{mFilename};
+    outfile<<mContents<<endl;
+    //TODO check
+}
+//------------------------------------------------------------------------------
+
 

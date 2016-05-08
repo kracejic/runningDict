@@ -25,8 +25,7 @@ MainWindow::MainWindow(Logic& logic)
     set_title("Dictionary");
 
     // settings button clicked shows settings window
-    mSettingsButton.signal_clicked().connect(
-        [this](){
+    mSettingsButton.signal_clicked().connect([this](){
             if(mSettingsWindow)
                 return;
             mSettingsWindow.reset(new SettingsWindow(mLogic));
@@ -41,6 +40,18 @@ MainWindow::MainWindow(Logic& logic)
                     this->set_keep_above(mLogic.mAlwaysOnTop);
                 });
         });
+    mAddWordButton.signal_clicked().connect([this](){
+            mNewWordWindow.reset(new NewWordWindow(mLogic));
+            mNewWordWindow->show();
+            this->set_keep_above(false);
+            mNewWordWindow->set_keep_above(true);
+
+            mNewWordWindow->signal_hide().connect([this](){
+                mNewWordWindow.reset();
+                this->set_keep_above(mLogic.mAlwaysOnTop);
+            });
+
+    });
 
 
     add(mGrid);

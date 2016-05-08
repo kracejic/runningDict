@@ -83,6 +83,7 @@ set(GUISRC
     gui/guiMain.cpp
     gui/MainWindow.cpp
     gui/SettingsWindow.cpp
+    gui/NewWordWindow.cpp
     gui/Logic.cpp
 )
 

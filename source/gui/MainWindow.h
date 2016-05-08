@@ -12,6 +12,7 @@
 
 #include "Logic.h"
 #include "SettingsWindow.h"
+#include "NewWordWindow.h"
 #include "../Worker.h"
 
 class ModelColumns : public Gtk::TreeModelColumnRecord
@@ -36,6 +37,7 @@ class MainWindow : public Gtk::Window
 {
   private:
     std::unique_ptr<SettingsWindow> mSettingsWindow;
+    std::unique_ptr<NewWordWindow> mNewWordWindow;
 
     Logic& mLogic;
     Glib::ustring mOldTextInEntry{""};
