@@ -30,9 +30,61 @@ string getLowerCase(const string& txt)
     string res {txt};
     for(auto&& i : res)
     {
-        i = tolower(i);
+        if((unsigned char)i < 128 )
+            i = tolower(i);
     }
     return res;
+}
+
+bool myIsPunct(char ch)
+{
+    switch (ch)
+    {
+        case '!':
+        case '"':
+        case '#':
+        case '$':
+        case '%':
+        case '&':
+        case '\'':
+        case '(':
+        case ')':
+        case '*':
+        case '+':
+        case ',':
+        case '-':
+        case '.':
+        case '/':
+        case ':':
+        case ';':
+        case '<':
+        case '=':
+        case '>':
+        case '?':
+        case '@':
+        case '[':
+        case '\\':
+        case ']':
+        case '^':
+        case '_':
+        case '`':
+        case '{':
+        case '|':
+        case '}':
+        case '~':
+            return true;
+        default:
+            return false;
+    }
+}
+
+
+bool myIsUpper(char ch)
+{
+    if((unsigned char)(ch) >= 128)
+        return false;
+    else
+        return std::isupper(ch);
 }
 
 
@@ -41,18 +93,19 @@ Word::Word(const std::string& txt) : text(txt)
     int it1 = 0, it2 = 1;
     bool wasUpperCase = false;
     //handle first character upper case
-    if(std::isupper(txt[1]))
+    if(myIsUpper(txt[1]))
         wasUpperCase = true;
 
     //fix CObjectThing to parse as ObjectThing
-    if(txt[0] == 'C' && std::isupper(txt[1])){
+    if(txt[0] == 'C' && myIsUpper(txt[1])){
         it1 = 1;
         it2 = 2;
     }
 
     for ( ; it2 < (int)txt.size(); ++it2)
     {
-        if(std::isupper(txt[it2])){
+        // printf(" + '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2, wasUpperCase);
+        if(myIsUpper(txt[it2])){
             if(!wasUpperCase) {
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
                 // printf("   catch  %d %d - %s\n", it1, it2, words1.back().c_str());
@@ -62,7 +115,7 @@ Word::Word(const std::string& txt) : text(txt)
         }
         else
         {
-            if(std::ispunct(txt[it2])){
+            if(myIsPunct(txt[it2])){
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
                 // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
                 ++it2;
@@ -80,6 +133,8 @@ Word::Word(const std::string& txt) : text(txt)
                 wasUpperCase = false;
             }
         }
+        // printf(" - '%u' (%d, %d), upper=%d\n",
+            // (unsigned char)txt[it2], it1, it2, wasUpperCase);
     }
     words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
     // printf("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());

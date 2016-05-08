@@ -38,10 +38,10 @@ class MainWindow : public Gtk::Window
     std::unique_ptr<SettingsWindow> mSettingsWindow;
 
     Logic& mLogic;
-    std::string mOldTextInEntry{""};
+    Glib::ustring mOldTextInEntry{""};
 
     bool mIgnoreClipboardChange{true};
-    std::string mOldClipboard{""};
+    Glib::ustring mOldClipboard{""};
 
     ModelColumns mColumns;
     Glib::RefPtr<Gtk::ListStore> mRefListStore;
@@ -49,7 +49,7 @@ class MainWindow : public Gtk::Window
 
 
     //guarded by mutex
-    std::string mWaitingToTranslate;
+    Glib::ustring mWaitingToTranslate;
     std::mutex mSearchMutex;
     bool mSearchInProgress{false};
     bool mNewTranslationAvailable{false};
@@ -65,9 +65,9 @@ class MainWindow : public Gtk::Window
 
     // Signal handlers:
     void on_button_clicked();
-    void on_clipboard_received(const Gtk::SelectionData &data);
+    void on_clipboard_received(const Glib::ustring &data);
 
-    void executeSearch(std::string text);
+    void executeSearch(Glib::ustring text);
     void searchThread();
 
     //clock function

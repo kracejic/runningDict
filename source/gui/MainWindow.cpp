@@ -190,7 +190,7 @@ bool MainWindow::pulse(int num)
     ignore_arg(num);
 
     //check if text has changed
-    string tmp = mWordInput.get_text();
+    Glib::ustring tmp = mWordInput.get_text();
     if( mOldTextInEntry != tmp)
     {
         mOldTextInEntry = tmp;
@@ -201,8 +201,8 @@ bool MainWindow::pulse(int num)
     }
 
     Glib::RefPtr<Gtk::Clipboard> refClipboard = Gtk::Clipboard::get();
-    refClipboard->request_contents("UTF8_STRING",
-    sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
+    refClipboard->request_text(
+        sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
 
 
     unique_lock<mutex> guard{mSearchMutex};
@@ -240,7 +240,7 @@ bool MainWindow::pulse(int num)
     return true;
 }
 //------------------------------------------------------------------------------
-void MainWindow::executeSearch(string text)
+void MainWindow::executeSearch(Glib::ustring text)
 {
     unique_lock<mutex> guard{mSearchMutex};
     mWaitingToTranslate = text;
@@ -298,10 +298,10 @@ void MainWindow::searchThread()
     mSearchInProgress = false;
 }
 //------------------------------------------------------------------------------
-void MainWindow::on_clipboard_received(const Gtk::SelectionData &data)
+void MainWindow::on_clipboard_received(const Glib::ustring &data)
 {
     // check if new text is in the clipboard
-    string text = data.get_data_as_string();
+    Glib::ustring text =  data;
     if (text.size() > 256)
         text = text.substr(0, 256);
 
