@@ -29,8 +29,8 @@ MainWindow::MainWindow(Logic& logic)
             if(mSettingsWindow)
                 return;
             mSettingsWindow.reset(new SettingsWindow(mLogic));
-            mSettingsWindow->show();
             this->set_keep_above(false);
+            mSettingsWindow->show();
 
             //refresh on settings closed
             mSettingsWindow->signal_hide().connect([this](){
@@ -42,12 +42,14 @@ MainWindow::MainWindow(Logic& logic)
         });
     mAddWordButton.signal_clicked().connect([this](){
             mNewWordWindow.reset(new NewWordWindow(mLogic));
-            mNewWordWindow->show();
             this->set_keep_above(false);
+            mNewWordWindow->show();
+            mNewWordWindow->set_transient_for(*this);
             mNewWordWindow->set_keep_above(true);
 
             mNewWordWindow->signal_hide().connect([this](){
                 mNewWordWindow.reset();
+                this->executeSearch(mWordInput.get_text());
                 this->set_keep_above(mLogic.mAlwaysOnTop);
             });
 

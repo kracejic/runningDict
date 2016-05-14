@@ -45,6 +45,13 @@ private:
     Gtk::CheckButton mToogleFirstCatch;
     Gtk::CheckButton mToogleAlwaysOnTop;
 
+
+    /**
+     * handles ESC key
+     */
+    bool on_key_press_event(GdkEventKey* event) override;
+
+
 public:
     SettingsWindow(Logic& logic);
     ~SettingsWindow() override;

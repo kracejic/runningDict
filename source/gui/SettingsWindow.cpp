@@ -7,9 +7,10 @@ SettingsWindow::SettingsWindow(Logic& logic)
     , mToogleFirstCatch("Translate clipboard at start")
     , mToogleAlwaysOnTop("Main window stays always on top")
 {
-    set_border_width(10);
-    set_default_size(900, 400);
-    add(mGrid);
+    this->set_position(Gtk::WIN_POS_MOUSE);
+    this->set_border_width(10);
+    this->set_default_size(900, 400);
+    this->add(mGrid);
     mGrid.attach(mToogleFirstCatch, 0,0,1,1);
     if (mLogic.mTranslateClipboardAtStart)
         mToogleFirstCatch.set_active();
@@ -114,5 +115,17 @@ SettingsWindow::~SettingsWindow()
 {
     mLogic.mTranslateClipboardAtStart = mToogleFirstCatch.get_active();
     mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
+}
+//------------------------------------------------------------------------------
+bool SettingsWindow::on_key_press_event(GdkEventKey* key_event)
+{
+    if(key_event->keyval == GDK_KEY_Escape)
+    {
+        // close the window, when the 'esc' key is pressed
+        hide();
+        return true;
+    }
+
+    return Gtk::Window::on_key_press_event(key_event);
 }
 //------------------------------------------------------------------------------

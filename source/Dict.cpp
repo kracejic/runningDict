@@ -113,14 +113,22 @@ long long Dict::getContensSize() const
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
     if(not mIs_open)
+        this->open(mFilename);
+    if(not mIs_open)
         return false;
 
+    //TODO make word lower case
 
+    //erase whitespace on the end of mContens
     mContents.erase(std::find_if(mContents.rbegin(), mContents.rend(),
                          std::not1(std::ptr_fun<int, int>(std::isspace)))
                 .base(), mContents.end());
 
-    //TODO
+    //add word
+    mContents.append("\n"s+word+"\n "+translation);
+
+    this->saveDictionary();
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -128,7 +136,6 @@ void Dict::saveDictionary()
 {
     std::ofstream outfile{mFilename};
     outfile<<mContents<<endl;
-    //TODO check
 }
 //------------------------------------------------------------------------------
 

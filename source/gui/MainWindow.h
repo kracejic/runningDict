@@ -33,7 +33,7 @@ class ModelColumns : public Gtk::TreeModelColumnRecord
 };
 
 
-class MainWindow : public Gtk::Window
+class MainWindow : public Gtk::ApplicationWindow
 {
   private:
     std::unique_ptr<SettingsWindow> mSettingsWindow;

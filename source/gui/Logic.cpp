@@ -134,6 +134,9 @@ void Logic::loadConfig()
         if(cfg.count("alwaysOnTop") > 0)
             mAlwaysOnTop = cfg["alwaysOnTop"];
 
+        if(cfg.count("lastDictForNewWord") > 0)
+            mLastDictForNewWord = cfg["lastDictForNewWord"];
+
 
         // cout << std::setw(4) << cfg <<endl;
     }
@@ -152,6 +155,7 @@ void Logic::saveConfig()
     cfg["position"] = {mPositionX, mPositionY};
     cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
     cfg["alwaysOnTop"] = mAlwaysOnTop;
+    cfg["lastDictForNewWord"] = mLastDictForNewWord;
 
     //save settings
     ofstream outFile("./config.json");

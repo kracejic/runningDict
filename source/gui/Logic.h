@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include "Dict.h"
 #include "Search.h"
@@ -47,6 +48,8 @@ class Logic
 
     bool mTranslateClipboardAtStart{false};
     bool mAlwaysOnTop{true};
+
+    std::string mLastDictForNewWord{""};
 
 
     void refreshAvailableFiles();
