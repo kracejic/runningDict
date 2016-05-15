@@ -50,7 +50,11 @@ install(TARGETS libRunningDict DESTINATION ./)
 
 
 # no data needed
-# install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
+
+if(MINGW)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/dataWindows/ DESTINATION ./ )
+endif(MINGW)
 
 #-------------------------------------------------------------------------------
 # Copy MINGW libraries
