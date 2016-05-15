@@ -110,6 +110,18 @@ long long Dict::getContensSize() const
     return mContents.size();
 }
 //------------------------------------------------------------------------------
+string getLowerCase2(const string& txt)
+{
+    string res {txt};
+    for(auto&& i : res)
+    {
+        if((unsigned char)i < 128 )
+            i = tolower(i);
+    }
+    return res;
+}
+//------------------------------------------------------------------------------
+
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
     if(not mIs_open)
@@ -117,7 +129,8 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     if(not mIs_open)
         return false;
 
-    //TODO make word lower case
+    //Make lower case
+    string wordCopy = getLowerCase2(word);
 
     //erase whitespace on the end of mContens
     mContents.erase(std::find_if(mContents.rbegin(), mContents.rend(),
@@ -125,7 +138,7 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
                 .base(), mContents.end());
 
     //add word
-    mContents.append("\n"s+word+"\n "+translation);
+    mContents.append("\n"s+wordCopy+"\n "+translation);
 
     this->saveDictionary();
 
