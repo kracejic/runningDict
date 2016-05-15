@@ -5,7 +5,7 @@
 
 using namespace std;
 
-NewWordWindow::NewWordWindow(Logic &logic)
+NewWordWindow::NewWordWindow(Logic &logic, std::string word)
 : mLogic(logic)
 , mAddButton("Add")
 , mComboLabel("Target dictionary: ")
@@ -29,7 +29,7 @@ NewWordWindow::NewWordWindow(Logic &logic)
 
 
     mWordInput.set_placeholder_text("Put one word here");
-    mWordInput.set_text("word");
+    mWordInput.set_text(word);
     mWordInput.set_hexpand();
     mWordInput.signal_changed().connect([this](){
         this->check_validity();

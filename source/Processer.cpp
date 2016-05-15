@@ -72,6 +72,8 @@ bool myIsPunct(char ch)
         case '|':
         case '}':
         case '~':
+        case ' ':
+        case '\t':
             return true;
         default:
             return false;
@@ -104,45 +106,62 @@ Word::Word(const std::string& txt) : text(txt)
 
     for ( ; it2 < (int)txt.size(); ++it2)
     {
-        // printf(" + '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2, wasUpperCase);
+        printf(" + '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2, wasUpperCase);
         if(myIsUpper(txt[it2])){
+            printf("   isupper\n");
             if(!wasUpperCase) {
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                // printf("   catch  %d %d - %s\n", it1, it2, words1.back().c_str());
+                printf("   catch  %d %d - %s\n", it1, it2, words1.back().c_str());
                 it1 = it2;
                 wasUpperCase = true;
             }
         }
         else
         {
+            printf("   not isupper\n");
             if(myIsPunct(txt[it2])){
-                words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
-                ++it2;
-                it1 = it2;
+                if(it2 > 1)
+                {
+                    words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
+                    printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
+                }
+                do{
+                    ++it2;
+                } while (myIsPunct(txt[it2]) or it2 == (int)txt.size());
+                --it2;
+                it1 = it2+1;
+                printf("   catch3end %d %d / %d\n", it1, it2,(int)txt.size());
                 wasUpperCase = true;
             }
             else{
+                printf("     not\n");
                 if(wasUpperCase && ((it2 - it1) > 1))
                 {
                     words1.push_back(getLowerCase(txt.substr(it1, it2 - it1 - 1)));
-                    // printf("   catch2 %d %d - %s\n", it1, it2, words1.back().c_str());
+                    printf("   catch2 %d %d - %s\n", it1, it2, words1.back().c_str());
                     --it2;
                     it1 = it2;
                 }
                 wasUpperCase = false;
             }
         }
-        // printf(" - '%u' (%d, %d), upper=%d\n",
-            // (unsigned char)txt[it2], it1, it2, wasUpperCase);
+        printf(" - '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2, wasUpperCase);
     }
-    words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
-    // printf("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());
+    if(it2 != (it1))
+    {
+        words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
+        printf("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());
+    }
 
-    for (int i = 0; i < ((int)words1.size())-1; i+=2)
-        words2.emplace_back(words1[i]+words1[i+1]);
-    for (int i = 1; i < ((int)words1.size())-1; i+=2)
-        words2.emplace_back(words1[i]+words1[i+1]);
+    cout<<"@words = ";
+    for (auto& word : words1)
+        cout<<"'"<<word<<"', ";
+    cout<<endl<<endl;
+
+    // for (int i = 0; i < ((int)words1.size())-1; i+=2)
+    //     words2.emplace_back(words1[i]+words1[i+1]);
+    // for (int i = 1; i < ((int)words1.size())-1; i+=2)
+    //     words2.emplace_back(words1[i]+words1[i+1]);
 }
 //-----------------------------------------------------------------------------------
 std::vector<std::string> Word::getAllWordsBig()

@@ -55,7 +55,7 @@ private:
     void check_validity();
 
 public:
-    NewWordWindow(Logic &logic);
+    NewWordWindow(Logic &logic, std::string word);
     ~NewWordWindow() override;
 };
 

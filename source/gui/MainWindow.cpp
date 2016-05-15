@@ -54,18 +54,32 @@ MainWindow::MainWindow(Logic& logic)
                 });
         });
     mAddWordButton.set_image_from_icon_name("custom_icon_add");
-    mAddWordButton.signal_clicked().connect([this](){
-            mNewWordWindow.reset(new NewWordWindow(mLogic));
-            this->set_keep_above(false);
-            mNewWordWindow->show();
-            mNewWordWindow->set_transient_for(*this);
-            mNewWordWindow->set_keep_above(true);
+    mAddWordButton.signal_clicked().connect([this]() {
 
-            mNewWordWindow->signal_hide().connect([this](){
-                mNewWordWindow.reset();
-                this->executeSearch(mWordInput.get_text());
-                this->set_keep_above(mLogic.mAlwaysOnTop);
+        string leastKnownWord = "";
+
+        //find word with lowest number of translations
+        auto leastKnown = min_element(mTranslationResult.begin(),
+            mTranslationResult.end(), [](auto &a, auto &b) {
+                return a.second.size() < b.second.size();
             });
+        if(leastKnown != mTranslationResult.end()){
+            std::cout<<"leastKnown->first = "<<leastKnown->first<<std::endl;
+            leastKnownWord = leastKnown->first;
+        }
+
+
+        mNewWordWindow.reset(new NewWordWindow(mLogic, leastKnownWord));
+        this->set_keep_above(false);
+        mNewWordWindow->show();
+        mNewWordWindow->set_transient_for(*this);
+        mNewWordWindow->set_keep_above(true);
+
+        mNewWordWindow->signal_hide().connect([this]() {
+            mNewWordWindow.reset();
+            this->executeSearch(mWordInput.get_text());
+            this->set_keep_above(mLogic.mAlwaysOnTop);
+        });
 
     });
 
