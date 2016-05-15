@@ -49,7 +49,8 @@ install(TARGETS runningDict DESTINATION ./)
 install(TARGETS libRunningDict DESTINATION ./)
 
 
-# no data needed
+
+# install all data
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
 
 if(MINGW)

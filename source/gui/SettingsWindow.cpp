@@ -11,6 +11,8 @@ SettingsWindow::SettingsWindow(Logic& logic)
     this->set_border_width(10);
     this->set_default_size(900, 400);
     this->add(mGrid);
+    this->set_title("Settings");
+
     mGrid.attach(mToogleFirstCatch, 0,0,1,1);
     if (mLogic.mTranslateClipboardAtStart)
         mToogleFirstCatch.set_active();

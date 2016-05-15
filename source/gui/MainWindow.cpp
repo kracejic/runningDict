@@ -6,25 +6,38 @@
 #include <gdkmm/rgba.h>
 #include <gtk/gtk.h>
 #include "SettingsWindow.h"
+#include <gdkmm/pixbuf.h>
+#include <gtkmm/icontheme.h>
+
 
 using namespace std;
 
 MainWindow::MainWindow(Logic& logic)
     : mLogic(logic)
-    , mAddWordButton("+")
-    , mSettingsButton("O")
 {
     //Load settings
     mIgnoreClipboardChange = !mLogic.mTranslateClipboardAtStart;
 
     // Sets the border width of the window.
-    set_border_width(10);
-    set_default_size(mLogic.mSizeX, mLogic.mSizeY);
+    this->set_border_width(10);
+    this->set_default_size(mLogic.mSizeX, mLogic.mSizeY);
     this->move(mLogic.mPositionX, mLogic.mPositionY);
-    set_keep_above(mLogic.mAlwaysOnTop);
-    set_title("Dictionary");
+    this->set_keep_above(mLogic.mAlwaysOnTop);
+    this->set_title("Dictionary");
+
+    Glib::RefPtr<Gdk::Pixbuf> imagePlus
+        = Gdk::Pixbuf::create_from_file("./share/icons/ic_add_black_24dp_1x.png");
+    imagePlus->get_height();
+    Gtk::IconTheme::add_builtin_icon("custom_icon_add", 4, imagePlus);
+
+    Glib::RefPtr<Gdk::Pixbuf> imageSettings
+        = Gdk::Pixbuf::create_from_file("./share/icons/ic_settings_black_24dp_1x.png");
+    imageSettings->get_height();
+    Gtk::IconTheme::add_builtin_icon("custom_icon_settings", 4, imageSettings);
+
 
     // settings button clicked shows settings window
+    mSettingsButton.set_image_from_icon_name("custom_icon_settings");
     mSettingsButton.signal_clicked().connect([this](){
             if(mSettingsWindow)
                 return;
@@ -40,6 +53,7 @@ MainWindow::MainWindow(Logic& logic)
                     this->set_keep_above(mLogic.mAlwaysOnTop);
                 });
         });
+    mAddWordButton.set_image_from_icon_name("custom_icon_add");
     mAddWordButton.signal_clicked().connect([this](){
             mNewWordWindow.reset(new NewWordWindow(mLogic));
             this->set_keep_above(false);
