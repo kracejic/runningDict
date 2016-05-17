@@ -137,6 +137,7 @@ MainWindow::MainWindow(Logic& logic)
                     score = 4;
                 switch (score)
                 {
+                    //TODO add more colors
                     case 0:
                         col.set("#40B640");
                         break;

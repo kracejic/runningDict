@@ -27,9 +27,11 @@ rawBytes = testlib.search(b'CKeineKatz ihre')
 decodeData = rawBytes.decode("utf-8")
 jsonResult = json.loads(decodeData)
 
+print("results:" + str(jsonResult))
+
 assert jsonResult["results"][0]["matches"] == []
 assert jsonResult["results"][1]["word"] == "katz"
-assert jsonResult["results"][1]["score"] == 1
+assert jsonResult["results"][1]["score"] == 2
 assert len(jsonResult["results"][2]["matches"]) == 2
 assert jsonResult["results"][2]["matches"][0][0] == "ihre"
 assert jsonResult["results"][2]["matches"][0][1] == "your"

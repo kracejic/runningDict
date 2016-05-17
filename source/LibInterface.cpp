@@ -92,7 +92,8 @@ char* search(const char* words)
         ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
         for(auto&& r : rr)
         {
-            ret.append(string("[\"")+r.match+"\",\""+r.words+"\"],");
+            ret.append(string("[\"") + r.match + "\",\"" + r.words + "\",\""
+                       + to_string(r.score) + "\"],");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();

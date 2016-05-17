@@ -9,7 +9,7 @@ enable_testing()
 # dependecy of both binary files.
 add_custom_target(check
     COMMAND echo [----] Running tests
-    COMMAND ${CMAKE_CTEST_COMMAND}
+    COMMAND ${CMAKE_CTEST_COMMAND}  --output-on-failure
     DEPENDS runningDict runningDictGui libRunningDict)
 
 

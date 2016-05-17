@@ -75,7 +75,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
     for(auto&& w : wordsIn)
     {
         // cout<<"  converting: \""<<w<<"\" size="<<w.size()<<endl;
-        words.emplace_back(utfConvertor.from_bytes(w), w.size()/3+1);
+        words.emplace_back(utfConvertor.from_bytes(w), (2*w.size())/3+1);
     }
 
     //some overlap is neccessary for start if not starting from the beginning
@@ -123,7 +123,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
         for(auto&& w : words)
         {
             german2 = utfConvertor.from_bytes(german);
-            int dist = levenshtein_distance(w.first, german2);
+            int dist = 2 * levenshtein_distance(w.first, german2);
             if(dist < w.second)
             {
                 // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w.first)

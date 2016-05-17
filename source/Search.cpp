@@ -95,14 +95,12 @@ workerResult _search(std::vector<Dict>& dicts,
                                    return x.words == y.words && x.score == y.score;
                                }),
                         rr.second.end());
-        //leave only best matches for each word
-        int max = 5;
+        //leave only best and best+1 matches for each word
+        int best = rr.second.begin()->score;
         rr.second.erase(find_if(rr.second.begin(), rr.second.end(),
-                                [max](const auto& x) mutable
+                                [best](const auto& x)
                                 {
-                                    bool ret = max < x.score;
-                                    max = x.score;
-                                    return ret;
+                                    return x.score > (best+1);
                                 }),
                         rr.second.end());
     }
