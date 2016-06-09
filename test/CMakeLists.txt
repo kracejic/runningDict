@@ -78,6 +78,6 @@ target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/)
 
 add_test(NAME "catch_unit_tests"
-    COMMAND $<TARGET_FILE:tests>
+    COMMAND $<TARGET_FILE:tests> -s -r compact
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 

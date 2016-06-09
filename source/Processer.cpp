@@ -310,4 +310,10 @@ TEST_CASE("Check splitting of strings 5 complex"){
     REQUIRE(res[8] == "ihre");
 }
 
+TEST_CASE("Check splitting of strings 5 Rueckgabewerte"){
+    auto res = Processer::splitToWords("Rueckgabewerte");
+    REQUIRE(res.size() == 1);
+    REQUIRE(res[0] == "rueckgabewerte");
+}
+
 #endif

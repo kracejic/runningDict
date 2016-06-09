@@ -25,6 +25,7 @@ MainWindow::MainWindow(Logic& logic)
     this->set_keep_above(mLogic.mAlwaysOnTop);
     this->set_title("Dictionary");
 
+    //Icons
     Glib::RefPtr<Gdk::Pixbuf> imagePlus
         = Gdk::Pixbuf::create_from_file("./share/icons/ic_add_black_24dp_1x.png");
     imagePlus->get_height();
@@ -35,7 +36,7 @@ MainWindow::MainWindow(Logic& logic)
     imageSettings->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_settings", 4, imageSettings);
 
-
+    //--------------------------------------------------------------------------
     // settings button clicked shows settings window
     mSettingsButton.set_image_from_icon_name("custom_icon_settings");
     mSettingsButton.signal_clicked().connect([this](){
@@ -53,6 +54,9 @@ MainWindow::MainWindow(Logic& logic)
                     this->set_keep_above(mLogic.mAlwaysOnTop);
                 });
         });
+    
+    //--------------------------------------------------------------------------
+    // Add word button
     mAddWordButton.set_image_from_icon_name("custom_icon_add");
     mAddWordButton.signal_clicked().connect([this]() {
 
@@ -84,15 +88,17 @@ MainWindow::MainWindow(Logic& logic)
     });
 
 
+    //Grid
     add(mGrid);
     mGrid.set_column_spacing(5);
 
+    //Grid - first row
     mGrid.add(mWordInput);
     mGrid.add(mAddWordButton);
     mGrid.add(mSettingsButton);
 
 
-    //scrolling area
+    //scrolling area for results
     mGrid.attach(mScrollForResults, 0,2,3,1);
     mScrollForResults.set_hexpand();
     mScrollForResults.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC,
@@ -102,6 +108,7 @@ MainWindow::MainWindow(Logic& logic)
     mScrollForResults.set_min_content_width(400);
     mScrollForResults.set_min_content_height(200);
 
+    //--------------------------------------------------------------------------
     //results treeView
     mRefListStore = Gtk::ListStore::create(mColumns);
     mTreeView.set_model(mRefListStore);
@@ -361,7 +368,3 @@ void MainWindow::on_clipboard_received(const Glib::ustring &data)
     }
 }
 //------------------------------------------------------------------------------
-void MainWindow::on_button_clicked()
-{
-  std::cout << "Hello World" << std::endl;
-}
