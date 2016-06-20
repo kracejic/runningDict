@@ -119,7 +119,9 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Word", mColumns.mGerman);
         Gtk::TreeViewColumn *pColumn = mTreeView.get_column(0);
-        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
+        // pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
+        // neccessary to prevent glitches
+        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
         Gdk::Color col("#ffaa00");
         static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
             ->property_foreground_gdk()
@@ -254,6 +256,7 @@ bool MainWindow::pulse(int num)
         sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
 
 
+    // If there is new translation, fill the treeview with new data
     unique_lock<mutex> guard{mSearchMutex};
     if(mNewTranslationAvailable || mRedrawNeeded)
     {
@@ -281,6 +284,8 @@ bool MainWindow::pulse(int num)
                 (*iter)[mColumns.mGerman] = w;
             }
         }
+        //shrink culumns to fit the size
+        this->mTreeView.columns_autosize();
         mNewTranslationAvailable = false;
         mRedrawNeeded = false;
     }
