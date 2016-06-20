@@ -178,3 +178,13 @@ if(GTK3MM_FOUND)
 else()
     message(STATUS "GTKMM-3 was not found, will not build GUI component")
 endif()
+
+
+# Static analysis via clang-tidy
+file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp)
+add_custom_target(
+        analyze
+        COMMAND clang-tidy
+        ${ALL_SOURCE_FILES}
+        -p=./
+)
