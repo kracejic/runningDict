@@ -54,7 +54,7 @@ MainWindow::MainWindow(Logic& logic)
                     this->set_keep_above(mLogic.mAlwaysOnTop);
                 });
         });
-    
+
     //--------------------------------------------------------------------------
     // Add word button
     mAddWordButton.set_image_from_icon_name("custom_icon_add");
@@ -119,7 +119,6 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Word", mColumns.mGerman);
         Gtk::TreeViewColumn *pColumn = mTreeView.get_column(0);
-        // pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
         // neccessary to prevent glitches
         pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
         Gdk::Color col("#ffaa00");
@@ -131,7 +130,8 @@ MainWindow::MainWindow(Logic& logic)
     {
         mTreeView.append_column("Match", mColumns.mGerman_found);
         Gtk::TreeViewColumn *pColumn = mTreeView.get_column(1);
-        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
+        // neccessary to prevent glitches
+        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
         pColumn->set_cell_data_func(
             *pColumn->get_first_cell(),
             [this](Gtk::CellRenderer *renderer,
