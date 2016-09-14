@@ -17,8 +17,6 @@ public:
     Word(const std::string& txt);
 
     std::vector<std::string> words1;
-    std::vector<std::string> words2;
-    std::vector<std::string> words3;
 
     std::vector<std::string> getAllWordsBig();
     std::vector<std::string> getAllWordsSmall();
@@ -30,9 +28,63 @@ string getLowerCase(const string& txt)
     string res {txt};
     for(auto&& i : res)
     {
-        i = tolower(i);
+        if((unsigned char)i < 128 )
+            i = tolower(i);
     }
     return res;
+}
+
+bool myIsPunct(char ch)
+{
+    switch (ch)
+    {
+        case '!':
+        case '"':
+        case '#':
+        case '$':
+        case '%':
+        case '&':
+        case '\'':
+        case '(':
+        case ')':
+        case '*':
+        case '+':
+        case ',':
+        case '-':
+        case '.':
+        case '/':
+        case ':':
+        case ';':
+        case '<':
+        case '=':
+        case '>':
+        case '?':
+        case '@':
+        case '[':
+        case '\\':
+        case ']':
+        case '^':
+        case '_':
+        case '`':
+        case '{':
+        case '|':
+        case '}':
+        case '~':
+        case ' ':
+        case '\t':
+            return true;
+        default:
+            return false;
+    }
+}
+
+
+bool myIsUpper(char ch)
+{
+    if((unsigned char)(ch) >= 128)
+        return false;
+    else
+        return std::isupper(ch);
 }
 
 
@@ -41,18 +93,23 @@ Word::Word(const std::string& txt) : text(txt)
     int it1 = 0, it2 = 1;
     bool wasUpperCase = false;
     //handle first character upper case
-    if(std::isupper(txt[1]))
+    if(myIsUpper(txt[1]))
         wasUpperCase = true;
 
     //fix CObjectThing to parse as ObjectThing
-    if(txt[0] == 'C' && std::isupper(txt[1])){
+    if(txt[0] == 'C' && myIsUpper(txt[1])){
         it1 = 1;
         it2 = 2;
     }
 
+    if(myIsPunct(txt[0]))
+        ++it1;
+
     for ( ; it2 < (int)txt.size(); ++it2)
     {
-        if(std::isupper(txt[it2])){
+        // printf(" + '%u' '%c' (%d, %d), upper=%d\n", (unsigned char)txt[it2],txt[it2], it1, it2, wasUpperCase);
+        if(myIsUpper(txt[it2])){
+            // printf("   isupper\n");
             if(!wasUpperCase) {
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
                 // printf("   catch  %d %d - %s\n", it1, it2, words1.back().c_str());
@@ -62,14 +119,23 @@ Word::Word(const std::string& txt) : text(txt)
         }
         else
         {
-            if(std::ispunct(txt[it2])){
-                words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
-                ++it2;
-                it1 = it2;
+            // printf("   not isupper\n");
+            if(myIsPunct(txt[it2])){
+                if(it2 > 1)
+                {
+                    words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
+                    // printf("   catch3 %d %d - %s\n", it1, it2, words1.back().c_str());
+                }
+                do{
+                    ++it2;
+                } while (myIsPunct(txt[it2]) or it2 == (int)txt.size());
+                --it2;
+                it1 = it2+1;
+                // printf("   catch3end %d %d / %d\n", it1, it2,(int)txt.size());
                 wasUpperCase = true;
             }
             else{
+                // printf("     not\n");
                 if(wasUpperCase && ((it2 - it1) > 1))
                 {
                     words1.push_back(getLowerCase(txt.substr(it1, it2 - it1 - 1)));
@@ -80,26 +146,22 @@ Word::Word(const std::string& txt) : text(txt)
                 wasUpperCase = false;
             }
         }
+        // printf(" - '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2, wasUpperCase);
     }
-    words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
-    // printf("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());
+    if(it2 != (it1))
+    {
+        if(not myIsPunct(txt[it1]))
+        {
+            words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
+            // printf("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());
+        }
+    }
 
-    for (int i = 0; i < ((int)words1.size())-1; i+=2)
-        words2.emplace_back(words1[i]+words1[i+1]);
-    for (int i = 1; i < ((int)words1.size())-1; i+=2)
-        words2.emplace_back(words1[i]+words1[i+1]);
-}
-//-----------------------------------------------------------------------------------
-std::vector<std::string> Word::getAllWordsBig()
-{
-    std::vector<std::string> res;
+    // cout<<"@words = ";
+    // for (auto& word : words1)
+    //     cout<<"'"<<word<<"', ";
+    // cout<<endl<<endl;
 
-    res.reserve(1 + words1.size() + words2.size() + words3.size());
-    res.push_back(this->text);
-    res.insert(res.end(), words1.begin(), words1.end());
-    res.insert(res.end(), words2.begin(), words2.end());
-    res.insert(res.end(), words3.begin(), words3.end());
-    return res;
 }
 //-----------------------------------------------------------------------------------
 /**
@@ -175,3 +237,83 @@ std::vector<std::string> Processer::splitToWords(int startIndex, int endIndex,
     return res;
 }
 //------------------------------------------------------------------------------
+
+
+#ifdef UNIT_TESTS
+#include "test/catch.hpp"
+TEST_CASE("Check splitting of strings 1 - dots"){
+    REQUIRE(Processer::splitToWords(".").size() == 0);
+    REQUIRE(Processer::splitToWords("..").size() == 0);
+    REQUIRE(Processer::splitToWords("...").size() == 0);
+    REQUIRE(Processer::splitToWords("....").size() == 0);
+    REQUIRE(Processer::splitToWords(".....").size() == 0);
+    REQUIRE(Processer::splitToWords("... ..").size() == 0);
+    REQUIRE(Processer::splitToWords(".. . ..").size() == 0);
+    REQUIRE(Processer::splitToWords(".. .. ..").size() == 0);
+    REQUIRE(Processer::splitToWords(".. ... .").size() == 0);
+    REQUIRE(Processer::splitToWords(".. .. ..").size() == 0);
+    REQUIRE(Processer::splitToWords(".. .. ...").size() == 0);
+    REQUIRE(Processer::splitToWords(".. .. ....").size() == 0);
+    REQUIRE(Processer::splitToWords(" .. .. .... ").size() == 0);
+    REQUIRE(Processer::splitToWords(" .. .. ....   ").size() == 0);
+}
+
+
+TEST_CASE("Check splitting of strings 2 - Katze+dots"){
+    auto res = Processer::splitToWords("Katze.");
+    REQUIRE(res.size() == 1);
+    REQUIRE(res[0] == "katze");
+
+    auto res2 = Processer::splitToWords("Katze..");
+    REQUIRE(res2.size() == 1);
+    REQUIRE(res2[0] == "katze");
+
+    auto res3 = Processer::splitToWords("Katze...");
+    REQUIRE(res3.size() == 1);
+    REQUIRE(res3[0] == "katze");
+}
+
+TEST_CASE("Check splitting of strings 3 complex"){
+    auto res = Processer::splitToWords("CKleineKatze. _LUMPYSofar....kEin");
+    REQUIRE(res.size() == 6);
+    REQUIRE(res[0] == "kleine");
+    REQUIRE(res[1] == "katze");
+    REQUIRE(res[2] == "lumpy");
+    REQUIRE(res[3] == "sofar");
+    REQUIRE(res[4] == "k");
+    REQUIRE(res[5] == "ein");
+}
+
+
+TEST_CASE("Check splitting of strings 4 complex"){
+    auto res = Processer::splitToWords("......CTestIst_eine_wichtige_ja.....");
+    REQUIRE(res.size() == 6);
+    REQUIRE(res[0] == "c");
+    REQUIRE(res[1] == "test");
+    REQUIRE(res[2] == "ist");
+    REQUIRE(res[3] == "eine");
+    REQUIRE(res[4] == "wichtige");
+    REQUIRE(res[5] == "ja");
+}
+
+TEST_CASE("Check splitting of strings 5 complex"){
+    auto res = Processer::splitToWords("CKeine_katze_TCP_Tag_CPUUnit_KatzeUnd ihre");
+    REQUIRE(res.size() == 9);
+    REQUIRE(res[0] == "keine");
+    REQUIRE(res[1] == "katze");
+    REQUIRE(res[2] == "tcp");
+    REQUIRE(res[3] == "tag");
+    REQUIRE(res[4] == "cpu");
+    REQUIRE(res[5] == "unit");
+    REQUIRE(res[6] == "katze");
+    REQUIRE(res[7] == "und");
+    REQUIRE(res[8] == "ihre");
+}
+
+TEST_CASE("Check splitting of strings 5 Rueckgabewerte"){
+    auto res = Processer::splitToWords("Rueckgabewerte");
+    REQUIRE(res.size() == 1);
+    REQUIRE(res[0] == "rueckgabewerte");
+}
+
+#endif

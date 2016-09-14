@@ -26,6 +26,7 @@ FILE_PATTERNS          = *.h \
                          *.cpp.in \
                          *.cpp \
                          *.md
+EXCLUDE_PATTERNS       = json.hpp
 RECURSIVE              = YES
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR_LINUX@/readme.md
 # output location
@@ -85,8 +86,8 @@ TEMPLATE_RELATIONS     = NO
 
 # in class diagrams, you will have members and such
 # Also they will be bigger
-UML_LOOK               = NO
-UML_LIMIT_NUM_FIELDS   = 16
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 6
 
 
 

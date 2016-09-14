@@ -9,8 +9,14 @@ enable_testing()
 # dependecy of both binary files.
 add_custom_target(check
     COMMAND echo [----] Running tests
-    COMMAND ${CMAKE_CTEST_COMMAND}
-    DEPENDS runningDict RunningDict)
+    COMMAND ${CMAKE_CTEST_COMMAND}  --output-on-failure
+    DEPENDS runningDict runningDictGui libRunningDict tests)
+
+add_custom_target(checkVerbose
+    COMMAND echo [----] Running tests
+    COMMAND ${CMAKE_CTEST_COMMAND}  -V --output-on-failure
+    DEPENDS runningDict runningDictGui libRunningDict tests)
+
 
 
 # Basic tests
@@ -54,5 +60,24 @@ add_test(NAME "search_w2_d2"
 
 #Test searching with library
 add_test(NAME "testLibrary"
-    COMMAND python3 testLib.py $<TARGET_FILE:RunningDict>
+    COMMAND python3 testLib.py $<TARGET_FILE:libRunningDict>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+
+
+set(SRCTEST
+    test.cpp
+    ${PROJECT_SOURCE_DIR}/source/Dict.cpp
+    ${PROJECT_SOURCE_DIR}/source/Processer.cpp
+    )
+
+add_executable(tests EXCLUDE_FROM_ALL ${SRCTEST})
+target_compile_definitions(tests PRIVATE UNIT_TESTS)
+set_property(TARGET tests PROPERTY CXX_STANDARD 14) # we want C++14
+target_include_directories(tests PRIVATE
+    ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/)
+
+add_test(NAME "catch_unit_tests"
+    COMMAND $<TARGET_FILE:tests> -s -r compact
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+

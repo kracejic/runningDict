@@ -5,7 +5,7 @@
 using namespace std;
 
 
-workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
+workerResult _search(std::vector<Dict>& dicts,
                     int numthreads, const std::vector<string>& words, bool verbose)
 {
     if(verbose)
@@ -19,17 +19,25 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
         cout<<endl<<endl;
     }
 
-
+    // Calculating size of all dicts
     long long sum = accumulate(dicts.begin(), dicts.end(), 0,
-        [](long long sum, const auto& x)
+        [](long long sum, const auto& dict)
         {
-            return (long long)(sum + x.second.getContens().size());
+            return (long long)(sum + dict.getContensSize());
         });
+    // calculating threads needed for dicts
     vector<long long> threadsForDict;
     for(auto&& dict : dicts)
     {
+        if(not dict.is_enabled())
+        {
+            threadsForDict.push_back(0); //push empty one ;-)
+            continue;
+        }
         threadsForDict.push_back(
-            1 + (((numthreads - 1) * (long long)dict.second.getContens().size()) / sum));
+            std::max(1ll,
+                (((numthreads) * (long long)dict.getContens().size()) / sum)
+            ));
         if(verbose)
             cout<<"* Dict has x threads: "<<threadsForDict.back()<<endl;
     }
@@ -40,7 +48,9 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
     for(int dictI = 0; dictI < (int)dicts.size(); ++dictI)
     {
         auto& dict = dicts[dictI];
-        long long size = dict.second.getContens().size();
+        if(not dict.is_enabled())
+            continue;
+        long long size = dict.getContens().size();
         for(int i = 0; i < threadsForDict[dictI]; ++i)
         {
             long long start = (i * size) / threadsForDict[dictI];
@@ -48,7 +58,7 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
             fut.push_back(
                 std::async(std::launch::async, [&words, &dict, start, end]()
                     {
-                        Worker worker{dict.second, dict.first};
+                        Worker worker{dict};
                         return worker.search(words, start, end);
                     }));
         }
@@ -85,14 +95,12 @@ workerResult _search(std::vector<std::pair<int, Dict>>& dicts,
                                    return x.words == y.words && x.score == y.score;
                                }),
                         rr.second.end());
-        //leave only best matches for each word
-        int max = 5;
+        //leave only best and best+1 matches for each word
+        int best = rr.second.begin()->score;
         rr.second.erase(find_if(rr.second.begin(), rr.second.end(),
-                                [max](const auto& x) mutable
+                                [best](const auto& x)
                                 {
-                                    bool ret = max < x.score;
-                                    max = x.score;
-                                    return ret;
+                                    return x.score > (best+1);
                                 }),
                         rr.second.end());
     }

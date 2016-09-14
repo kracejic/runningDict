@@ -3,20 +3,11 @@
 This project is fast translator for programmers. It is capable of dissasembling camelCases, underscore_case and CThisIsClass names. It internaly uses dictd-like dictionaries.
 
 
-There is extra support for these:
-* .ycm_extra_conf.py for ycmd support 
-    - Smart autocompletion, goto def, etc.
-    - Works in Vim, Sublime Text 3, Atom
-* Sublime text 3 project file
-    - Build system defined for *make* or *ninja*
-* Feel free to delete these files if you have no use for them.
-
-
 ## Binary files
 
 There are two options how to use this. Executable from command line, or library with C interface.
 
-## Executable
+### Executable
 
 Executable has the name runningDict(.exe). For implementation see main.cpp.
 
@@ -33,7 +24,7 @@ Executable has the name runningDict(.exe). For implementation see main.cpp.
 `./runMe -j8 -d freedict-deu-eng.dict -D test.dict Ihre deutsch ist CStrukturKeine`
 
 
-## Library
+### Library
 
 libRunningDict.so or libRunningDict64.dll or libRunningDict32.dll. For interface see LibInterface.h file. Library has advantage of needing to load dictionary only once and then only processing new searches. Command line application has to load dictionaries every time it is executed.
 
@@ -73,6 +64,13 @@ For example response to "CKeineKatz ihre" can match following JSON object:
 
 Note the type in Katze word. Library will return four possible translations and they can be presented to user and he can then better understand which one is correct.
 
+### Gui executable
+
+Standalone application (runningDictGui) which is designed to translate clipboard content on the fly. 
+Has an option to quickly add new translation to custom dictionary and quickly toogle used dictionaries.
+    
+
+
 
 ## Build
 
@@ -82,6 +80,29 @@ Note the type in Katze word. Library will return four possible translations and 
 * Doxygen for docs (*Graphviz for more graphs in docs*)
 * C++14 capable compiler
 * Python3 for running tests
+
+
+### CMake options
+
+|             option             |       description                |
+|--------------------------------|----------------------------------|
+| -DUSE_BOOST_FILESYSTEM=FALSE   | whether to use boost::filesystem instead of the experimental filesystem |
+| -DCMAKE_CXX_COMPILER="clang++" | change compiler to clang         |
+| -DCMAKE_BUILD_TYPE=Release     | change build type to release     |
+| -DCMAKE_INSTALL_PREFIX="/"     | change install location          |
+
+
+### Build targets
+
+|    Target    |                   Description                   |
+|--------------|-------------------------------------------------|
+| all          | build all                                       |
+| install      | install to install prefix location              |
+| doc          | produce doxygen documentation                   |
+| check        | run integration and unit tests                  |
+| checkVerbose | run integration and unit tests with full output |
+| analyze      | run static analysis                             |
+| clean        | clean build files                               |
 
 
 ### Build on linux
@@ -97,7 +118,7 @@ make -j8 install
 Ninja build witch clang, build all+doc and install it to dist folder:
 ~~~
 mkdir build ; cd build
-cmake -GNinja -DCMAKE_CXX_COMPILER="clang++-3.7" ..
+cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
 ninja all doc install
 ~~~
 

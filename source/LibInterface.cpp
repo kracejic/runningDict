@@ -14,7 +14,7 @@
 
 
 
-std::vector<std::pair<int, Dict>> dicts {};
+std::vector<Dict> dicts {};
 
 using namespace std;
 
@@ -32,11 +32,14 @@ int clearDictionaries()
 //-----------------------------------------------------------------------------------
 bool addDictionaryForce(const char *filename, bool priority)
 {
-    auto dict = std::find_if(dicts.begin(), dicts.end(), [&filename](auto &x){ return x.second.getFilename() == filename;});
+    auto dict = std::find_if(dicts.begin(), dicts.end(), [&filename](auto &x)
+        {
+            return x.getFilename() == filename;
+        });
     if(dict != dicts.end())
     {
-        dict->first = priority;
-        return dict->second.reload();
+        dict->mBonus = priority;
+        return dict->reload();
     }
     else
         addDictionary(filename, priority);
@@ -46,15 +49,15 @@ bool addDictionaryForce(const char *filename, bool priority)
 bool addDictionary(const char *filename, bool priority)
 {
     if (any_of(dicts.begin(), dicts.end(), [&filename](auto& x) {
-            return x.second.getFilename() == filename; }))
+            return x.getFilename() == filename; }))
     {
         return true;
     }
 
     dicts.emplace_back();
     if (priority)
-        dicts.back().first = -1;
-    if(!dicts.back().second.open(filename))
+        dicts.back().mBonus = -1;
+    if(!dicts.back().open(filename))
     {
         dicts.pop_back();
         return false;
@@ -89,7 +92,8 @@ char* search(const char* words)
         ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
         for(auto&& r : rr)
         {
-            ret.append(string("[\"")+r.match+"\",\""+r.words+"\"],");
+            ret.append(string("[\"") + r.match + "\",\"" + r.words + "\",\""
+                       + to_string(r.score) + "\"],");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();

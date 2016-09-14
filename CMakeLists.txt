@@ -12,6 +12,8 @@ set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
 site_name(VERSION_HOST)
 set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
+#be nice and export compile commands by default
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 
@@ -21,6 +23,7 @@ add_subdirectory(doc)
 add_subdirectory(source)
 
 add_subdirectory(test)
+
 
 
 
