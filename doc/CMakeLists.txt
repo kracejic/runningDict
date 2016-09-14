@@ -36,6 +36,6 @@ if(BUILD_DOCUMENTATION)
 
 
     install(
-        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/
         DESTINATION ./share/doc/${PROJECT_NAME})
 endif()
