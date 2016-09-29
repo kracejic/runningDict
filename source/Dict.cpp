@@ -25,6 +25,12 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
         this->reload();
 }
 //-----------------------------------------------------------------------------------
+void Dict::fill(std::string contents)
+{
+    mContents = contents;
+    mIs_open = true;
+}
+//-----------------------------------------------------------------------------------
 const std::string& Dict::getFilename() const{
     return mFilename;
 }
@@ -68,12 +74,12 @@ bool Dict::open(std::string filename)
     //if open, close
     if(is_open())
     {
-        file.close();
         mContents.clear();
         mIs_open = false;
     }
 
     //reopen
+    std::ifstream file;
     file.open(filename);
 
     if (!file.is_open())
@@ -153,3 +159,14 @@ void Dict::saveDictionary()
 //------------------------------------------------------------------------------
 
 
+#ifdef UNIT_TESTS
+#include "test/catch.hpp"
+TEST_CASE("check adding a word"){
+    Dict d;
+    d.fill("ein\n one\nzwei\n zwei");
+    d.addWord("drei", "three");
+    REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three");
+    d.addWord("vier", "four");
+    REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
+}
+#endif
