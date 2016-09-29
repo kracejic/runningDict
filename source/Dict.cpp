@@ -1,6 +1,7 @@
 #include "Dict.h"
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 
@@ -151,6 +152,23 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     return true;
 }
 //------------------------------------------------------------------------------
+bool Dict::hasWord(const std::string& word)
+{
+    std::istringstream iss{mContents};
+    for (std::string line; std::getline(iss, line); )
+    {
+        if (line == word)
+            return true;
+    }
+
+
+    return false;
+}
+//-----------------------------------------------------------------------------
+void Dict::changeWord(const std::string& word, const std::string& newTranslation)
+{
+}
+//-----------------------------------------------------------------------------
 void Dict::saveDictionary()
 {
     std::ofstream outfile{mFilename};
@@ -161,7 +179,7 @@ void Dict::saveDictionary()
 
 #ifdef UNIT_TESTS
 #include "test/catch.hpp"
-TEST_CASE("check adding a word"){
+TEST_CASE("adding a word"){
     Dict d;
     d.fill("ein\n one\nzwei\n zwei");
     d.addWord("drei", "three");
@@ -169,4 +187,17 @@ TEST_CASE("check adding a word"){
     d.addWord("vier", "four");
     REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
 }
+TEST_CASE("checking for a word"){
+    Dict d;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    REQUIRE(d.hasWord("ein") == true);
+    REQUIRE(d.hasWord("zwei") == true);
+    REQUIRE(d.hasWord("drei") == true);
+    REQUIRE(d.hasWord("drei ") == false);
+    REQUIRE(d.hasWord("one") == false);
+    REQUIRE(d.hasWord("three") == false);
+    REQUIRE(d.hasWord("one") == false);
+    REQUIRE(d.hasWord("one") == false);
+}
 #endif
+

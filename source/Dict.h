@@ -59,6 +59,9 @@ class Dict
      */
     bool addWord(const std::string& word, const std::string& translation);
 
+    bool hasWord(const std::string& word);
+    void changeWord(const std::string& word, const std::string& newTranslation);
+
 
     void saveDictionary();
 
