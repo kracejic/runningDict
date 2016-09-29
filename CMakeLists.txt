@@ -22,6 +22,7 @@ add_subdirectory(doc)
 
 add_subdirectory(source)
 
+enable_testing()
 add_subdirectory(test)
 
 

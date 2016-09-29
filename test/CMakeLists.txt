@@ -3,7 +3,6 @@
 # https://cmake.org/cmake/help/v3.5/command/add_test.html?
 
 include(CTest)
-enable_testing()
 
 # Create custom targets which executes CTEST and has
 # dependecy of both binary files.
@@ -78,6 +77,6 @@ target_include_directories(tests PRIVATE
     ${PROJECT_SOURCE_DIR}/)
 
 add_test(NAME "catch_unit_tests"
-    COMMAND $<TARGET_FILE:tests> -s -r compact
+    COMMAND $<TARGET_FILE:tests> --use-colour yes
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 

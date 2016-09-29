@@ -156,21 +156,50 @@ bool Dict::hasWord(const std::string& word)
 {
     std::istringstream iss{mContents};
     for (std::string line; std::getline(iss, line); )
-    {
         if (line == word)
             return true;
-    }
-
 
     return false;
 }
 //-----------------------------------------------------------------------------
 void Dict::changeWord(const std::string& word, const std::string& newTranslation)
 {
+    std::istringstream iss{mContents};
+    string output{""};
+    string translation = newTranslation;
+    std::replace(translation.begin(), translation.end(), '\n', ';');
+    for (std::string line; std::getline(iss, line); )
+    {
+        if (line == word)
+        {
+            output += line+"\n";
+            output += " "+translation+"\n";
+            while(true)
+            {
+
+                if (std::getline(iss, line))
+                    break;
+                if(line[0] == ' ')
+                {
+                    output += line+"\n";
+                    break;
+                }
+            }
+        }
+        else
+            output += line+"\n";
+    }
+    output.erase(std::find_if(output.rbegin(), output.rend(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))).base(), output.end());
+    mContents = output;
+    this->saveDictionary();
+
 }
 //-----------------------------------------------------------------------------
 void Dict::saveDictionary()
 {
+    if (mFilename == "")
+        return;
     std::ofstream outfile{mFilename};
     outfile<<mContents<<endl;
 }
@@ -187,7 +216,7 @@ TEST_CASE("adding a word"){
     d.addWord("vier", "four");
     REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
 }
-TEST_CASE("checking for a word"){
+TEST_CASE("changing a words in dictionary"){
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     REQUIRE(d.hasWord("ein") == true);
@@ -198,6 +227,20 @@ TEST_CASE("checking for a word"){
     REQUIRE(d.hasWord("three") == false);
     REQUIRE(d.hasWord("one") == false);
     REQUIRE(d.hasWord("one") == false);
+}
+
+TEST_CASE("checking for a word"){
+    Dict d;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.changeWord("ein", "jedna");
+    REQUIRE(d.getContens() == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    d.changeWord("zwei", "dva");
+    REQUIRE(d.getContens() == "ein\n jedna\nzwei\n dva\ndrei\n three");
+    d.changeWord("ein", "jedno jednicka, jedna");
+    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
+    d.changeWord("drei", "tricet stribrnych kurat\ntricet stribrnych strech");
+    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n tricet stribrnych kurat;tricet stribrnych strech");
+
 }
 #endif
 
