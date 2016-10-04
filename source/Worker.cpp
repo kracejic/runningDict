@@ -131,7 +131,8 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
                 result[utfConvertor.to_bytes(w.first)].emplace_back(
                     mBonus + dist,
                     english.c_str() + 1, // first character is space
-                    german
+                    german,
+                    mDict.getFilename()
                     );
                 // result[utfConvertor.to_bytes(w.first)].emplace_back(english);
             }
