@@ -15,8 +15,19 @@ set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 #be nice and export compile commands by default
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+#------------------------------------------------------------------------------
+# set default install path
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/dist" CACHE PATH 
+        "Install path prefix, prepended onto install directories." FORCE )
+endif()
+#------------------------------------------------------------------------------
+# Custom Install target, used in run target in source/CMakeLists.txt
+add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target install
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-
+#------------------------------------------------------------------------------
+# Included files
 
 add_subdirectory(doc)
 
@@ -31,11 +42,7 @@ add_subdirectory(test)
 
 
 
-# set default install path
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/dist" CACHE PATH "Install path prefix, prepended onto install directories." FORCE )
-endif()
-
+#------------------------------------------------------------------------------
 # sum up build info
 message(STATUS "")
 message(STATUS "    == Final overview ==")

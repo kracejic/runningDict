@@ -105,6 +105,11 @@ if(GTK3MM_FOUND)
         add_executable(runningDictGui ${GUISRC} ${SRCS})
     endif()
 
+    add_custom_target(gui-run
+	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}
+	COMMAND ./runningDictGui
+	DEPENDS runningDictGui Install_)
+
     target_include_directories(runningDictGui PUBLIC ${GTK3MM_INCLUDE_DIRS})
     target_link_libraries (runningDictGui
         ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})

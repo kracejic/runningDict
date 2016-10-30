@@ -2,6 +2,7 @@
 
 This project is fast translator for programmers. It is capable of dissasembling camelCases, underscore_case and CThisIsClass names. It internaly uses dictd-like dictionaries.
 
+![](doc/runningDict.png)
 
 ## Binary files
 

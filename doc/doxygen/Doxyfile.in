@@ -32,6 +32,7 @@ USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR_LINUX@/readme.md
 # output location
 HTML_OUTPUT            = doc
 
+IMAGE_PATH = @PROJECT_SOURCE_DIR_LINUX@/..
 
 
 # The OUTPUT_LANGUAGE tag is used to specify the language in which all
