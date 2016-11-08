@@ -67,9 +67,9 @@ Note the type in Katze word. Library will return four possible translations and 
 
 ### Gui executable
 
-Standalone application (runningDictGui) which is designed to translate clipboard content on the fly. 
+Standalone application (runningDictGui) which is designed to translate clipboard content on the fly.
 Has an option to quickly add new translation to custom dictionary and quickly toogle used dictionaries.
-    
+
 
 
 
@@ -78,9 +78,27 @@ Has an option to quickly add new translation to custom dictionary and quickly to
 ### Prerequisites for build
 
 * CMake 3.2 and newer
-* Doxygen for docs (*Graphviz for more graphs in docs*)
 * C++14 capable compiler
+* Doxygen for docs (*Graphviz for more graphs in docs, PlantUML for more UML diagrams*, PlantUML needs java)
 * Python3 for running tests
+* clang-tools for static analysis and formating
+* Gtkmm3 for standalone gui application
+* git for downloading dependencies
+
+#### Prerequisites on Linux
+
+* Arch Linux: `sudo pacman -S cmake g++ graphviz git clang clang-tools-extra cppcheck java-runtime-common extra/gtkmm3`
+    * download plantuml.jar and have it somewhere where *PATH* points to
+
+* Ubuntu 16.04: `sudo apt-get install cmake g++ graphviz plantuml git clang clang-tidy clang-format libgtkmm-3.0-dev`
+
+#### Prerequisites on Windows
+
+* Install msys2 and install these packages:
+    * Minimal: `pacman -S cmake g++ git mingw-w64-x86_64-gtkmm3`
+    * Additional software `pacman -S mingw-w64-x86_64-clang mingw-w64-x86_64-clang-tools-extra mingw-w64-x86_64-clang-analyzer doxygen`
+    * For graphs in documentation install Graphviz (to `c:\Program Files\Graphviz`, so scripts can find it) and add its `bin` subdirectory to *PATH*, install java (have it on *PATH*), download PlantUML jar file and have it on *PATH*.
+
 
 
 ### CMake options
@@ -95,15 +113,20 @@ Has an option to quickly add new translation to custom dictionary and quickly to
 
 ### Build targets
 
-|    Target    |                   Description                   |
-|--------------|-------------------------------------------------|
-| all          | build all                                       |
-| install      | install to install prefix location              |
-| doc          | produce doxygen documentation                   |
-| check        | run integration and unit tests                  |
-| checkVerbose | run integration and unit tests with full output |
-| analyze      | run static analysis                             |
-| clean        | clean build files                               |
+| Target          | Description                                     |
+|-----------------|-------------------------------------------------|
+| all             | build all                                       |
+| install         | install to install prefix location              |
+| gui-run         | install and run gui standalone gui application  |
+| doc             | produce doxygen documentation                   |
+| unit            | run unit tests only                             |
+| check           | run integration and unit tests                  |
+| checkVerbose    | run integration and unit tests with full output |
+| tidy            | run static analysis                             |
+| cppcheck        | run static analysis                             |
+| format          | run clang-format on code                        |
+| clean           | clean build files                               |
+| external-update | clean build files                               |
 
 
 ### Build on linux
@@ -175,7 +198,7 @@ cmake -G "Visual Studio 14 2015" ..
 
 and you can now open a `.sln` file with Visual Studio. You need to RMB click on executable target and *Set as StartUp project*. To really see the console window you want to do *Start without debugging*, when run in debug mode, console widow is closed too fast.
 
-**Note:** as of 03/2016 Visual studio has a [bug](https://social.msdn.microsoft.com/Forums/en-US/8f40dcd8-c67f-4eba-9134-a19b9178e481/vs-2015-rc-linker-stdcodecvt-error?forum=vcgeneral) which prevents this project being built. 
+**Note:** as of 03/2016 Visual studio has a [bug](https://social.msdn.microsoft.com/Forums/en-US/8f40dcd8-c67f-4eba-9134-a19b9178e481/vs-2015-rc-linker-stdcodecvt-error?forum=vcgeneral) which prevents this project being built.
 
 
 
@@ -208,15 +231,15 @@ If you get "Error loading syntax file" during build, that means, you do not have
 
 ## Developing
 
-* [Basic directory structure](./md_doc_directoryStructure.html)
+* [Basic directory structure](doc/directoryStructure.md)
 
 
 # License
 
-> Copyright (c) 2016 Jiri Ohnheiser
-> 
+> Copyright (c) 2016 Kracejic
+>
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-> 
+>
 > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-> 
+>
 > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

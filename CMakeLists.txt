@@ -30,6 +30,7 @@ add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target instal
 # Included files
 
 add_subdirectory(doc)
+add_subdirectory(external)
 
 add_subdirectory(source)
 
@@ -48,12 +49,9 @@ message(STATUS "")
 message(STATUS "    == Final overview ==")
 message(STATUS "Version:              ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION} ${VERSION_TYPE} @ ${VERSION_HOST}")
 message(STATUS "Install prefix:       ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "PROJECT_SOURCE_DIR:   ${PROJECT_SOURCE_DIR}")
 message(STATUS "CMAKE_BUILD_TYPE:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "  possible options: Debug Release RelWithDebInfo MinSizeRel")
 message(STATUS "  set with ` cmake -DCMAKE_BUILD_TYPE=Debug .. `")
-message(STATUS "Building doc:         ${BUILD_DOCUMENTATION}")
-message(STATUS "")
 
 if(MINGW)
   # MESSAGE (STATUS "* Will copy MINGW libs to install folder: " ${GCC_PATH})
