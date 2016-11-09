@@ -6,7 +6,6 @@ class Dict
 {
   private:
     bool mIs_open{false};
-    std::ifstream file;
     std::string mContents;
     std::string mFilename{""};
     bool mEnabled{true};
@@ -17,6 +16,9 @@ class Dict
     Dict();
     Dict(std::string filename);
     Dict(std::string filename, int bonus, bool enabled);
+
+    /// Fill dictionary with custom string, usefull for testing
+    void fill(std::string contents);
 
     /**
      * Load the file
@@ -56,6 +58,9 @@ class Dict
      * @return             was this succesfull?
      */
     bool addWord(const std::string& word, const std::string& translation);
+
+    bool hasWord(const std::string& word);
+    void changeWord(const std::string& word, const std::string& newTranslation);
 
 
     void saveDictionary();

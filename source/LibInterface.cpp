@@ -90,10 +90,10 @@ char* search(const char* words)
     {
         auto& rr = results[w];
         ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
-        for(auto&& r : rr)
+        for(Result& r : rr)
         {
             ret.append(string("[\"") + r.match + "\",\"" + r.words + "\",\""
-                       + to_string(r.score) + "\"],");
+                       + to_string(r.score) + "\",\"" + r.dictFilename + "\"],");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();

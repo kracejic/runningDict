@@ -7,13 +7,15 @@
 
 struct Result
 {
-    Result(int sc, std::string st, std::string _match)
+    Result(int sc, std::string st, std::string _match, std::string _dictFilename)
         : score(sc)
         , words(st)
-        , match(_match){};
+        , match(_match)
+        , dictFilename(_dictFilename) {};
     int score;
     std::string words;
     std::string match;
+    std::string dictFilename;
 };
 
 using workerResult = std::map<std::string,std::vector<Result>>;
