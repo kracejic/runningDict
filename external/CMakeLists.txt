@@ -12,7 +12,7 @@ ExternalProject_Add(
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/Catch
     GIT_REPOSITORY https://github.com/philsquared/Catch.git
     # For shallow git clone (without downloading whole history)
-    GIT_SHALLOW 1
+    # GIT_SHALLOW 1
     # For point at certain tag
     # GIT_TAG 1.5.7
     #disables auto update on every build
@@ -39,7 +39,7 @@ ExternalProject_Add(
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/Json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     # For shallow git clone (without downloading whole history)
-    GIT_SHALLOW 1
+    # GIT_SHALLOW 1
     # For point at certain tag
     # GIT_TAG 1.5.7
     #disables auto update on every build

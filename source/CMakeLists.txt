@@ -111,7 +111,7 @@ if(GTK3MM_FOUND)
 	COMMAND ./runningDictGui
 	DEPENDS runningDictGui Install_)
 
-    target_include_directories(runningDictGui PUBLIC 
+    target_include_directories(runningDictGui SYSTEM PUBLIC 
         ${GTK3MM_INCLUDE_DIRS} 
         ${EXTERNAL_JSON_INCLUDE_DIR})
     target_link_libraries (runningDictGui
