@@ -2,24 +2,27 @@
 #include <string>
 
 #include "Dict.h"
-#include "Search.h"
 #include "Processer.h"
+#include "Search.h"
 #include "SpeedTimer.h"
 
 
-//TODO temporary
-template <class T> void ignore_arg(const T &) {}
+// TODO temporary
+template <class T>
+void ignore_arg(const T&)
+{
+}
 
 class Logic
 {
   public:
-    Logic(int argc, char *argv[])
+    Logic(int argc, char* argv[])
     {
         try
         {
             loadConfig();
         }
-        catch(const std::exception &e)
+        catch (const std::exception& e)
         {
             std::cerr << "Error during load configuration file: " << e.what()
                       << '\n';
@@ -29,7 +32,7 @@ class Logic
         {
             refreshAvailableFiles();
         }
-        catch(const std::exception &e)
+        catch (const std::exception& e)
         {
             std::cerr << "Error during serching for new dictionaries: "
                       << e.what() << '\n';
@@ -39,7 +42,8 @@ class Logic
         ignore_arg(argc);
         ignore_arg(argv);
     };
-    ~Logic(){
+    ~Logic()
+    {
         saveConfig();
     };
 

@@ -1,13 +1,12 @@
 #include "Dict.h"
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 
 using namespace std;
 
 Dict::Dict()
 {
-
 }
 Dict::Dict(string filename)
 {
@@ -22,23 +21,24 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
     // std::cout<<"New Dict: filename = "<<filename<<std::endl;
     // std::cout<<"  bonus = "<<bonus<<std::endl;
     // std::cout<<"  enabled = "<<enabled<<std::endl;
-    if(mEnabled)
+    if (mEnabled)
         this->reload();
 }
 //-----------------------------------------------------------------------------------
 void Dict::fill(std::string contents)
 {
     mContents = contents;
-    mIs_open = true;
+    mIs_open  = true;
 }
 //-----------------------------------------------------------------------------------
-const std::string& Dict::getFilename() const{
+const std::string& Dict::getFilename() const
+{
     return mFilename;
 }
 //-----------------------------------------------------------------------------------
 bool Dict::reload()
 {
-    if(!is_open() && mFilename == "")
+    if (!is_open() && mFilename == "")
         return false;
     return (open(mFilename));
 }
@@ -58,7 +58,7 @@ bool Dict::enable(bool state)
     if (state == true)
     {
         mEnabled = true;
-        if(mIs_open == false)
+        if (mIs_open == false)
             mEnabled = reload();
     }
     else
@@ -69,17 +69,17 @@ bool Dict::enable(bool state)
 //------------------------------------------------------------------------------
 bool Dict::open(std::string filename)
 {
-    //presume problems, reseted later
+    // presume problems, reseted later
     mErrorState = true;
 
-    //if open, close
-    if(is_open())
+    // if open, close
+    if (is_open())
     {
         mContents.clear();
         mIs_open = false;
     }
 
-    //reopen
+    // reopen
     std::ifstream file;
     file.open(filename);
 
@@ -90,11 +90,11 @@ bool Dict::open(std::string filename)
     file.seekg(0, std::ios::end);
     mContents.reserve(file.tellg());
     file.seekg(0, std::ios::beg);
-    mContents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    mContents.assign((std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>());
     file.close();
-    mIs_open = true;
+    mIs_open    = true;
     mErrorState = false;
-
 
 
     return true;
@@ -105,10 +105,11 @@ bool Dict::is_open()
     return mIs_open;
 }
 //-----------------------------------------------------------------------------------
-const std::string& Dict::getContens() const{
-    if(not mIs_open)
-        throw std::domain_error{"Dictionary \"" + mFilename
-                                + "\" was not loaded."};
+const std::string& Dict::getContens() const
+{
+    if (not mIs_open)
+        throw std::domain_error{
+            "Dictionary \"" + mFilename + "\" was not loaded."};
     return mContents;
 }
 //-----------------------------------------------------------------------------------
@@ -119,10 +120,10 @@ long long Dict::getContensSize() const
 //------------------------------------------------------------------------------
 string getLowerCase2(const string& txt)
 {
-    string res {txt};
-    for(auto&& i : res)
+    string res{txt};
+    for (auto&& i : res)
     {
-        if((unsigned char)i < 128 )
+        if ((unsigned char)i < 128)
             i = tolower(i);
     }
     return res;
@@ -131,21 +132,22 @@ string getLowerCase2(const string& txt)
 
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
-    if(not mIs_open)
+    if (not mIs_open)
         this->open(mFilename);
-    if(not mIs_open)
+    if (not mIs_open)
         return false;
 
-    //Make lower case
+    // Make lower case
     string wordCopy = getLowerCase2(word);
 
-    //erase whitespace on the end of mContens
+    // erase whitespace on the end of mContens
     mContents.erase(std::find_if(mContents.rbegin(), mContents.rend(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace)))
-                .base(), mContents.end());
+                        std::not1(std::ptr_fun<int, int>(std::isspace)))
+                        .base(),
+        mContents.end());
 
-    //add word
-    mContents.append("\n"s+wordCopy+"\n "+translation);
+    // add word
+    mContents.append("\n"s + wordCopy + "\n " + translation);
 
     this->saveDictionary();
 
@@ -155,45 +157,47 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 bool Dict::hasWord(const std::string& word)
 {
     std::istringstream iss{mContents};
-    for (std::string line; std::getline(iss, line); )
+    for (std::string line; std::getline(iss, line);)
         if (line == word)
             return true;
 
     return false;
 }
 //-----------------------------------------------------------------------------
-void Dict::changeWord(const std::string& word, const std::string& newTranslation)
+void Dict::changeWord(
+    const std::string& word, const std::string& newTranslation)
 {
     std::istringstream iss{mContents};
     string output{""};
     string translation = newTranslation;
     std::replace(translation.begin(), translation.end(), '\n', ';');
-    for (std::string line; std::getline(iss, line); )
+    for (std::string line; std::getline(iss, line);)
     {
         if (line == word)
         {
-            output += line+"\n";
-            output += " "+translation+"\n";
-            while(true)
+            output += line + "\n";
+            output += " " + translation + "\n";
+            while (true)
             {
 
                 if (std::getline(iss, line))
                     break;
-                if(line[0] == ' ')
+                if (line[0] == ' ')
                 {
-                    output += line+"\n";
+                    output += line + "\n";
                     break;
                 }
             }
         }
         else
-            output += line+"\n";
+            output += line + "\n";
     }
     output.erase(std::find_if(output.rbegin(), output.rend(),
-            std::not1(std::ptr_fun<int, int>(std::isspace))).base(), output.end());
+                     std::not1(std::ptr_fun<int, int>(std::isspace)))
+                     .base(),
+        output.end());
     mContents = output;
     this->saveDictionary();
-
 }
 //-----------------------------------------------------------------------------
 void Dict::saveDictionary()
@@ -201,22 +205,25 @@ void Dict::saveDictionary()
     if (mFilename == "")
         return;
     std::ofstream outfile{mFilename};
-    outfile<<mContents<<endl;
+    outfile << mContents << endl;
 }
 //------------------------------------------------------------------------------
 
 
 #ifdef UNIT_TESTS
 #include "test/catch.hpp"
-TEST_CASE("adding a word"){
+TEST_CASE("adding a word")
+{
     Dict d;
     d.fill("ein\n one\nzwei\n zwei");
     d.addWord("drei", "three");
     REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three");
     d.addWord("vier", "four");
-    REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
+    REQUIRE(
+        d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
 }
-TEST_CASE("changing a words in dictionary"){
+TEST_CASE("changing a words in dictionary")
+{
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     REQUIRE(d.hasWord("ein") == true);
@@ -229,7 +236,8 @@ TEST_CASE("changing a words in dictionary"){
     REQUIRE(d.hasWord("one") == false);
 }
 
-TEST_CASE("checking for a word"){
+TEST_CASE("checking for a word")
+{
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna");
@@ -237,10 +245,11 @@ TEST_CASE("checking for a word"){
     d.changeWord("zwei", "dva");
     REQUIRE(d.getContens() == "ein\n jedna\nzwei\n dva\ndrei\n three");
     d.changeWord("ein", "jedno jednicka, jedna");
-    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
+    REQUIRE(d.getContens() ==
+            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
     d.changeWord("drei", "tricet stribrnych kurat\ntricet stribrnych strech");
-    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n tricet stribrnych kurat;tricet stribrnych strech");
-
+    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
+                              "tricet stribrnych kurat;tricet stribrnych "
+                              "strech");
 }
 #endif
-

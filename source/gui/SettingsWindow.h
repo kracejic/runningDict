@@ -1,15 +1,15 @@
 #pragma once
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
 
 #include <gtkmm.h>
-#include <gtkmm/button.h>
-#include <gtkmm/window.h>
 #include <gtkmm/box.h>
-#include <gtkmm/grid.h>
-#include <gtkmm/entry.h>
+#include <gtkmm/button.h>
 #include <gtkmm/checkbutton.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/grid.h>
+#include <gtkmm/window.h>
 
 #include "Logic.h"
 
@@ -31,10 +31,9 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
 };
 
 
-
 class SettingsWindow : public Gtk::Window
 {
-private:
+  private:
     Logic& mLogic;
 
     Gtk::ScrolledWindow mScrollView;
@@ -52,8 +51,7 @@ private:
     bool on_key_press_event(GdkEventKey* event) override;
 
 
-public:
+  public:
     SettingsWindow(Logic& logic);
     ~SettingsWindow() override;
-
 };

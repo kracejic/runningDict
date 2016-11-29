@@ -1,26 +1,25 @@
-#include "Dict.h"
 #include "LibInterface.h"
-#include "Search.h"
+#include "Dict.h"
 #include "Processer.h"
+#include "Search.h"
 #include "SpeedTimer.h"
 
 
+#include <algorithm>
+#include <stdio.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdio.h>
 #include <string>
-#include <algorithm>
 #include <vector>
 
 
-
-std::vector<Dict> dicts {};
+std::vector<Dict> dicts{};
 
 using namespace std;
 
-int numthreads {0};
+int numthreads{0};
 
-char *data{nullptr};
+char* data{nullptr};
 
 
 int clearDictionaries()
@@ -30,13 +29,11 @@ int clearDictionaries()
     return num;
 }
 //-----------------------------------------------------------------------------------
-bool addDictionaryForce(const char *filename, bool priority)
+bool addDictionaryForce(const char* filename, bool priority)
 {
-    auto dict = std::find_if(dicts.begin(), dicts.end(), [&filename](auto &x)
-        {
-            return x.getFilename() == filename;
-        });
-    if(dict != dicts.end())
+    auto dict = std::find_if(dicts.begin(), dicts.end(),
+        [&filename](auto& x) { return x.getFilename() == filename; });
+    if (dict != dicts.end())
     {
         dict->mBonus = priority;
         return dict->reload();
@@ -46,10 +43,10 @@ bool addDictionaryForce(const char *filename, bool priority)
     return true;
 }
 //-----------------------------------------------------------------------------------
-bool addDictionary(const char *filename, bool priority)
+bool addDictionary(const char* filename, bool priority)
 {
-    if (any_of(dicts.begin(), dicts.end(), [&filename](auto& x) {
-            return x.getFilename() == filename; }))
+    if (any_of(dicts.begin(), dicts.end(),
+            [&filename](auto& x) { return x.getFilename() == filename; }))
     {
         return true;
     }
@@ -57,7 +54,7 @@ bool addDictionary(const char *filename, bool priority)
     dicts.emplace_back();
     if (priority)
         dicts.back().mBonus = -1;
-    if(!dicts.back().open(filename))
+    if (!dicts.back().open(filename))
     {
         dicts.pop_back();
         return false;
@@ -67,7 +64,7 @@ bool addDictionary(const char *filename, bool priority)
 //-----------------------------------------------------------------------------------
 void setNumberOfThreads(int x)
 {
-    if(x > 0)
+    if (x > 0)
     {
         numthreads = x;
     }
@@ -78,27 +75,27 @@ char* search(const char* words)
     SpeedTimer timer{true};
     auto words2 = Processer::splitToWords(words);
 
-    if(numthreads == 0)
+    if (numthreads == 0)
         numthreads = std::thread::hardware_concurrency();
-    if(numthreads == 0)
+    if (numthreads == 0)
         numthreads = 1;
 
     workerResult results = _search(dicts, numthreads, words2, false);
 
     string ret{"{\"results\":[ "};
-    for(auto&& w : words2)
+    for (auto&& w : words2)
     {
         auto& rr = results[w];
-        ret.append(string("{\"word\":\"")+w+"\",\"matches\":[ ");
-        for(Result& r : rr)
+        ret.append(string("{\"word\":\"") + w + "\",\"matches\":[ ");
+        for (Result& r : rr)
         {
-            ret.append(string("[\"") + r.match + "\",\"" + r.words + "\",\""
-                       + to_string(r.score) + "\",\"" + r.dictFilename + "\"],");
+            ret.append(string("[\"") + r.match + "\",\"" + r.words + "\",\"" +
+                       to_string(r.score) + "\",\"" + r.dictFilename + "\"],");
             // cout<<"  "<<r.score<<" -"<<r.words<<endl;
         }
         ret.pop_back();
         ret.append("]");
-        if(rr.size() > 0)
+        if (rr.size() > 0)
             ret.append(",\"score\":"s + to_string(rr[0].score));
         ret.append("},");
     }
@@ -116,5 +113,3 @@ char* search(const char* words)
     return data;
 }
 //-----------------------------------------------------------------------------------
-
-

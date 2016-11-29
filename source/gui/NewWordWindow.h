@@ -1,14 +1,14 @@
 #pragma once
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
 
 #include <gtkmm.h>
 #include <gtkmm/button.h>
-#include <gtkmm/window.h>
-#include <gtkmm/grid.h>
-#include <gtkmm/entry.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/grid.h>
+#include <gtkmm/window.h>
 
 #include "Logic.h"
 
@@ -24,10 +24,9 @@ class ModelColumns_dicts_combobox : public Gtk::TreeModelColumnRecord
 };
 
 
-
 class NewWordWindow : public Gtk::Window
 {
-private:
+  private:
     Gtk::Grid mGrid;
     Logic& mLogic;
 
@@ -54,8 +53,7 @@ private:
      */
     void check_validity();
 
-public:
-    NewWordWindow(Logic &logic, std::string word);
+  public:
+    NewWordWindow(Logic& logic, std::string word);
     ~NewWordWindow() override;
 };
-

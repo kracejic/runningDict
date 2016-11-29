@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 
+
 class Dict
 {
   private:
@@ -37,7 +38,7 @@ class Dict
      * @param  state desired state
      * @return       returns end state
      */
-    bool enable(bool state=true);
+    bool enable(bool state = true);
 
     /**
      * Flips enable state (if possible). Also loads the file if neccessary.
@@ -65,8 +66,8 @@ class Dict
 
     void saveDictionary();
 
-    const std::string &getFilename() const;
-    const std::string &getContens() const;
+    const std::string& getFilename() const;
+    const std::string& getContens() const;
     long long getContensSize() const;
 
     int mBonus{0}; ///< Lower means higher

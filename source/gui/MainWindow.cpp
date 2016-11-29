@@ -1,13 +1,13 @@
 #include "./MainWindow.h"
-#include "../Search.h"
 #include "../Processer.h"
+#include "../Search.h"
 
-#include <iostream>
-#include <gdkmm/rgba.h>
-#include <gtk/gtk.h>
 #include "SettingsWindow.h"
 #include <gdkmm/pixbuf.h>
+#include <gdkmm/rgba.h>
+#include <gtk/gtk.h>
 #include <gtkmm/icontheme.h>
+#include <iostream>
 
 
 using namespace std;
@@ -15,7 +15,7 @@ using namespace std;
 MainWindow::MainWindow(Logic& logic)
     : mLogic(logic)
 {
-    //Load settings
+    // Load settings
     mIgnoreClipboardChange = !mLogic.mTranslateClipboardAtStart;
 
     // Sets the border width of the window.
@@ -25,35 +25,35 @@ MainWindow::MainWindow(Logic& logic)
     this->set_keep_above(mLogic.mAlwaysOnTop);
     this->set_title("Dictionary");
 
-    //Icons
-    Glib::RefPtr<Gdk::Pixbuf> imagePlus
-        = Gdk::Pixbuf::create_from_file("./share/icons/ic_add_black_24dp_1x.png");
+    // Icons
+    Glib::RefPtr<Gdk::Pixbuf> imagePlus =
+        Gdk::Pixbuf::create_from_file("./share/icons/ic_add_black_24dp_1x.png");
     imagePlus->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_add", 4, imagePlus);
 
-    Glib::RefPtr<Gdk::Pixbuf> imageSettings
-        = Gdk::Pixbuf::create_from_file("./share/icons/ic_settings_black_24dp_1x.png");
+    Glib::RefPtr<Gdk::Pixbuf> imageSettings = Gdk::Pixbuf::create_from_file(
+        "./share/icons/ic_settings_black_24dp_1x.png");
     imageSettings->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_settings", 4, imageSettings);
 
     //--------------------------------------------------------------------------
     // settings button clicked shows settings window
     mSettingsButton.set_image_from_icon_name("custom_icon_settings");
-    mSettingsButton.signal_clicked().connect([this](){
-            if(mSettingsWindow)
-                return;
-            mSettingsWindow.reset(new SettingsWindow(mLogic));
-            this->set_keep_above(false);
-            mSettingsWindow->show();
+    mSettingsButton.signal_clicked().connect([this]() {
+        if (mSettingsWindow)
+            return;
+        mSettingsWindow.reset(new SettingsWindow(mLogic));
+        this->set_keep_above(false);
+        mSettingsWindow->show();
 
-            //refresh on settings closed
-            mSettingsWindow->signal_hide().connect([this](){
-                    // delete mSettingsWindow;
-                    mSettingsWindow.reset(); //destructor is called
-                    this->executeSearch(mWordInput.get_text());
-                    this->set_keep_above(mLogic.mAlwaysOnTop);
-                });
+        // refresh on settings closed
+        mSettingsWindow->signal_hide().connect([this]() {
+            // delete mSettingsWindow;
+            mSettingsWindow.reset(); // destructor is called
+            this->executeSearch(mWordInput.get_text());
+            this->set_keep_above(mLogic.mAlwaysOnTop);
         });
+    });
 
     //--------------------------------------------------------------------------
     // Add word button
@@ -62,13 +62,14 @@ MainWindow::MainWindow(Logic& logic)
 
         string leastKnownWord = "";
 
-        //find word with lowest number of translations
+        // find word with lowest number of translations
         auto leastKnown = min_element(mTranslationResult.begin(),
-            mTranslationResult.end(), [](auto &a, auto &b) {
-                return a.second.size() < b.second.size();
-            });
-        if(leastKnown != mTranslationResult.end()){
-            std::cout<<"leastKnown->first = "<<leastKnown->first<<std::endl;
+            mTranslationResult.end(),
+            [](auto& a, auto& b) { return a.second.size() < b.second.size(); });
+        if (leastKnown != mTranslationResult.end())
+        {
+            std::cout << "leastKnown->first = " << leastKnown->first
+                      << std::endl;
             leastKnownWord = leastKnown->first;
         }
 
@@ -88,126 +89,117 @@ MainWindow::MainWindow(Logic& logic)
     });
 
 
-    //Grid
+    // Grid
     add(mGrid);
     mGrid.set_column_spacing(5);
 
-    //Grid - first row
+    // Grid - first row
     mGrid.add(mWordInput);
     mGrid.add(mAddWordButton);
     mGrid.add(mSettingsButton);
 
 
-    //scrolling area for results
-    mGrid.attach(mScrollForResults, 0,2,3,1);
+    // scrolling area for results
+    mGrid.attach(mScrollForResults, 0, 2, 3, 1);
     mScrollForResults.set_hexpand();
-    mScrollForResults.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC,
-                                 Gtk::PolicyType::POLICY_ALWAYS);
+    mScrollForResults.set_policy(
+        Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_ALWAYS);
     mScrollForResults.add(mTreeView);
     mScrollForResults.set_margin_top(10);
     mScrollForResults.set_min_content_width(400);
     mScrollForResults.set_min_content_height(200);
 
     //--------------------------------------------------------------------------
-    //results treeView
+    // results treeView
     mRefListStore = Gtk::ListStore::create(mColumns);
     mTreeView.set_model(mRefListStore);
     mTreeView.set_hexpand();
     mTreeView.set_vexpand();
 
-    //Word Culumn
+    // Word Culumn
     {
         mTreeView.append_column("Word", mColumns.mGerman);
-        Gtk::TreeViewColumn *pColumn = mTreeView.get_column(0);
+        Gtk::TreeViewColumn* pColumn = mTreeView.get_column(0);
         // neccessary to prevent glitches
-        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
+        pColumn->set_sizing(
+            Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
         Gdk::Color col("#ffaa00");
-        static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
+        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
             ->property_foreground_gdk()
             .set_value(col);
     }
-    //Match Culumn
+    // Match Culumn
     {
         mTreeView.append_column("Match", mColumns.mGerman_found);
-        Gtk::TreeViewColumn *pColumn = mTreeView.get_column(1);
+        Gtk::TreeViewColumn* pColumn = mTreeView.get_column(1);
         // neccessary to prevent glitches
-        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
-        pColumn->set_cell_data_func(
-            *pColumn->get_first_cell(),
-            [this](Gtk::CellRenderer *renderer,
-                   const Gtk::TreeModel::iterator &iter)
-            {
+        pColumn->set_sizing(
+            Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
+        pColumn->set_cell_data_func(*pColumn->get_first_cell(),
+            [this](Gtk::CellRenderer* renderer,
+                const Gtk::TreeModel::iterator& iter) {
                 Gtk::TreeModel::Row row = *iter;
                 Gdk::Color col("#ff0000");
                 auto score = row[this->mColumns.mScore];
-                if(score < 0)
+                if (score < 0)
                     score = 0;
-                if(score > 4)
+                if (score > 4)
                     score = 4;
                 switch (score)
                 {
-                    //TODO add more colors
-                    case 0:
-                        col.set("#40B640");
-                        break;
-                    case 1:
-                        col.set("#82B640");
-                        break;
-                    case 2:
-                        col.set("#AFB640");
-                        break;
-                    case 3:
-                        col.set("#B67E40");
-                        break;
-                    case 4:
-                        col.set("#B64640");
-                        break;
-                    default:
-                        break;
+                    // TODO add more colors
+                    case 0: col.set("#40B640"); break;
+                    case 1: col.set("#82B640"); break;
+                    case 2: col.set("#AFB640"); break;
+                    case 3: col.set("#B67E40"); break;
+                    case 4: col.set("#B64640"); break;
+                    default: break;
                 }
-                static_cast<Gtk::CellRendererText *>(renderer)
+                static_cast<Gtk::CellRendererText*>(renderer)
                     ->property_foreground_gdk()
                     .set_value(col);
             });
     }
-    //Translation Culumn
+    // Translation Culumn
     {
         mTreeView.append_column("Translation", mColumns.mEnglish);
         Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
-        pColumn->set_sizing(Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
-        static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
-            ->property_wrap_mode().set_value(Pango::WRAP_WORD_CHAR);
+        pColumn->set_sizing(
+            Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
+        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
+            ->property_wrap_mode()
+            .set_value(Pango::WRAP_WORD_CHAR);
     }
     // mTreeView.append_column("Score", mColumns.mScore);
 
-    //deal with resizing
-    this->signal_check_resize().connect([this]()
-    {
-        #ifdef _WIN32
+    // deal with resizing
+    this->signal_check_resize().connect([this]() {
+#ifdef _WIN32
         const int padding_for_wrap_def = 160;
-        #else
+#else
         const int padding_for_wrap_def = 30;
-        #endif
-        //calculate remaining size
+#endif
+        // calculate remaining size
         Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
-        auto width = this->get_allocated_width()
-            - mTreeView.get_column(0)->get_width()
-            - mTreeView.get_column(1)->get_width()-padding_for_wrap_def;
+        auto width =
+            this->get_allocated_width() - mTreeView.get_column(0)->get_width() -
+            mTreeView.get_column(1)->get_width() - padding_for_wrap_def;
 
-        //minimum reasonable size for column
-        if(width < 150)
+        // minimum reasonable size for column
+        if (width < 150)
             width = 150;
 
-        static_cast<Gtk::CellRendererText *>(pColumn->get_first_cell())
-            ->property_wrap_width().set_value(width);
+        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
+            ->property_wrap_width()
+            .set_value(width);
 
-        //debounce
+        // debounce
         static auto oldsize = 0;
-        if(oldsize != width)
+        if (oldsize != width)
         {
             oldsize = width;
 
-            //trigger redraw of mTreeView
+            // trigger redraw of mTreeView
             unique_lock<mutex> guard{this->mSearchMutex};
             this->mRedrawNeeded = true;
         }
@@ -215,14 +207,15 @@ MainWindow::MainWindow(Logic& logic)
 
 
     // mWordInput.set_text("Put here text to translation...");
-    mWordInput.set_text("Das ist einee CKatze Katzeee abbestellt begeststellenai...");
+    mWordInput.set_text(
+        "Das ist einee CKatze Katzeee abbestellt begeststellenai...");
     mWordInput.set_hexpand();
 
     this->show_all_children();
 
-    //make pulse called repeatedly every 100ms
-    sigc::slot<bool> my_slot = sigc::bind(
-        sigc::mem_fun(*this, &MainWindow::pulse), 0);
+    // make pulse called repeatedly every 100ms
+    sigc::slot<bool> my_slot =
+        sigc::bind(sigc::mem_fun(*this, &MainWindow::pulse), 0);
     mPulseConnection = Glib::signal_timeout().connect(my_slot, 150);
 }
 //------------------------------------------------------------------------------
@@ -231,7 +224,7 @@ MainWindow::~MainWindow()
     // present refreshes window position
     this->present();
 
-    //saves data to logic, this is then saved to json config file
+    // saves data to logic, this is then saved to json config file
     this->get_position(mLogic.mPositionX, mLogic.mPositionY);
     this->get_size(mLogic.mSizeX, mLogic.mSizeY);
 }
@@ -240,54 +233,55 @@ bool MainWindow::pulse(int num)
 {
     ignore_arg(num);
 
-    //check if text has changed
+    // check if text has changed
     Glib::ustring tmp = mWordInput.get_text();
-    if( mOldTextInEntry != tmp)
+    if (mOldTextInEntry != tmp)
     {
         mOldTextInEntry = tmp;
         std::cout << "changed..." << std::endl;
-        //todo max size of the text
+        // todo max size of the text
 
         executeSearch(tmp);
     }
 
     Glib::RefPtr<Gtk::Clipboard> refClipboard = Gtk::Clipboard::get();
     refClipboard->request_text(
-        sigc::mem_fun(*this, &MainWindow::on_clipboard_received) );
+        sigc::mem_fun(*this, &MainWindow::on_clipboard_received));
 
 
     // If there is new translation, fill the treeview with new data
     unique_lock<mutex> guard{mSearchMutex};
-    if(mNewTranslationAvailable || mRedrawNeeded)
+    if (mNewTranslationAvailable || mRedrawNeeded)
     {
         mRefListStore->clear();
 
-        //for all words, push results to ListStore
-        for(auto &&w : mTranslationWords)
+        // for all words, push results to ListStore
+        for (auto&& w : mTranslationWords)
         {
-            auto &rr = mTranslationResult[w];
+            auto& rr   = mTranslationResult[w];
             bool first = true;
-            for(auto &&r : rr)
+            for (auto&& r : rr)
             {
                 Gtk::TreeModel::iterator iter = mRefListStore->append();
-                Gtk::TreeModel::Row row = *iter;
+                Gtk::TreeModel::Row row       = *iter;
                 if (first)
-                    row[mColumns.mGerman] = w;
-                first = false;
+                    row[mColumns.mGerman]   = w;
+                first                       = false;
                 row[mColumns.mGerman_found] = r.match;
-                row[mColumns.mEnglish] = r.words;
-                row[mColumns.mScore] = r.score;
+                row[mColumns.mEnglish]      = r.words;
+                row[mColumns.mScore]        = r.score;
             }
-            //if no match found, still display atleast the word
-            if (first){
+            // if no match found, still display atleast the word
+            if (first)
+            {
                 Gtk::TreeModel::iterator iter = mRefListStore->append();
-                (*iter)[mColumns.mGerman] = w;
+                (*iter)[mColumns.mGerman]     = w;
             }
         }
-        //shrink culumns to fit the size
+        // shrink culumns to fit the size
         this->mTreeView.columns_autosize();
         mNewTranslationAvailable = false;
-        mRedrawNeeded = false;
+        mRedrawNeeded            = false;
     }
 
 
@@ -299,14 +293,13 @@ void MainWindow::executeSearch(Glib::ustring text)
     unique_lock<mutex> guard{mSearchMutex};
     mWaitingToTranslate = text;
 
-    if(!mSearchInProgress)
+    if (!mSearchInProgress)
     {
         mSearchInProgress = true;
         guard.unlock();
-        std::thread thread {&MainWindow::searchThread, this};
+        std::thread thread{&MainWindow::searchThread, this};
         thread.detach();
     }
-
 }
 //------------------------------------------------------------------------------
 void MainWindow::searchThread()
@@ -314,16 +307,16 @@ void MainWindow::searchThread()
     string text;
 
     unique_lock<mutex> guard(mSearchMutex);
-    while(true)
+    while (true)
     {
-        //load string and set it to empty
-        text = mWaitingToTranslate;
+        // load string and set it to empty
+        text                = mWaitingToTranslate;
         mWaitingToTranslate = "";
         guard.unlock();
 
-        //translate, during translation can Pulse add new string to translate
-        int numthreads = std::thread::hardware_concurrency();
-        numthreads = (numthreads > 1) ? numthreads : 1;
+        // translate, during translation can Pulse add new string to translate
+        int numthreads            = std::thread::hardware_concurrency();
+        numthreads                = (numthreads > 1) ? numthreads : 1;
         std::vector<string> words = Processer::splitToWords(text.c_str());
 
         workerResult results = _search(mLogic.mDicts, numthreads, words, false);
@@ -339,30 +332,30 @@ void MainWindow::searchThread()
         //     }
         // }
 
-        //lock and test if there is another string to translate
+        // lock and test if there is another string to translate
         guard.lock();
-        mTranslationResult = results;
-        mTranslationWords = words;
+        mTranslationResult       = results;
+        mTranslationWords        = words;
         mNewTranslationAvailable = true;
-        if(mWaitingToTranslate == "")
+        if (mWaitingToTranslate == "")
             break;
     }
 
-    cout<<"Finish"<<endl;
+    cout << "Finish" << endl;
     mSearchInProgress = false;
 }
 //------------------------------------------------------------------------------
-void MainWindow::on_clipboard_received(const Glib::ustring &data)
+void MainWindow::on_clipboard_received(const Glib::ustring& data)
 {
     // check if new text is in the clipboard
-    Glib::ustring text =  data;
+    Glib::ustring text = data;
     if (text.size() > 256)
         text = text.substr(0, 256);
 
-    if(mOldClipboard != text)
+    if (mOldClipboard != text)
     {
         mOldClipboard = text;
-        if(!mIgnoreClipboardChange)
+        if (!mIgnoreClipboardChange)
         {
             std::cout << "Clipboard changed..." << std::endl;
             mWordInput.set_text(text);

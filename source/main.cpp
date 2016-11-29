@@ -1,17 +1,17 @@
-#include <vector>
-#include <string>
-#include <iostream>
 #include <algorithm>
-#include <stdio.h>
 #include <cstdio>
 #include <future>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <vector>
 
-#include "version.h"
 #include "Dict.h"
-#include "Worker.h"
 #include "Processer.h"
-#include "SpeedTimer.h"
 #include "Search.h"
+#include "SpeedTimer.h"
+#include "Worker.h"
+#include "version.h"
 
 using namespace std;
 
@@ -37,74 +37,75 @@ Parsing CamelCase:
 
     )delimiterFoo";
 
-    cout<<help<<endl;
+    cout << help << endl;
 }
 
 int main(int argc, char const* argv[])
 {
-    bool verbose {false};
-    SpeedTimer completeTimer{true};  //speed measurments
-    SpeedTimer initTimer{true};      //speed measurments
+    bool verbose{false};
+    SpeedTimer completeTimer{true}; // speed measurments
+    SpeedTimer initTimer{true};     // speed measurments
     std::vector<Dict> dicts;
 
     // Print help if no arguments are given
-    if(argc == 1)
+    if (argc == 1)
         printHelp();
 
     // process arguments
     int argIt;
     int numthreads = std::thread::hardware_concurrency();
-    numthreads = (numthreads > 1) ? numthreads : 1;
-    for(argIt = 1; argIt < argc; ++argIt)
+    numthreads     = (numthreads > 1) ? numthreads : 1;
+    for (argIt = 1; argIt < argc; ++argIt)
     {
         string tmp = argv[argIt];
 
-        if(tmp == "--help" || tmp == "-h")
+        if (tmp == "--help" || tmp == "-h")
             printHelp();
-        else if(tmp == "--version")
+        else if (tmp == "--version")
             cout << "v" << Version::getVersionShort() << endl;
-        else if(tmp == "-d")
+        else if (tmp == "-d")
         {
-            if(argIt+1 < argc)
+            if (argIt + 1 < argc)
             {
                 argIt++;
                 dicts.emplace_back();
-                if(!dicts.back().open(argv[argIt]))
+                if (!dicts.back().open(argv[argIt]))
                 {
-                    cout<<"Error opening "<<argv[argIt]<<" file."<<endl;
+                    cout << "Error opening " << argv[argIt] << " file." << endl;
                     return 1;
                 }
             }
         }
-        else if(tmp == "-D")
+        else if (tmp == "-D")
         {
-            if(argIt+1 < argc)
+            if (argIt + 1 < argc)
             {
                 argIt++;
                 dicts.emplace_back();
                 dicts.back().mBonus = -1;
-                if(!dicts.back().open(argv[argIt]))
+                if (!dicts.back().open(argv[argIt]))
                 {
-                    cout<<"Error opening "<<argv[argIt]<<" file."<<endl;
+                    cout << "Error opening " << argv[argIt] << " file." << endl;
                     return 1;
                 }
             }
         }
-        else if(tmp[0] == '-' && tmp[1] == 'j')
+        else if (tmp[0] == '-' && tmp[1] == 'j')
         {
             sscanf(tmp.c_str(), "-j%d", &numthreads);
             numthreads = (numthreads > 0) ? numthreads : 1;
         }
-        else if(tmp == "-v"){
+        else if (tmp == "-v")
+        {
             verbose = true;
         }
-        else if(tmp == "--in"){
+        else if (tmp == "--in")
+        {
             ++argIt;
             break;
         }
         else
             break;
-
     }
     // process rest of the free arguments and split them into subwords
     std::vector<string> words = Processer::splitToWords(argIt, argc, argv);
@@ -116,26 +117,26 @@ int main(int argc, char const* argv[])
     execTimer.end();
 
 
-
-    if(verbose)
-        cout<<"-----RESULTS-----"<<endl;
-    for(auto&& w : words)
+    if (verbose)
+        cout << "-----RESULTS-----" << endl;
+    for (auto&& w : words)
     {
         auto& rr = results[w];
-        cout<<w<<endl;
-        for(auto&& r : rr)
+        cout << w << endl;
+        for (auto&& r : rr)
         {
-            cout<<"  "<<r.score<<":"<<r.match<<" -"<<r.words<<endl;
+            cout << "  " << r.score << ":" << r.match << " -" << r.words
+                 << endl;
         }
     }
 
     completeTimer.end();
-    if(verbose)
+    if (verbose)
     {
-        cout<<endl<<"Speed results:"<<endl;
-        cout<<"  init = "<<initTimer.str()<<endl;
-        cout<<"  exec = "<<execTimer.str()<<endl;
-        cout<<"  Copmlete  = "<<completeTimer.str()<<endl;
+        cout << endl << "Speed results:" << endl;
+        cout << "  init = " << initTimer.str() << endl;
+        cout << "  exec = " << execTimer.str() << endl;
+        cout << "  Copmlete  = " << completeTimer.str() << endl;
     }
 
     return 0;
