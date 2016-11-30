@@ -54,7 +54,7 @@ int main(int argc, char const* argv[])
     // process arguments
     int argIt;
     int numthreads = std::thread::hardware_concurrency();
-    numthreads     = (numthreads > 1) ? numthreads : 1;
+    numthreads = (numthreads > 1) ? numthreads : 1;
     for (argIt = 1; argIt < argc; ++argIt)
     {
         string tmp = argv[argIt];

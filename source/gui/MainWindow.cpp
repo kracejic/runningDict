@@ -258,30 +258,30 @@ bool MainWindow::pulse(int num)
         // for all words, push results to ListStore
         for (auto&& w : mTranslationWords)
         {
-            auto& rr   = mTranslationResult[w];
+            auto& rr = mTranslationResult[w];
             bool first = true;
             for (auto&& r : rr)
             {
                 Gtk::TreeModel::iterator iter = mRefListStore->append();
-                Gtk::TreeModel::Row row       = *iter;
+                Gtk::TreeModel::Row row = *iter;
                 if (first)
-                    row[mColumns.mGerman]   = w;
-                first                       = false;
+                    row[mColumns.mGerman] = w;
+                first = false;
                 row[mColumns.mGerman_found] = r.match;
-                row[mColumns.mEnglish]      = r.words;
-                row[mColumns.mScore]        = r.score;
+                row[mColumns.mEnglish] = r.words;
+                row[mColumns.mScore] = r.score;
             }
             // if no match found, still display atleast the word
             if (first)
             {
                 Gtk::TreeModel::iterator iter = mRefListStore->append();
-                (*iter)[mColumns.mGerman]     = w;
+                (*iter)[mColumns.mGerman] = w;
             }
         }
         // shrink culumns to fit the size
         this->mTreeView.columns_autosize();
         mNewTranslationAvailable = false;
-        mRedrawNeeded            = false;
+        mRedrawNeeded = false;
     }
 
 
@@ -310,13 +310,13 @@ void MainWindow::searchThread()
     while (true)
     {
         // load string and set it to empty
-        text                = mWaitingToTranslate;
+        text = mWaitingToTranslate;
         mWaitingToTranslate = "";
         guard.unlock();
 
         // translate, during translation can Pulse add new string to translate
-        int numthreads            = std::thread::hardware_concurrency();
-        numthreads                = (numthreads > 1) ? numthreads : 1;
+        int numthreads = std::thread::hardware_concurrency();
+        numthreads = (numthreads > 1) ? numthreads : 1;
         std::vector<string> words = Processer::splitToWords(text.c_str());
 
         workerResult results = _search(mLogic.mDicts, numthreads, words, false);
@@ -334,8 +334,8 @@ void MainWindow::searchThread()
 
         // lock and test if there is another string to translate
         guard.lock();
-        mTranslationResult       = results;
-        mTranslationWords        = words;
+        mTranslationResult = results;
+        mTranslationWords = words;
         mNewTranslationAvailable = true;
         if (mWaitingToTranslate == "")
             break;

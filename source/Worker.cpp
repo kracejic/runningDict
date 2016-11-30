@@ -15,7 +15,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     // To change the type this function manipulates and returns, change
     // the return type and the types of the two variables below.
     int s1len = s1.size();
-    s1len     = min(512, s1len);
+    s1len = min(512, s1len);
     int s2len = s2.size();
 
     int column_start = (decltype(s1len))1;
@@ -26,16 +26,16 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
 
     for (int x = column_start; x <= s2len; x++)
     {
-        column[0]         = x;
+        column[0] = x;
         int last_diagonal = x - column_start;
         int y;
         // cout<<"num"<<x<<" = "<<endl<<"  ";
         for (y = column_start; y <= s1len; y++)
         {
-            int old_diagonal   = column[y];
+            int old_diagonal = column[y];
             auto possibilities = {column[y] + 1, column[y - 1] + 1,
                 last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
-            column[y]     = std::min(possibilities);
+            column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
             // cout<<"("<<y<<"="<<column[y]<<" ) ";
         }
@@ -67,11 +67,14 @@ struct deletable_facet : Facet
     }
 };
 
-workerResult Worker::search(const std::vector<std::string>& wordsIn)
+//-----------------------------------------------------------------------------
+workerResult Worker::search(const Dict& mDict,
+    const std::vector<std::string>& wordsIn, long long start, long long end)
 {
     workerResult result;
-    auto dict = mDict.Dict::getContens();
-    std::istringstream text(*dict);
+    std::shared_ptr<const string> dictHolder = mDict.Dict::getContens();
+    int mBonus = mDict.mBonus;
+    std::istringstream text(*dictHolder);
 
     // convert words to char16
     wstring_convert<
@@ -85,18 +88,18 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
     }
 
     // some overlap is neccessary for start if not starting from the beginning
-    if (mStart > 0)
+    if (start > 0)
     {
-        mStart = (mStart > 256) ? (mStart - 256) : 0;
-        text.seekg(mStart);
+        start = (start > 256) ? (start - 256) : 0;
+        text.seekg(start);
         string tmp;
         do
         { // reset line position
             getline(text, tmp);
         } while (tmp[0] == ' ');
     }
-    if (mEnd > (int)dict->size())
-        mEnd = dict->size();
+    if (end > (int)dictHolder->size())
+        end = dictHolder->size();
 
 
     string german, firstLine, english, newLine;
@@ -122,14 +125,14 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
         }
         else
             cont = false;
-        german   = firstLine.substr(0, firstLine.find('/'));
+        german = firstLine.substr(0, firstLine.find('/'));
         if (german[german.size() - 1] == ' ')
             german.resize(german.size() - 1);
 
         // cout << "  testing:" << german << endl;
         for (auto&& w : words)
         {
-            german2  = utfConvertor.from_bytes(german);
+            german2 = utfConvertor.from_bytes(german);
             int dist = 2 * levenshtein_distance(w.first, german2);
             if (dist < w.second)
             {
@@ -146,7 +149,7 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
 
 
         firstLine = newLine;
-        if (text.tellg() > mEnd)
+        if (text.tellg() > end)
             break;
     }
 
@@ -156,13 +159,5 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
 
 
     return result;
-}
-//-----------------------------------------------------------------------------------
-workerResult Worker::search(
-    const std::vector<std::string>& words, long long start, long long end)
-{
-    mStart = start;
-    mEnd   = end;
-    return search(words);
 }
 //-----------------------------------------------------------------------------------

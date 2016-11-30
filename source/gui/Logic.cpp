@@ -28,7 +28,7 @@ fs::path relativeTo(fs::path from, fs::path to)
     // path with ".."
     // segments.
     fs::path::const_iterator fromIter = from.begin();
-    fs::path::const_iterator toIter   = to.begin();
+    fs::path::const_iterator toIter = to.begin();
 
     // Loop through both
     while (fromIter != from.end() && toIter != to.end() &&
@@ -156,11 +156,11 @@ void Logic::saveConfig()
         cfg["dicts"].push_back(
             {dict.getFilename(), dict.mBonus, dict.is_enabled()});
 
-    cfg["size"]                      = {mSizeX, mSizeY};
-    cfg["position"]                  = {mPositionX, mPositionY};
+    cfg["size"] = {mSizeX, mSizeY};
+    cfg["position"] = {mPositionX, mPositionY};
     cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
-    cfg["alwaysOnTop"]               = mAlwaysOnTop;
-    cfg["lastDictForNewWord"]        = mLastDictForNewWord;
+    cfg["alwaysOnTop"] = mAlwaysOnTop;
+    cfg["lastDictForNewWord"] = mLastDictForNewWord;
 
     // save settings
     ofstream outFile("./config.json");

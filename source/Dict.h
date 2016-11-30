@@ -16,7 +16,7 @@ class Dict
 {
   private:
     bool mIs_open{false};
-    std::shared_ptr<std::string> mContent;
+    std::shared_ptr<const std::string> mContent;
     std::string mFilename{""};
     bool mEnabled{true};
 

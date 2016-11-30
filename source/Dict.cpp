@@ -27,7 +27,6 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
 //-----------------------------------------------------------------------------------
 void Dict::fill(std::string content)
 {
-    // todo
     mContent.reset(new std::string(content));
     mIs_open = true;
 }
@@ -74,7 +73,7 @@ bool Dict::open(std::string filename)
     mErrorState = true;
 
     mIs_open = false;
-    mContent.reset(new std::string());
+    string tmp;
 
     // reopen
     std::ifstream file;
@@ -85,12 +84,13 @@ bool Dict::open(std::string filename)
     mFilename = filename;
 
     file.seekg(0, std::ios::end);
-    mContent->reserve(file.tellg());
+    tmp.reserve(file.tellg());
     file.seekg(0, std::ios::beg);
-    mContent->assign((std::istreambuf_iterator<char>(file)),
+    tmp.assign((std::istreambuf_iterator<char>(file)),
         std::istreambuf_iterator<char>());
     file.close();
-    mIs_open    = true;
+    mContent.reset(new std::string(move(tmp)));
+    mIs_open = true;
     mErrorState = false;
 
 
@@ -138,13 +138,15 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     string wordCopy = getLowerCase2(word);
 
     // erase whitespace on the end of mContent
-    mContent->erase(std::find_if(mContent->rbegin(), mContent->rend(),
-                        std::not1(std::ptr_fun<int, int>(std::isspace)))
-                        .base(),
-        mContent->end());
+    string tmp = *mContent;
+    tmp.erase(std::find_if(tmp.rbegin(), tmp.rend(),
+                  std::not1(std::ptr_fun<int, int>(std::isspace)))
+                  .base(),
+        tmp.end());
 
     // add word
-    mContent->append("\n"s + wordCopy + "\n " + translation);
+    tmp.append("\n"s + wordCopy + "\n " + translation);
+    mContent.reset(new string(move(tmp)));
 
     this->saveDictionary();
 

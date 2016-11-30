@@ -117,7 +117,7 @@ Word::Word(const std::string& txt)
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
                 // printf("   catch  %d %d - %s\n", it1, it2,
                 // words1.back().c_str());
-                it1          = it2;
+                it1 = it2;
                 wasUpperCase = true;
             }
         }

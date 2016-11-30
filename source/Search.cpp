@@ -51,11 +51,10 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
         for (int i = 0; i < threadsForDict[dictI]; ++i)
         {
             long long start = (i * size) / threadsForDict[dictI];
-            long long end   = ((i + 1) * size) / threadsForDict[dictI];
+            long long end = ((i + 1) * size) / threadsForDict[dictI];
             fut.push_back(
                 std::async(std::launch::async, [&words, &dict, start, end]() {
-                    Worker worker{dict};
-                    return worker.search(words, start, end);
+                    return Worker::search(dict, words, start, end);
                 }));
         }
     }

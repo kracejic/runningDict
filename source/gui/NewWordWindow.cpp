@@ -69,8 +69,8 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         for (auto&& dict : logic.mDicts)
         {
             Gtk::TreeModel::iterator iter = mRefListStore->append();
-            Gtk::TreeModel::Row row       = *iter;
-            row[mDictModel.mPath]         = dict.getFilename();
+            Gtk::TreeModel::Row row = *iter;
+            row[mDictModel.mPath] = dict.getFilename();
 
             // select last selected
             if (mLogic.mLastDictForNewWord == dict.getFilename())
@@ -88,7 +88,7 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
                 auto row = *iter;
                 if (row)
                 {
-                    Glib::ustring name         = row[mDictModel.mPath];
+                    Glib::ustring name = row[mDictModel.mPath];
                     mLogic.mLastDictForNewWord = name;
                 }
             }

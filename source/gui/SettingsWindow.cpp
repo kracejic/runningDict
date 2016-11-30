@@ -103,11 +103,11 @@ SettingsWindow::SettingsWindow(Logic& logic)
     for (auto&& dict : logic.mDicts)
     {
         Gtk::TreeModel::iterator iter = mRefListStore->append();
-        Gtk::TreeModel::Row row       = *iter;
-        row[mDictViewModel.mEnabled]  = dict.is_enabled();
-        row[mDictViewModel.mPath]     = dict.getFilename();
-        row[mDictViewModel.mBonus]    = (dict.mBonus < 0);
-        row[mDictViewModel.mError]    = (dict.mErrorState);
+        Gtk::TreeModel::Row row = *iter;
+        row[mDictViewModel.mEnabled] = dict.is_enabled();
+        row[mDictViewModel.mPath] = dict.getFilename();
+        row[mDictViewModel.mBonus] = (dict.mBonus < 0);
+        row[mDictViewModel.mError] = (dict.mErrorState);
     }
 
     this->show_all_children();
@@ -116,7 +116,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
 SettingsWindow::~SettingsWindow()
 {
     mLogic.mTranslateClipboardAtStart = mToogleFirstCatch.get_active();
-    mLogic.mAlwaysOnTop               = mToogleAlwaysOnTop.get_active();
+    mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
 }
 //------------------------------------------------------------------------------
 bool SettingsWindow::on_key_press_event(GdkEventKey* key_event)
