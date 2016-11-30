@@ -70,7 +70,8 @@ struct deletable_facet : Facet
 workerResult Worker::search(const std::vector<std::string>& wordsIn)
 {
     workerResult result;
-    std::istringstream text(mDict.Dict::getContens());
+    auto dict = mDict.Dict::getContens();
+    std::istringstream text(*dict);
 
     // convert words to char16
     wstring_convert<
@@ -94,8 +95,8 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
             getline(text, tmp);
         } while (tmp[0] == ' ');
     }
-    if (mEnd > (int)mDict.getContens().size())
-        mEnd = mDict.getContens().size();
+    if (mEnd > (int)dict->size())
+        mEnd = dict->size();
 
 
     string german, firstLine, english, newLine;

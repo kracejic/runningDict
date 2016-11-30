@@ -253,7 +253,7 @@ std::vector<std::string> Processer::splitToWords(
 
 
 #ifdef UNIT_TESTS
-#include "test/catch.hpp"
+#include "catch.hpp"
 TEST_CASE("Check splitting of strings 1 - dots")
 {
     REQUIRE(Processer::splitToWords(".").size() == 0);

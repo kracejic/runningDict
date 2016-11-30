@@ -1,13 +1,22 @@
 #pragma once
 #include <fstream>
+#include <memory>
 #include <string>
+
+
+namespace Dicts
+{
+bool deleteWord(const std::string& word, const std::string dictname);
+bool changeWord(const std::string& word, const std::string& newTranslation,
+    const std::string dictname);
+} /* Dicts */
 
 
 class Dict
 {
   private:
     bool mIs_open{false};
-    std::string mContents;
+    std::shared_ptr<std::string> mContent;
     std::string mFilename{""};
     bool mEnabled{true};
 
@@ -19,7 +28,7 @@ class Dict
     Dict(std::string filename, int bonus, bool enabled);
 
     /// Fill dictionary with custom string, usefull for testing
-    void fill(std::string contents);
+    void fill(std::string content);
 
     /**
      * Load the file
@@ -67,7 +76,7 @@ class Dict
     void saveDictionary();
 
     const std::string& getFilename() const;
-    const std::string& getContens() const;
+    std::shared_ptr<const std::string> getContens() const;
     long long getContensSize() const;
 
     int mBonus{0}; ///< Lower means higher

@@ -25,10 +25,11 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
         this->reload();
 }
 //-----------------------------------------------------------------------------------
-void Dict::fill(std::string contents)
+void Dict::fill(std::string content)
 {
-    mContents = contents;
-    mIs_open  = true;
+    // todo
+    mContent.reset(new std::string(content));
+    mIs_open = true;
 }
 //-----------------------------------------------------------------------------------
 const std::string& Dict::getFilename() const
@@ -72,12 +73,8 @@ bool Dict::open(std::string filename)
     // presume problems, reseted later
     mErrorState = true;
 
-    // if open, close
-    if (is_open())
-    {
-        mContents.clear();
-        mIs_open = false;
-    }
+    mIs_open = false;
+    mContent.reset(new std::string());
 
     // reopen
     std::ifstream file;
@@ -88,9 +85,9 @@ bool Dict::open(std::string filename)
     mFilename = filename;
 
     file.seekg(0, std::ios::end);
-    mContents.reserve(file.tellg());
+    mContent->reserve(file.tellg());
     file.seekg(0, std::ios::beg);
-    mContents.assign((std::istreambuf_iterator<char>(file)),
+    mContent->assign((std::istreambuf_iterator<char>(file)),
         std::istreambuf_iterator<char>());
     file.close();
     mIs_open    = true;
@@ -105,17 +102,17 @@ bool Dict::is_open()
     return mIs_open;
 }
 //-----------------------------------------------------------------------------------
-const std::string& Dict::getContens() const
+std::shared_ptr<const std::string> Dict::getContens() const
 {
     if (not mIs_open)
         throw std::domain_error{
             "Dictionary \"" + mFilename + "\" was not loaded."};
-    return mContents;
+    return mContent;
 }
 //-----------------------------------------------------------------------------------
 long long Dict::getContensSize() const
 {
-    return mContents.size();
+    return mContent->size();
 }
 //------------------------------------------------------------------------------
 string getLowerCase2(const string& txt)
@@ -140,14 +137,14 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     // Make lower case
     string wordCopy = getLowerCase2(word);
 
-    // erase whitespace on the end of mContens
-    mContents.erase(std::find_if(mContents.rbegin(), mContents.rend(),
+    // erase whitespace on the end of mContent
+    mContent->erase(std::find_if(mContent->rbegin(), mContent->rend(),
                         std::not1(std::ptr_fun<int, int>(std::isspace)))
                         .base(),
-        mContents.end());
+        mContent->end());
 
     // add word
-    mContents.append("\n"s + wordCopy + "\n " + translation);
+    mContent->append("\n"s + wordCopy + "\n " + translation);
 
     this->saveDictionary();
 
@@ -156,18 +153,18 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 //------------------------------------------------------------------------------
 bool Dict::hasWord(const std::string& word)
 {
-    std::istringstream iss{mContents};
+    std::istringstream iss{*mContent};
     for (std::string line; std::getline(iss, line);)
         if (line == word)
             return true;
-
     return false;
 }
 //-----------------------------------------------------------------------------
 void Dict::changeWord(
     const std::string& word, const std::string& newTranslation)
 {
-    std::istringstream iss{mContents};
+    // todo
+    std::istringstream iss{*mContent};
     string output{""};
     string translation = newTranslation;
     std::replace(translation.begin(), translation.end(), '\n', ';');
@@ -196,7 +193,7 @@ void Dict::changeWord(
                      std::not1(std::ptr_fun<int, int>(std::isspace)))
                      .base(),
         output.end());
-    mContents = output;
+    mContent.reset(new std::string(output));
     this->saveDictionary();
 }
 //-----------------------------------------------------------------------------
@@ -205,22 +202,22 @@ void Dict::saveDictionary()
     if (mFilename == "")
         return;
     std::ofstream outfile{mFilename};
-    outfile << mContents << endl;
+    outfile << *mContent << endl;
 }
 //------------------------------------------------------------------------------
 
 
 #ifdef UNIT_TESTS
-#include "test/catch.hpp"
+#include "catch.hpp"
 TEST_CASE("adding a word")
 {
     Dict d;
     d.fill("ein\n one\nzwei\n zwei");
     d.addWord("drei", "three");
-    REQUIRE(d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "ein\n one\nzwei\n zwei\ndrei\n three");
     d.addWord("vier", "four");
-    REQUIRE(
-        d.getContens() == "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
+    REQUIRE(*(d.getContens()) ==
+            "ein\n one\nzwei\n zwei\ndrei\n three\nvier\n four");
 }
 TEST_CASE("changing a words in dictionary")
 {
@@ -241,15 +238,16 @@ TEST_CASE("checking for a word")
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna");
-    REQUIRE(d.getContens() == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
     d.changeWord("zwei", "dva");
-    REQUIRE(d.getContens() == "ein\n jedna\nzwei\n dva\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n dva\ndrei\n three");
     d.changeWord("ein", "jedno jednicka, jedna");
-    REQUIRE(d.getContens() ==
+    REQUIRE(*(d.getContens()) ==
             "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
     d.changeWord("drei", "tricet stribrnych kurat\ntricet stribrnych strech");
-    REQUIRE(d.getContens() == "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
-                              "tricet stribrnych kurat;tricet stribrnych "
-                              "strech");
+    REQUIRE(*(d.getContens()) ==
+            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
+            "tricet stribrnych kurat;tricet stribrnych "
+            "strech");
 }
 #endif

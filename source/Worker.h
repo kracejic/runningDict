@@ -35,7 +35,7 @@ class Worker
         : mDict(dict)
         , mBonus(dict.mBonus)
     {
-        mEnd = dict.getContens().size();
+        mEnd = dict.getContens()->size();
     };
     workerResult search(
         const std::vector<std::string>& words, long long start, long long end);

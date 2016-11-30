@@ -33,8 +33,8 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
             threadsForDict.push_back(0); // push empty one ;-)
             continue;
         }
-        threadsForDict.push_back(std::max(
-            1ll, (((numthreads) * (long long)dict.getContens().size()) / sum)));
+        threadsForDict.push_back(std::max(1ll,
+            (((numthreads) * (long long)dict.getContens()->size()) / sum)));
         if (verbose)
             cout << "* Dict has x threads: " << threadsForDict.back() << endl;
     }
@@ -47,7 +47,7 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
         auto& dict = dicts[dictI];
         if (not dict.is_enabled())
             continue;
-        long long size = dict.getContens().size();
+        long long size = dict.getContens()->size();
         for (int i = 0; i < threadsForDict[dictI]; ++i)
         {
             long long start = (i * size) / threadsForDict[dictI];
