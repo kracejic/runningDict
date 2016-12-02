@@ -5,7 +5,7 @@ configure_file (
 
 # Flags
 if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -Wmisleading-indentation -pedantic")
 endif()
 
 include_directories(

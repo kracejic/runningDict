@@ -21,8 +21,8 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
 
     // Calculating size of all dicts
     long long sum = accumulate(
-        dicts.begin(), dicts.end(), 0, [](long long sum, const auto& dict) {
-            return (long long)(sum + dict.getContensSize());
+        dicts.begin(), dicts.end(), 0, [](long long _sum, const auto& dict) {
+            return (long long)(_sum + dict.getContensSize());
         });
     // calculating threads needed for dicts
     vector<long long> threadsForDict;
