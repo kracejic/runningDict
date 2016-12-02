@@ -14,6 +14,7 @@ set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
 #be nice and export compile commands by default
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+enable_testing()
 
 #------------------------------------------------------------------------------
 # set default install path
@@ -32,10 +33,10 @@ add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target instal
 add_subdirectory(doc)
 add_subdirectory(external)
 
-add_subdirectory(source)
 
-enable_testing()
+add_subdirectory(test/sanitizers)
 add_subdirectory(test)
+add_subdirectory(source)
 
 
 

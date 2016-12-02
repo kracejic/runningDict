@@ -44,6 +44,7 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
 
 
     mAddButton.signal_clicked().connect([this]() {
+            //TODO fix mLastDictForNewWord for something else
         auto dict = find_if(
             mLogic.mDicts.begin(), mLogic.mDicts.end(), [this](auto& d) {
                 return d.getFilename() == mLogic.mLastDictForNewWord;
@@ -56,6 +57,8 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
                 this->hide();
             }
         }
+        else
+            cout<<"dict "<<mLogic.mLastDictForNewWord<<" not found"<<endl;
     });
 
     // create model for combobox with Dict selection

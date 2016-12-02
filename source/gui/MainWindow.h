@@ -24,12 +24,14 @@ class ModelColumns : public Gtk::TreeModelColumnRecord
         add(mGerman_found);
         add(mEnglish);
         add(mScore);
+        add(mSourceDict);
     }
 
     Gtk::TreeModelColumn<Glib::ustring> mGerman;
     Gtk::TreeModelColumn<Glib::ustring> mGerman_found;
     Gtk::TreeModelColumn<Glib::ustring> mEnglish;
     Gtk::TreeModelColumn<int> mScore;
+    Gtk::TreeModelColumn<Glib::ustring> mSourceDict;
 };
 
 

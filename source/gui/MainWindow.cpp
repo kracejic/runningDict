@@ -63,6 +63,7 @@ MainWindow::MainWindow(Logic& logic)
         string leastKnownWord = "";
 
         // find word with lowest number of translations
+        // TODO fix
         auto leastKnown = min_element(mTranslationResult.begin(),
             mTranslationResult.end(),
             [](auto& a, auto& b) { return a.second.size() < b.second.size(); });
@@ -270,6 +271,7 @@ bool MainWindow::pulse(int num)
                 row[mColumns.mGerman_found] = r.match;
                 row[mColumns.mEnglish] = r.words;
                 row[mColumns.mScore] = r.score;
+                row[mColumns.mSourceDict] = r.dictFilename;
             }
             // if no match found, still display atleast the word
             if (first)
@@ -312,11 +314,12 @@ void MainWindow::searchThread()
         // load string and set it to empty
         text = mWaitingToTranslate;
         mWaitingToTranslate = "";
+        // now we can unlock, so new request can be put in
         guard.unlock();
 
         // translate, during translation can Pulse add new string to translate
         int numthreads = std::thread::hardware_concurrency();
-        numthreads = (numthreads > 1) ? numthreads : 1;
+        numthreads = (numthreads > 1) ? numthreads : 1; // fallback
         std::vector<string> words = Processer::splitToWords(text.c_str());
 
         workerResult results = _search(mLogic.mDicts, numthreads, words, false);

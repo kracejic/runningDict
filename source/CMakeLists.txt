@@ -110,6 +110,7 @@ if(GTK3MM_FOUND)
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}
 	COMMAND ./runningDictGui
 	DEPENDS runningDictGui Install_)
+    add_custom_target(run DEPENDS gui-run)
 
     target_include_directories(runningDictGui SYSTEM PUBLIC 
         ${GTK3MM_INCLUDE_DIRS} 

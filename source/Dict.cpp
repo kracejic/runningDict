@@ -7,10 +7,13 @@ using namespace std;
 
 Dict::Dict()
 {
+    //create empty string
+    mContent.reset(new std::string(""));
 }
 Dict::Dict(string filename)
 {
     mFilename = filename;
+    mContent.reset(new std::string(""));
 }
 //------------------------------------------------------------------------------
 Dict::Dict(std::string filename, int bonus, bool enabled)
@@ -21,6 +24,7 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
     // std::cout<<"New Dict: filename = "<<filename<<std::endl;
     // std::cout<<"  bonus = "<<bonus<<std::endl;
     // std::cout<<"  enabled = "<<enabled<<std::endl;
+    mContent.reset(new std::string(""));
     if (mEnabled)
         this->reload();
 }
@@ -130,7 +134,9 @@ string getLowerCase2(const string& txt)
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
     if (not mIs_open)
-        this->open(mFilename);
+        throw std::domain_error{
+            "Dictionary \"" + mFilename + "\" was not loaded."};
+        // this->open(mFilename);
     if (not mIs_open)
         return false;
 
@@ -155,7 +161,8 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 //------------------------------------------------------------------------------
 bool Dict::hasWord(const std::string& word)
 {
-    std::istringstream iss{*mContent};
+    auto holder = mContent;
+    std::istringstream iss{*holder};
     for (std::string line; std::getline(iss, line);)
         if (line == word)
             return true;
@@ -165,8 +172,8 @@ bool Dict::hasWord(const std::string& word)
 void Dict::changeWord(
     const std::string& word, const std::string& newTranslation)
 {
-    // todo
-    std::istringstream iss{*mContent};
+    auto holder = mContent;
+    std::istringstream iss{*holder};
     string output{""};
     string translation = newTranslation;
     std::replace(translation.begin(), translation.end(), '\n', ';');
@@ -201,10 +208,11 @@ void Dict::changeWord(
 //-----------------------------------------------------------------------------
 void Dict::saveDictionary()
 {
+    auto holder = mContent;
     if (mFilename == "")
         return;
     std::ofstream outfile{mFilename};
-    outfile << *mContent << endl;
+    outfile << *holder << endl;
 }
 //------------------------------------------------------------------------------
 
