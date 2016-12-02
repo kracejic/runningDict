@@ -69,7 +69,11 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         mCombobox.set_hexpand(true);
         mCombobox.pack_start(mDictModel.mPath);
 
-        for (auto&& dict : logic.mDicts)
+        // set first dictionary as a target for new word if not set
+        if (mLogic.mLastDictForNewWord == "" && mLogic.mDicts.size() > 0)
+            mLogic.mLastDictForNewWord = mLogic.mDicts[0].getFilename();
+
+        for (auto&& dict : mLogic.mDicts)
         {
             Gtk::TreeModel::iterator iter = mRefListStore->append();
             Gtk::TreeModel::Row row = *iter;

@@ -34,7 +34,7 @@ add_subdirectory(doc)
 add_subdirectory(external)
 
 
-add_subdirectory(test/sanitizers)
+# add_subdirectory(test/sanitizers)
 add_subdirectory(test)
 add_subdirectory(source)
 
