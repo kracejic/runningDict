@@ -7,7 +7,7 @@ using namespace std;
 
 Dict::Dict()
 {
-    //create empty string
+    // create empty string
     mContent.reset(new std::string(""));
 }
 Dict::Dict(string filename)
@@ -136,7 +136,7 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     if (not mIs_open)
         throw std::domain_error{
             "Dictionary \"" + mFilename + "\" was not loaded."};
-        // this->open(mFilename);
+    // this->open(mFilename);
     if (not mIs_open)
         return false;
 
@@ -169,8 +169,77 @@ bool Dict::hasWord(const std::string& word)
     return false;
 }
 //-----------------------------------------------------------------------------
-void Dict::changeWord(
-    const std::string& word, const std::string& newTranslation)
+bool myIsPunct2(char ch)
+{
+    switch (ch)
+    {
+        case '!':
+        case '"':
+        case '#':
+        case '$':
+        case '%':
+        case '&':
+        case '\'':
+        case '(':
+        case ')':
+        case '*':
+        case '+':
+        case ',':
+        case '-':
+        case '.':
+        case '/':
+        case ':':
+        case ';':
+        case '<':
+        case '=':
+        case '>':
+        case '?':
+        case '@':
+        case '[':
+        case '\\':
+        case ']':
+        case '^':
+        case '_':
+        case '`':
+        case '{':
+        case '|':
+        case '}':
+        case '~': return true;
+        default: return false;
+    }
+}
+bool compare_weak(const std::string& lhs, const std::string& rhs)
+{
+    string longer = lhs;
+    string shorter = rhs;
+    if (lhs.size() < rhs.size())
+    {
+        longer = rhs;
+        shorter = lhs;
+    }
+
+    for (size_t i = 0; i < longer.size(); ++i)
+    {
+        if (i < shorter.size())
+        {
+            if (myIsPunct2(shorter[i]) || myIsPunct2(longer[i]))
+                return true;
+            if (lhs[i] != rhs[i])
+                return false;
+        }
+        else
+        {
+            if (myIsPunct2(longer[i]))
+                return true;
+            if (longer[i] != ' ')
+                return false;
+        }
+    }
+    return true;
+}
+//-----------------------------------------------------------------------------
+void Dict::changeWord(const std::string& word,
+    const std::string& newTranslation, const std::string& wordNew)
 {
     auto holder = mContent;
     std::istringstream iss{*holder};
@@ -179,9 +248,13 @@ void Dict::changeWord(
     std::replace(translation.begin(), translation.end(), '\n', ';');
     for (std::string line; std::getline(iss, line);)
     {
-        if (line == word)
+        // todo compare to the first non asci character
+        if (compare_weak(line, word))
         {
-            output += line + "\n";
+            if (wordNew == "")
+                output += line + "\n";
+            else
+                output += wordNew + "\n";
             output += " " + translation + "\n";
             while (true)
             {
@@ -243,6 +316,27 @@ TEST_CASE("changing a words in dictionary")
     REQUIRE(d.hasWord("one") == false);
 }
 
+TEST_CASE("compare_weak")
+{
+    REQUIRE(compare_weak("jedna", "jedna"));
+    REQUIRE(compare_weak("jedna dva", "jedna dva"));
+    REQUIRE(compare_weak("jedna ", "jedna"));
+    REQUIRE(compare_weak("jedna", "jedna "));
+    REQUIRE(compare_weak("jedna", "jedna "));
+    REQUIRE(not compare_weak("jedna", "jedna dva"));
+    REQUIRE(not compare_weak("jedna", "jedna dva /asdad/"));
+    REQUIRE(compare_weak("jedna", "jedna/test/ "));
+    REQUIRE(compare_weak("jedna", "jedna /test/ "));
+    REQUIRE(compare_weak("jedna dva", "jedna dva/test/ "));
+    REQUIRE(compare_weak("jedna dva", "jedna dva /test/ "));
+    REQUIRE(compare_weak("jedna dva ", "jedna dva /test/ "));
+    REQUIRE(not compare_weak("jedna", "dva"));
+    REQUIRE(not compare_weak("jedna ", "dva "));
+    REQUIRE(not compare_weak("jedna /", "dva /"));
+    REQUIRE(not compare_weak("jedna", "dva /"));
+    REQUIRE(not compare_weak("jedna /", "dva"));
+}
+
 TEST_CASE("checking for a word")
 {
     Dict d;
@@ -259,5 +353,12 @@ TEST_CASE("checking for a word")
             "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
             "tricet stribrnych kurat;tricet stribrnych "
             "strech");
+
+    // tests with special characters
+    d.fill("ein /test/\n one\nzwei\n zwei\ndrei\n three");
+    d.changeWord("ein", "jedna", "ein");
+    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    d.changeWord("ein", "jeden", "eine");
+    REQUIRE(*(d.getContens()) == "eine\n jeden\nzwei\n zwei\ndrei\n three");
 }
 #endif

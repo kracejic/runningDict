@@ -26,4 +26,3 @@ namespace Worker
 workerResult search(const Dict& dict, const std::vector<std::string>& wordsIn,
     long long start, long long end);
 }
-

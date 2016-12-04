@@ -11,6 +11,7 @@
 #include <gtkmm/window.h>
 
 #include "../Worker.h"
+#include "ChangeWordWindow.h"
 #include "Logic.h"
 #include "NewWordWindow.h"
 #include "SettingsWindow.h"
@@ -21,6 +22,7 @@ class ModelColumns : public Gtk::TreeModelColumnRecord
     ModelColumns()
     {
         add(mGerman);
+        add(mGerman_hidden);
         add(mGerman_found);
         add(mEnglish);
         add(mScore);
@@ -28,6 +30,7 @@ class ModelColumns : public Gtk::TreeModelColumnRecord
     }
 
     Gtk::TreeModelColumn<Glib::ustring> mGerman;
+    Gtk::TreeModelColumn<Glib::ustring> mGerman_hidden;
     Gtk::TreeModelColumn<Glib::ustring> mGerman_found;
     Gtk::TreeModelColumn<Glib::ustring> mEnglish;
     Gtk::TreeModelColumn<int> mScore;
@@ -40,6 +43,7 @@ class MainWindow : public Gtk::ApplicationWindow
   private:
     std::unique_ptr<SettingsWindow> mSettingsWindow;
     std::unique_ptr<NewWordWindow> mNewWordWindow;
+    std::unique_ptr<ChangeWordWindow> mChangeWordWindow;
 
     Logic& mLogic;
     Glib::ustring mOldTextInEntry{""};

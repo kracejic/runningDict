@@ -70,7 +70,14 @@ class Dict
     bool addWord(const std::string& word, const std::string& translation);
 
     bool hasWord(const std::string& word);
-    void changeWord(const std::string& word, const std::string& newTranslation);
+
+    /**
+     * Changes the word in dictionary.
+     * If wordNew is empty (""), the translated word, remains the same.
+     * If wordNew is not empty translated word is replaced.
+     */
+    void changeWord(const std::string& word, const std::string& newTranslation,
+        const std::string& wordNew = "");
 
 
     void saveDictionary();

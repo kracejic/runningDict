@@ -173,6 +173,33 @@ MainWindow::MainWindow(Logic& logic)
     }
     // mTreeView.append_column("Score", mColumns.mScore);
 
+    mTreeView.signal_row_activated().connect(
+        [this](Gtk::TreePath path, auto column) {
+            ignore_arg(column);
+
+            Gtk::TreeModel::iterator iter = this->mRefListStore->get_iter(path);
+            Gtk::TreeModel::Row row = *iter;
+
+            cout << row[mColumns.mGerman_hidden];
+
+            string text = Glib::ustring(row[mColumns.mGerman_found]);
+            string translation = Glib::ustring(row[mColumns.mEnglish]);
+            string dictFilename = Glib::ustring(row[mColumns.mSourceDict]);
+
+            mChangeWordWindow.reset(
+                new ChangeWordWindow(mLogic, text, translation, dictFilename));
+            this->set_keep_above(false);
+            mChangeWordWindow->show();
+            mChangeWordWindow->set_transient_for(*this);
+            mChangeWordWindow->set_keep_above(true);
+            mChangeWordWindow->signal_hide().connect([this]() {
+                mChangeWordWindow.reset();
+                this->executeSearch(mWordInput.get_text());
+                this->set_keep_above(mLogic.mAlwaysOnTop);
+            });
+
+        });
+
     // deal with resizing
     this->signal_check_resize().connect([this]() {
 #ifdef _WIN32
@@ -267,6 +294,7 @@ bool MainWindow::pulse(int num)
                 Gtk::TreeModel::Row row = *iter;
                 if (first)
                     row[mColumns.mGerman] = w;
+                row[mColumns.mGerman_hidden] = w;
                 first = false;
                 row[mColumns.mGerman_found] = r.match;
                 row[mColumns.mEnglish] = r.words;

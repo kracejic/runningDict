@@ -13,18 +13,7 @@
 #include "Logic.h"
 
 
-class ModelColumns_dicts_combobox : public Gtk::TreeModelColumnRecord
-{
-  public:
-    ModelColumns_dicts_combobox()
-    {
-        add(mPath);
-    }
-    Gtk::TreeModelColumn<Glib::ustring> mPath;
-};
-
-
-class NewWordWindow : public Gtk::Window
+class ChangeWordWindow : public Gtk::Window
 {
   private:
     Gtk::Grid mGrid;
@@ -32,14 +21,13 @@ class NewWordWindow : public Gtk::Window
 
     Gtk::Entry mWordInput;
     Gtk::Entry mTranslationInput;
+    Gtk::Label mDictLabel;
     Gtk::Button mAddButton;
-    Gtk::ComboBox mCombobox;
-    Gtk::Label mComboLabel;
+    Gtk::Button mDeleteButton;
 
+    std::string mDictFilename;
+    std::string mChangedWord;
 
-    /// holds combobox with dictionaries
-    ModelColumns_dicts_combobox mDictModel;
-    Glib::RefPtr<Gtk::ListStore> mRefListStore;
 
     /**
      * handles ESC key
@@ -54,6 +42,7 @@ class NewWordWindow : public Gtk::Window
     void check_validity();
 
   public:
-    NewWordWindow(Logic& logic, std::string word);
-    virtual ~NewWordWindow() override;
+    ChangeWordWindow(Logic& logic, std::string word, std::string translation,
+        std::string dictFilename);
+    virtual ~ChangeWordWindow() override;
 };

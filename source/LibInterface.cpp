@@ -108,7 +108,7 @@ char* search(const char* words)
     if (data != nullptr)
         free(data);
     data = (char*)malloc(strlen(ret.c_str()) + 1);
-    strcpy(data, ret.c_str());
+    strncpy(data, ret.c_str(), strlen(ret.c_str()) + 1);
 
     return data;
 }
