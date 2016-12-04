@@ -14,6 +14,7 @@ using namespace std;
 
 MainWindow::MainWindow(Logic& logic)
     : mLogic(logic)
+    , mSearchMutex()
 {
     // Load settings
     mIgnoreClipboardChange = !mLogic.mTranslateClipboardAtStart;
@@ -125,7 +126,7 @@ MainWindow::MainWindow(Logic& logic)
         pColumn->set_sizing(
             Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_GROW_ONLY);
         Gdk::Color col("#ffaa00");
-        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
+        dynamic_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
             ->property_foreground_gdk()
             .set_value(col);
     }
@@ -156,7 +157,7 @@ MainWindow::MainWindow(Logic& logic)
                     case 4: col.set("#B64640"); break;
                     default: break;
                 }
-                static_cast<Gtk::CellRendererText*>(renderer)
+                dynamic_cast<Gtk::CellRendererText*>(renderer)
                     ->property_foreground_gdk()
                     .set_value(col);
             });
@@ -167,7 +168,7 @@ MainWindow::MainWindow(Logic& logic)
         Gtk::TreeViewColumn* pColumn = mTreeView.get_column(2);
         pColumn->set_sizing(
             Gtk::TreeViewColumnSizing::TREE_VIEW_COLUMN_AUTOSIZE);
-        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
+        dynamic_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
             ->property_wrap_mode()
             .set_value(Pango::WRAP_WORD_CHAR);
     }
@@ -217,7 +218,7 @@ MainWindow::MainWindow(Logic& logic)
         if (width < 150)
             width = 150;
 
-        static_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
+        dynamic_cast<Gtk::CellRendererText*>(pColumn->get_first_cell())
             ->property_wrap_width()
             .set_value(width);
 
@@ -318,7 +319,7 @@ bool MainWindow::pulse(int num)
     return true;
 }
 //------------------------------------------------------------------------------
-void MainWindow::executeSearch(Glib::ustring text)
+void MainWindow::executeSearch(const Glib::ustring& text)
 {
     unique_lock<mutex> guard{mSearchMutex};
     mWaitingToTranslate = text;

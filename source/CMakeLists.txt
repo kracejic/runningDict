@@ -10,7 +10,6 @@ endif()
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/source
-    ${PROJECT_SOURCE_DIR}/
 )
 
 set(SRCS
@@ -113,7 +112,7 @@ if(GTK3MM_FOUND)
 	DEPENDS runningDictGui Install_)
     add_custom_target(run DEPENDS gui-run)
 
-    target_include_directories(runningDictGui SYSTEM PUBLIC 
+    target_include_directories(runningDictGui SYSTEM PRIVATE 
         ${GTK3MM_INCLUDE_DIRS} 
         ${EXTERNAL_JSON_INCLUDE_DIR})
     target_link_libraries (runningDictGui

@@ -24,18 +24,18 @@ class Dict
 
   public:
     Dict();
-    Dict(std::string filename);
-    Dict(std::string filename, int bonus, bool enabled);
+    Dict(const std::string& filename);
+    Dict(const std::string& filename, int bonus, bool enabled);
 
     /// Fill dictionary with custom string, usefull for testing
-    void fill(std::string content);
+    void fill(const std::string& content);
 
     /**
      * Load the file
      * @param  filename
      * @return          [description]
      */
-    bool open(std::string filename);
+    bool open(const std::string& filename);
 
     /**
      * Is dictionary enabled (thus loaded)?

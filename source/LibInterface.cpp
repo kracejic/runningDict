@@ -6,9 +6,8 @@
 
 
 #include <algorithm>
-#include <stdio.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -35,7 +34,7 @@ bool addDictionaryForce(const char* filename, bool priority)
         [&filename](auto& x) { return x.getFilename() == filename; });
     if (dict != dicts.end())
     {
-        dict->mBonus = priority;
+        dict->mBonus = int(priority);
         return dict->reload();
     }
     else
@@ -62,11 +61,11 @@ bool addDictionary(const char* filename, bool priority)
     return true;
 }
 //-----------------------------------------------------------------------------------
-void setNumberOfThreads(int x)
+void setNumberOfThreads(int numThreads)
 {
-    if (x > 0)
+    if (numThreads > 0)
     {
-        numthreads = x;
+        numthreads = numThreads;
     }
 }
 //-----------------------------------------------------------------------------------
@@ -95,7 +94,7 @@ char* search(const char* words)
         }
         ret.pop_back();
         ret.append("]");
-        if (rr.size() > 0)
+        if (not rr.empty())
             ret.append(",\"score\":"s + to_string(rr[0].score));
         ret.append("},");
     }
@@ -107,7 +106,7 @@ char* search(const char* words)
 
     if (data != nullptr)
         free(data);
-    data = (char*)malloc(strlen(ret.c_str()) + 1);
+    data = static_cast<char*>(malloc(strlen(ret.c_str()) + 1));
     strncpy(data, ret.c_str(), strlen(ret.c_str()) + 1);
 
     return data;

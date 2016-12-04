@@ -10,17 +10,17 @@ Dict::Dict()
     // create empty string
     mContent.reset(new std::string(""));
 }
-Dict::Dict(string filename)
+Dict::Dict(const std::string& filename)
 {
     mFilename = filename;
     mContent.reset(new std::string(""));
 }
 //------------------------------------------------------------------------------
-Dict::Dict(std::string filename, int bonus, bool enabled)
-    : mFilename(filename)
-    , mEnabled(enabled)
+Dict::Dict(const std::string& filename, int bonus, bool enabled)
+    : mEnabled(enabled)
     , mBonus(bonus)
 {
+    mFilename = filename;
     // std::cout<<"New Dict: filename = "<<filename<<std::endl;
     // std::cout<<"  bonus = "<<bonus<<std::endl;
     // std::cout<<"  enabled = "<<enabled<<std::endl;
@@ -29,7 +29,7 @@ Dict::Dict(std::string filename, int bonus, bool enabled)
         this->reload();
 }
 //-----------------------------------------------------------------------------------
-void Dict::fill(std::string content)
+void Dict::fill(const std::string& content)
 {
     mContent.reset(new std::string(content));
     mIs_open = true;
@@ -59,10 +59,10 @@ bool Dict::toogle_enable()
 //------------------------------------------------------------------------------
 bool Dict::enable(bool state)
 {
-    if (state == true)
+    if (state)
     {
         mEnabled = true;
-        if (mIs_open == false)
+        if (not mIs_open)
             mEnabled = reload();
     }
     else
@@ -71,7 +71,7 @@ bool Dict::enable(bool state)
     return mEnabled;
 }
 //------------------------------------------------------------------------------
-bool Dict::open(std::string filename)
+bool Dict::open(const std::string& filename)
 {
     // presume problems, reseted later
     mErrorState = true;
@@ -243,7 +243,7 @@ void Dict::changeWord(const std::string& word,
 {
     auto holder = mContent;
     std::istringstream iss{*holder};
-    string output{""};
+    string output;
     string translation = newTranslation;
     std::replace(translation.begin(), translation.end(), '\n', ';');
     for (std::string line; std::getline(iss, line);)
@@ -306,14 +306,14 @@ TEST_CASE("changing a words in dictionary")
 {
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
-    REQUIRE(d.hasWord("ein") == true);
-    REQUIRE(d.hasWord("zwei") == true);
-    REQUIRE(d.hasWord("drei") == true);
-    REQUIRE(d.hasWord("drei ") == false);
-    REQUIRE(d.hasWord("one") == false);
-    REQUIRE(d.hasWord("three") == false);
-    REQUIRE(d.hasWord("one") == false);
-    REQUIRE(d.hasWord("one") == false);
+    REQUIRE(d.hasWord("ein"));
+    REQUIRE(d.hasWord("zwei"));
+    REQUIRE(d.hasWord("drei"));
+    REQUIRE(not d.hasWord("drei "));
+    REQUIRE(not d.hasWord("one"));
+    REQUIRE(not d.hasWord("three"));
+    REQUIRE(not d.hasWord("one"));
+    REQUIRE(not d.hasWord("one"));
 }
 
 TEST_CASE("compare_weak")

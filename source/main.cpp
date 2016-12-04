@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cstdio>
+#include <cstdio>
 #include <future>
 #include <iostream>
-#include <stdio.h>
 #include <string>
 #include <vector>
 

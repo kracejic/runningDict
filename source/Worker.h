@@ -23,6 +23,6 @@ using workerResult = std::map<std::string, std::vector<Result>>;
 
 namespace Worker
 {
-workerResult search(const Dict& dict, const std::vector<std::string>& wordsIn,
+workerResult search(const Dict& mDict, const std::vector<std::string>& wordsIn,
     long long start, long long end);
 }

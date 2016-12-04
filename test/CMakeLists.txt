@@ -76,6 +76,7 @@ set(SRCTEST
     test.cpp
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
+    ${PROJECT_SOURCE_DIR}/source/Worker.cpp
     )
 
 add_executable(unittests EXCLUDE_FROM_ALL ${SRCTEST})

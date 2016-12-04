@@ -55,7 +55,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
             if (row[this->mDictViewModel.mError])
             {
                 Gdk::Color col("#B65E40");
-                static_cast<Gtk::CellRendererText*>(renderer)
+                dynamic_cast<Gtk::CellRendererText*>(renderer)
                     ->property_foreground_gdk()
                     .set_value(col);
             }
@@ -63,7 +63,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
 
     // deal with enabling of dicts
-    static_cast<Gtk::CellRendererToggle*>(
+    dynamic_cast<Gtk::CellRendererToggle*>(
         mTreeView.get_column(0)->get_first_cell())
         ->signal_toggled()
         .connect([this](const std::string& path) {
@@ -79,7 +79,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
 
     // deal with changing prio of dicts
-    static_cast<Gtk::CellRendererToggle*>(
+    dynamic_cast<Gtk::CellRendererToggle*>(
         mTreeView.get_column(2)->get_first_cell())
         ->signal_toggled()
         .connect([this](const std::string& path) {

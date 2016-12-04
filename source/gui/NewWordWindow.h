@@ -44,7 +44,7 @@ class NewWordWindow : public Gtk::Window
     /**
      * handles ESC key
      */
-    bool on_key_press_event(GdkEventKey* event) override;
+    bool on_key_press_event(GdkEventKey* key_event) override;
 
     /**
      * Check validity of data and sets add button accordigly.
@@ -55,5 +55,4 @@ class NewWordWindow : public Gtk::Window
 
   public:
     NewWordWindow(Logic& logic, std::string word);
-    virtual ~NewWordWindow() override;
 };

@@ -71,7 +71,7 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         mCombobox.pack_start(mDictModel.mPath);
 
         // set first dictionary as a target for new word if not set
-        if (mLogic.mLastDictForNewWord == "" && mLogic.mDicts.size() > 0)
+        if (mLogic.mLastDictForNewWord == "" && (not mLogic.mDicts.empty()))
             mLogic.mLastDictForNewWord = mLogic.mDicts[0].getFilename();
 
         for (auto&& dict : mLogic.mDicts)
@@ -86,7 +86,7 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         }
         // if nothing selected, select first
         if ((mCombobox.get_active_row_number() == -1) &&
-            (mLogic.mDicts.size() > 0))
+            (not mLogic.mDicts.empty()))
             mCombobox.set_active(0);
 
         mCombobox.signal_changed().connect([this]() {
@@ -106,10 +106,6 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
 
     this->check_validity();
     this->show_all_children();
-}
-//------------------------------------------------------------------------------
-NewWordWindow::~NewWordWindow()
-{
 }
 //------------------------------------------------------------------------------
 bool NewWordWindow::on_key_press_event(GdkEventKey* key_event)

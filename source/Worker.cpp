@@ -18,10 +18,12 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     s1len = min(512, s1len);
     int s2len = s2.size();
 
-    int column_start = (decltype(s1len))1;
+    int column_start = 1;
+    if (s2len == 0)
+        return s1len;
 
     // auto column = new decltype(s1len)[s1len + 1];
-    int column[512];
+    int column[513];
     std::iota(column + column_start, column + s1len + 1, column_start);
 
     for (int x = column_start; x <= s2len; x++)
@@ -53,6 +55,7 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     return result;
 }
 
+//-----------------------------------------------------------------------------
 // utility wrapper to adapt locale-bound facets for wstring/wbuffer convert
 template <class Facet>
 struct deletable_facet : Facet
@@ -60,9 +63,6 @@ struct deletable_facet : Facet
     template <class... Args>
     deletable_facet(Args&&... args)
         : Facet(std::forward<Args>(args)...)
-    {
-    }
-    ~deletable_facet()
     {
     }
 };
@@ -98,6 +98,9 @@ workerResult Worker::search(const Dict& mDict,
             getline(text, tmp);
         } while (tmp[0] == ' ');
     }
+    else if (start < 0)
+        throw std::domain_error{
+            "workerResult Worker::search start is bellow zero"};
     if (end > (int)dictHolder->size())
         end = dictHolder->size();
 
@@ -161,3 +164,26 @@ workerResult Worker::search(const Dict& mDict,
     return result;
 }
 //-----------------------------------------------------------------------------------
+
+#ifdef UNIT_TESTS
+#include "catch.hpp"
+
+int levenshtein(const string& x, const string& y)
+{
+    wstring_convert<
+        deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>, char16_t>
+        utfConvertor;
+    return levenshtein_distance(
+        utfConvertor.from_bytes(x), utfConvertor.from_bytes(y));
+}
+
+TEST_CASE("levenshtein_distance")
+{
+    REQUIRE(levenshtein("test", "") == 4);
+    REQUIRE(levenshtein("test", "test") == 0);
+    REQUIRE(levenshtein("", "test") == 4);
+    REQUIRE(levenshtein("testa", "test") == 1);
+    REQUIRE(levenshtein("teta", "test") == 2);
+}
+
+#endif

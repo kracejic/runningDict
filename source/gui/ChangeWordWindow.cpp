@@ -72,10 +72,6 @@ ChangeWordWindow::ChangeWordWindow(Logic& logic, std::string word,
     this->show_all_children();
 }
 //------------------------------------------------------------------------------
-ChangeWordWindow::~ChangeWordWindow()
-{
-}
-//------------------------------------------------------------------------------
 bool ChangeWordWindow::on_key_press_event(GdkEventKey* key_event)
 {
     if (key_event->keyval == GDK_KEY_Escape)

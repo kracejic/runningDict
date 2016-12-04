@@ -74,7 +74,7 @@ class MainWindow : public Gtk::ApplicationWindow
     // Signal handlers:
     void on_clipboard_received(const Glib::ustring& data);
 
-    void executeSearch(Glib::ustring text);
+    void executeSearch(const Glib::ustring& text);
     void searchThread();
 
     // clock function

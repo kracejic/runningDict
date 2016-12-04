@@ -32,7 +32,7 @@ class ChangeWordWindow : public Gtk::Window
     /**
      * handles ESC key
      */
-    bool on_key_press_event(GdkEventKey* event) override;
+    bool on_key_press_event(GdkEventKey* key_event) override;
 
     /**
      * Check validity of data and sets add button accordigly.
@@ -44,5 +44,4 @@ class ChangeWordWindow : public Gtk::Window
   public:
     ChangeWordWindow(Logic& logic, std::string word, std::string translation,
         std::string dictFilename);
-    virtual ~ChangeWordWindow() override;
 };

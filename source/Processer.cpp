@@ -1,8 +1,8 @@
 #include "Processer.h"
 #include <cctype>
+#include <cstdio>
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
 
 // #include <clocale>
 
@@ -82,7 +82,7 @@ bool myIsUpper(char ch)
     if ((unsigned char)(ch) >= 128)
         return false;
     else
-        return std::isupper(ch);
+        return bool(std::isupper(ch));
 }
 
 
@@ -204,7 +204,7 @@ std::vector<std::string> Processer::splitToWords(char const* text)
         {
             string word;
             txt >> word;
-            if (word.size() > 0)
+            if (not word.empty())
                 words.emplace_back(word);
         }
     }();
@@ -233,7 +233,7 @@ std::vector<std::string> Processer::splitToWords(
         {
             string word;
             txt >> word;
-            if (word.size() > 0)
+            if (not word.empty())
                 words.emplace_back(word);
         }
     }
@@ -256,20 +256,20 @@ std::vector<std::string> Processer::splitToWords(
 #include "catch.hpp"
 TEST_CASE("Check splitting of strings 1 - dots")
 {
-    REQUIRE(Processer::splitToWords(".").size() == 0);
-    REQUIRE(Processer::splitToWords("..").size() == 0);
-    REQUIRE(Processer::splitToWords("...").size() == 0);
-    REQUIRE(Processer::splitToWords("....").size() == 0);
-    REQUIRE(Processer::splitToWords(".....").size() == 0);
-    REQUIRE(Processer::splitToWords("... ..").size() == 0);
-    REQUIRE(Processer::splitToWords(".. . ..").size() == 0);
-    REQUIRE(Processer::splitToWords(".. .. ..").size() == 0);
-    REQUIRE(Processer::splitToWords(".. ... .").size() == 0);
-    REQUIRE(Processer::splitToWords(".. .. ..").size() == 0);
-    REQUIRE(Processer::splitToWords(".. .. ...").size() == 0);
-    REQUIRE(Processer::splitToWords(".. .. ....").size() == 0);
-    REQUIRE(Processer::splitToWords(" .. .. .... ").size() == 0);
-    REQUIRE(Processer::splitToWords(" .. .. ....   ").size() == 0);
+    REQUIRE(Processer::splitToWords(".").empty());
+    REQUIRE(Processer::splitToWords("..").empty());
+    REQUIRE(Processer::splitToWords("...").empty());
+    REQUIRE(Processer::splitToWords("....").empty());
+    REQUIRE(Processer::splitToWords(".....").empty());
+    REQUIRE(Processer::splitToWords("... ..").empty());
+    REQUIRE(Processer::splitToWords(".. . ..").empty());
+    REQUIRE(Processer::splitToWords(".. .. ..").empty());
+    REQUIRE(Processer::splitToWords(".. ... .").empty());
+    REQUIRE(Processer::splitToWords(".. .. ..").empty());
+    REQUIRE(Processer::splitToWords(".. .. ...").empty());
+    REQUIRE(Processer::splitToWords(".. .. ....").empty());
+    REQUIRE(Processer::splitToWords(" .. .. .... ").empty());
+    REQUIRE(Processer::splitToWords(" .. .. ....   ").empty());
 }
 
 

@@ -20,7 +20,7 @@ using json = nlohmann::json;
 /**
  * Returns relative path from *from* to *to*.
  */
-fs::path relativeTo(fs::path from, fs::path to)
+fs::path relativeTo(const fs::path& from, const fs::path& to)
 {
     // Start at the root path and while they are the same then do nothing then
     // when they first
@@ -74,8 +74,7 @@ void Logic::refreshAvailableFiles()
         if (++safetyNum > 10000)
             break;
 
-        if (file.path().has_extension() == true &&
-            file.path().extension() == ".dict")
+        if (file.path().has_extension() && file.path().extension() == ".dict")
         {
             if (none_of(mDicts.begin(), mDicts.end(), [&file](auto& val) {
                     return (fs::equivalent(val.getFilename(), file.path()));
@@ -102,7 +101,7 @@ void Logic::loadConfig()
         cfg_file >> cfg;
 
         // load dictionaries
-        if (cfg.count("dicts") && cfg["dicts"].is_array())
+        if (cfg.count("dicts") > 0 && cfg["dicts"].is_array())
         {
             for (json& dict : cfg["dicts"])
             {
@@ -121,13 +120,13 @@ void Logic::loadConfig()
             }
         }
 
-        if (cfg.count("position") && cfg["position"].size() == 2)
+        if (cfg.count("position") > 0 && cfg["position"].size() == 2)
         {
             cout << "loading position" << endl;
             mPositionX = cfg["position"][0];
             mPositionY = cfg["position"][1];
         }
-        if (cfg.count("size") && cfg["size"].size() == 2)
+        if (cfg.count("size") > 0 && cfg["size"].size() == 2)
         {
             cout << "loading size" << endl;
             mSizeX = cfg["size"][0];
