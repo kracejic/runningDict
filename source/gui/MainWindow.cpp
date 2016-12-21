@@ -28,12 +28,12 @@ MainWindow::MainWindow(Logic& logic)
 
     // Icons
     Glib::RefPtr<Gdk::Pixbuf> imagePlus =
-        Gdk::Pixbuf::create_from_file("./share/icons/ic_add_black_24dp_1x.png");
+        Gdk::Pixbuf::create_from_file("../share/icons/ic_add_black_24dp_1x.png");
     imagePlus->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_add", 4, imagePlus);
 
     Glib::RefPtr<Gdk::Pixbuf> imageSettings = Gdk::Pixbuf::create_from_file(
-        "./share/icons/ic_settings_black_24dp_1x.png");
+        "../share/icons/ic_settings_black_24dp_1x.png");
     imageSettings->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_settings", 4, imageSettings);
 

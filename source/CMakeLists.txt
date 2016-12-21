@@ -5,7 +5,8 @@ configure_file (
 
 # Flags
 if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -Wmisleading-indentation -pedantic")
+    add_compile_options(-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -pedantic)
+    #-Wmisleading-indentation 
 endif()
 
 include_directories(
@@ -44,17 +45,11 @@ set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
 #copy of executables
-install(TARGETS runningDict DESTINATION ./)
-install(TARGETS libRunningDict DESTINATION ./)
+install(TARGETS runningDict DESTINATION bin)
+install(TARGETS libRunningDict DESTINATION bin)
 
 
 
-# install all data
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ./ )
-
-if(MINGW)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/dataWindows/ DESTINATION ./ )
-endif(MINGW)
 
 #-------------------------------------------------------------------------------
 # Copy MINGW libraries
@@ -74,7 +69,7 @@ if(MINGW)
     install(FILES ${GCC_PATH}/${libgcc}
         ${GCC_PATH}/libwinpthread-1.dll
         ${GCC_PATH}/libstdc++-6.dll
-        DESTINATION ./
+        DESTINATION bin
     )
 endif(MINGW)
 
@@ -97,20 +92,35 @@ pkg_check_modules(GTK3MM gtkmm-3.0)
 
 if(GTK3MM_FOUND)
     message(STATUS "Standalone gui part                       YES ")
+    if(WIN32) #windows icon resource file, provided from /packaging directory
+        set(WINDOWS_ICON_RESOURCE "${PROJECT_BINARY_DIR}/exampleApp.icon.rc")
+    endif()
+
 
     #executable setup WIN32 forces no command line window
     if(MINGW)
-        add_executable(runningDictGui WIN32 ${GUISRC} ${SRCS})
+        add_executable(runningDictGui WIN32 ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     else()
-        add_executable(runningDictGui ${GUISRC} ${SRCS})
+        add_executable(runningDictGui ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     endif()
     add_dependencies(runningDictGui Json)
 
     add_custom_target(gui-run
-	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}
+	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
 	COMMAND ./runningDictGui
 	DEPENDS runningDictGui Install_)
     add_custom_target(run DEPENDS gui-run)
+
+
+    # convenience run gdb target
+    find_program(GDB_PATH gdb)
+    if(GDB_PATH)
+        add_custom_target(gdb
+            WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
+            COMMAND ${GDB_PATH} ./runningDictGui
+            DEPENDS runningDictGui Install_)
+    endif()
+    
 
     target_include_directories(runningDictGui SYSTEM PRIVATE 
         ${GTK3MM_INCLUDE_DIRS} 
@@ -119,11 +129,11 @@ if(GTK3MM_FOUND)
         ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
     set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
 
-    install(TARGETS runningDictGui DESTINATION ./)
+    install(TARGETS runningDictGui DESTINATION bin)
 
     #windows MSYS2 support
     macro(installMSYS2lib FilePattern)
-        install(DIRECTORY ${GCC_PATH}/ DESTINATION ./
+        install(DIRECTORY ${GCC_PATH}/ DESTINATION bin
             FILES_MATCHING PATTERN ${FilePattern})
     endmacro()
     if(MINGW)

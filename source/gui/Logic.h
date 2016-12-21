@@ -30,7 +30,7 @@ class Logic
 
         try
         {
-            refreshAvailableFiles();
+            refreshAvailableDicts();
         }
         catch (const std::exception& e)
         {
@@ -56,7 +56,8 @@ class Logic
     std::string mLastDictForNewWord{""};
 
 
-    void refreshAvailableFiles();
+    void refreshAvailableDicts();
+    void loadDictsInDir(const std::string& path);
     std::vector<Dict> mDicts;
 
     void loadConfig();

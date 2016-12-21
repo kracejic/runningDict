@@ -305,6 +305,7 @@ TEST_CASE("Check splitting of strings 4 complex")
 {
     auto res = Processer::splitToWords("......CTestIst_eine_wichtige_ja.....");
     REQUIRE(res.size() == 6);
+    //TODO check
     REQUIRE(res[0] == "c");
     REQUIRE(res[1] == "test");
     REQUIRE(res[2] == "ist");

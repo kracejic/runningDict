@@ -54,8 +54,14 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
     return finalPath;
 }
 
-
-void Logic::refreshAvailableFiles()
+//-----------------------------------------------------------------------------
+void Logic::refreshAvailableDicts()
+{
+    auto path = fs::current_path() / ".." / "share" / "runningDict";
+    this->loadDictsInDir(path);
+}
+//-----------------------------------------------------------------------------
+void Logic::loadDictsInDir(const std::string& path)
 {
 
     // recursively go through child directories and find .dict files
@@ -63,11 +69,10 @@ void Logic::refreshAvailableFiles()
     int safetyNum = 0;
 
 #ifdef USE_BOOST_FILESYSTEM
-    for (const auto& file :
-        fs::recursive_directory_iterator(fs::current_path()))
+    for (const auto& file : fs::recursive_directory_iterator(fs::path(path)))
 #else
     for (const auto& file : fs::recursive_directory_iterator(
-             fs::current_path(), fs::directory_options::skip_permission_denied))
+             fs::path(path), fs::directory_options::skip_permission_denied))
 #endif
     {
         // early return if structure is too deep
@@ -166,3 +171,16 @@ void Logic::saveConfig()
     outFile << std::setw(4) << cfg << endl;
 }
 //------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+#ifdef UNIT_TESTS
+#include "catch.hpp"
+
+TEST_CASE("loading dicts")
+{
+    Logic l;
+    REQUIRE();
+}
+
+#endif
+
