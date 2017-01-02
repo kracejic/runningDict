@@ -4,7 +4,7 @@ message(STATUS "    == ${PROJECT_NAME} configuration ==")
 message(STATUS "")
 
 # Project setup
-project (RunningDict VERSION 1.0.2)
+project (runningdict VERSION 1.0.2)
 set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
 site_name(VERSION_HOST)
 set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)

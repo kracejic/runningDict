@@ -95,6 +95,8 @@ Word::Word(const std::string& txt)
     if (myIsUpper(txt[1]))
         wasUpperCase = true;
 
+    // printf("Word: %s\n", txt.c_str());
+
     // fix CObjectThing to parse as ObjectThing
     if (txt[0] == 'C' && myIsUpper(txt[1]))
     {
@@ -132,10 +134,19 @@ Word::Word(const std::string& txt)
                     // printf("   catch3 %d %d - %s\n", it1, it2,
                     // words1.back().c_str());
                 }
+                else if (it2 == 1 && !myIsPunct(txt[it1]) &&
+                         myIsPunct(txt[it2]))
+                {
+                    words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
+                    // printf("   catch3-rare %d %d - %s\n", it1, it2,
+                    // words1.back().c_str());
+                }
+
                 do
                 {
                     ++it2;
                 } while (myIsPunct(txt[it2]) or it2 == (int)txt.size());
+
                 --it2;
                 it1 = it2 + 1;
                 // printf("   catch3end %d %d / %d\n", it1,
@@ -272,7 +283,6 @@ TEST_CASE("Check splitting of strings 1 - dots")
     REQUIRE(Processer::splitToWords(" .. .. ....   ").empty());
 }
 
-
 TEST_CASE("Check splitting of strings 2 - Katze+dots")
 {
     auto res = Processer::splitToWords("Katze.");
@@ -300,12 +310,11 @@ TEST_CASE("Check splitting of strings 3 complex")
     REQUIRE(res[5] == "ein");
 }
 
-
 TEST_CASE("Check splitting of strings 4 complex")
 {
     auto res = Processer::splitToWords("......CTestIst_eine_wichtige_ja.....");
     REQUIRE(res.size() == 6);
-    //TODO check
+    // TODO check
     REQUIRE(res[0] == "c");
     REQUIRE(res[1] == "test");
     REQUIRE(res[2] == "ist");
@@ -335,6 +344,18 @@ TEST_CASE("Check splitting of strings 5 Rueckgabewerte")
     auto res = Processer::splitToWords("Rueckgabewerte");
     REQUIRE(res.size() == 1);
     REQUIRE(res[0] == "rueckgabewerte");
+}
+
+TEST_CASE("Splitting - misc")
+{
+    auto res = Processer::splitToWords("I-SIG");
+    REQUIRE(res[0] == "i");
+    REQUIRE(res[1] == "sig");
+    REQUIRE(res.size() == 2);
+
+    auto res2 = Processer::splitToWords("-I-");
+    REQUIRE(res2[0] == "i");
+    REQUIRE(res2.size() == 1);
 }
 
 #endif
