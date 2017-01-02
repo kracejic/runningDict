@@ -35,7 +35,7 @@ class Logic
 
 
     bool initWithConfig();
-    bool initWithConfig(const std::string& filename) ;
+    bool initWithConfig(const std::string& filename);
     void refreshAvailableDicts();
     void loadDictsInDir(const std::string& path);
     std::vector<Dict> mDicts;

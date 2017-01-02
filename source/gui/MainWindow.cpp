@@ -27,8 +27,8 @@ MainWindow::MainWindow(Logic& logic)
     this->set_title("Dictionary");
 
     // Icons
-    Glib::RefPtr<Gdk::Pixbuf> imagePlus =
-        Gdk::Pixbuf::create_from_file("../share/icons/ic_add_black_24dp_1x.png");
+    Glib::RefPtr<Gdk::Pixbuf> imagePlus = Gdk::Pixbuf::create_from_file(
+        "../share/icons/ic_add_black_24dp_1x.png");
     imagePlus->get_height();
     Gtk::IconTheme::add_builtin_icon("custom_icon_add", 4, imagePlus);
 

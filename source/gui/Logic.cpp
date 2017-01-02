@@ -156,16 +156,16 @@ void Logic::loadConfig(const std::string& filename)
         {
             for (json& dict : cfg["dicts"])
             {
-                string filename = dict[0];
-                if (fs::exists(filename))
+                string dictFile = dict[0];
+                if (fs::exists(dictFile))
                 {
-                    cout << "importing new dict: " << filename << endl;
-                    mDicts.emplace_back(filename, dict[1], dict[2]);
+                    cout << "importing new dict: " << dictFile << endl;
+                    mDicts.emplace_back(dictFile, dict[1], dict[2]);
                 }
                 else
                 {
-                    // mDicts.emplace_back(filename, dict[1], dict[2]);
-                    cerr << "dictionary does not exist: '" << filename << "'"
+                    // mDicts.emplace_back(dictFile, dict[1], dict[2]);
+                    cerr << "dictionary does not exist: '" << dictFile << "'"
                          << endl;
                 }
             }

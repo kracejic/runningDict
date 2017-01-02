@@ -14,7 +14,7 @@ class Word
 {
   public:
     std::string text;
-    Word(const std::string& txt);
+    Word(const std::string& txt_);
 
     std::vector<std::string> words1;
 
@@ -85,20 +85,25 @@ bool myIsUpper(char ch)
         return bool(std::isupper(ch));
 }
 
+#define _LOG(...)
+// #define _LOG(...) printf(__VA_ARGS__)
 
-Word::Word(const std::string& txt)
-    : text(txt)
+Word::Word(const std::string& txt_)
+    : text(txt_)
 {
+    // add padding
+    string txt = txt_ + "       ";
     int it1 = 0, it2 = 1;
     bool wasUpperCase = false;
     // handle first character upper case
     if (myIsUpper(txt[1]))
         wasUpperCase = true;
 
-    // printf("Word: %s\n", txt.c_str());
+    _LOG("Word: %s\n", txt.c_str());
 
     // fix CObjectThing to parse as ObjectThing
-    if (txt[0] == 'C' && myIsUpper(txt[1]))
+    if (txt[0] == 'C' && myIsUpper(txt[1]) && not myIsUpper(txt[2]) &&
+        not myIsPunct(txt[2]))
     {
         it1 = 1;
         it2 = 2;
@@ -109,37 +114,36 @@ Word::Word(const std::string& txt)
 
     for (; it2 < (int)txt.size(); ++it2)
     {
-        // printf(" + '%u' '%c' (%d, %d), upper=%d\n", (unsigned
-        // char)txt[it2],txt[it2], it1, it2, wasUpperCase);
+        _LOG(" + '%u' '%c' (%d, %d), upper=%d\n", (unsigned char)txt[it2],
+            txt[it2], it1, it2, wasUpperCase);
         if (myIsUpper(txt[it2]))
         {
-            // printf("   isupper\n");
+            _LOG("   isupper\n");
             if (!wasUpperCase)
             {
                 words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                // printf("   catch  %d %d - %s\n", it1, it2,
-                // words1.back().c_str());
+                _LOG("   catch  %d %d - %s\n", it1, it2, words1.back().c_str());
                 it1 = it2;
                 wasUpperCase = true;
             }
         }
         else
         {
-            // printf("   not isupper\n");
+            _LOG("   not isupper\n");
             if (myIsPunct(txt[it2]))
             {
                 if (it2 > 1)
                 {
                     words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                    // printf("   catch3 %d %d - %s\n", it1, it2,
-                    // words1.back().c_str());
+                    _LOG("   catch3 %d %d - %s\n", it1, it2,
+                        words1.back().c_str());
                 }
                 else if (it2 == 1 && !myIsPunct(txt[it1]) &&
                          myIsPunct(txt[it2]))
                 {
                     words1.push_back(getLowerCase(txt.substr(it1, it2 - it1)));
-                    // printf("   catch3-rare %d %d - %s\n", it1, it2,
-                    // words1.back().c_str());
+                    _LOG("   catch3-rare %d %d - %s\n", it1, it2,
+                        words1.back().c_str());
                 }
 
                 do
@@ -149,42 +153,40 @@ Word::Word(const std::string& txt)
 
                 --it2;
                 it1 = it2 + 1;
-                // printf("   catch3end %d %d / %d\n", it1,
-                // it2,(int)txt.size());
+                _LOG("   catch3end %d %d / %d\n", it1, it2, (int)txt.size());
                 wasUpperCase = true;
             }
             else
             {
-                // printf("     not\n");
+                _LOG("     not\n");
                 if (wasUpperCase && ((it2 - it1) > 1))
                 {
                     words1.push_back(
                         getLowerCase(txt.substr(it1, it2 - it1 - 1)));
-                    // printf("   catch2 %d %d - %s\n", it1, it2,
-                    // words1.back().c_str());
+                    _LOG("   catch2 %d %d - %s\n", it1, it2,
+                        words1.back().c_str());
                     --it2;
                     it1 = it2;
                 }
                 wasUpperCase = false;
             }
         }
-        // printf(" - '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1,
-        // it2, wasUpperCase);
+        _LOG(" - '%u' (%d, %d), upper=%d\n", (unsigned char)txt[it2], it1, it2,
+            wasUpperCase);
     }
     if (it2 != (it1))
     {
         if (not myIsPunct(txt[it1]))
         {
             words1.emplace_back(getLowerCase(txt.substr(it1, it2)));
-            // printf("   last   %d %d - %s\n\n", it1, it2,
-            // words1.back().c_str());
+            _LOG("   last   %d %d - %s\n\n", it1, it2, words1.back().c_str());
         }
     }
 
-    // cout<<"@words = ";
+    // _LOG("@words = ");
     // for (auto& word : words1)
-    //     cout<<"'"<<word<<"', ";
-    // cout<<endl<<endl;
+    //     _LOG("'%s', ", word.c_str());
+    // _LOG("\n\n");
 }
 //-----------------------------------------------------------------------------------
 /**
@@ -356,6 +358,24 @@ TEST_CASE("Splitting - misc")
     auto res2 = Processer::splitToWords("-I-");
     REQUIRE(res2[0] == "i");
     REQUIRE(res2.size() == 1);
+
+    auto res3 = Processer::splitToWords("CT");
+    REQUIRE(res3[0] == "ct");
+    REQUIRE(res3.size() == 1);
+
+    auto res4 = Processer::splitToWords("CTI");
+    REQUIRE(res4[0] == "cti");
+    REQUIRE(res4.size() == 1);
+
+    auto res5 = Processer::splitToWords("CClass");
+    REQUIRE(res5[0] == "class");
+    REQUIRE(res5.size() == 1);
+
+    // TODO decide what should alg do
+    // auto res6 = Processer::splitToWords("MODchange");
+    // REQUIRE(res6[0] == "mod");
+    // REQUIRE(res6[1] == "change");
+    // REQUIRE(res6.size() == 2);
 }
 
 #endif
