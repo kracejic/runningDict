@@ -67,8 +67,8 @@ add_test(NAME "testLibrary"
 
 # Add unit test to CTest suite as one of the tests
 add_test(NAME "catch_unit_tests"
-        COMMAND $<TARGET_FILE:unittests> --use-colour yes
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        COMMAND $<TARGET_FILE:unittests>
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test)
 #------------------------------------------------------------------------------
 # Unit tests
 
@@ -77,6 +77,7 @@ set(SRCTEST
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
     ${PROJECT_SOURCE_DIR}/source/Worker.cpp
+    ${PROJECT_SOURCE_DIR}/source/gui/Logic.cpp
     )
 
 add_executable(unittests EXCLUDE_FROM_ALL ${SRCTEST})
@@ -85,8 +86,10 @@ set_property(TARGET unittests PROPERTY CXX_STANDARD 14) # we want C++14
 add_dependencies(unittests Catch) # Catch is needed for unit tests, located in ../external
 target_include_directories(unittests SYSTEM PRIVATE
     ${EXTERNAL_CATCH_INCLUDE_DIR}
+    ${EXTERNAL_JSON_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/)
+target_link_libraries(unittests  stdc++fs)
 
 # convenience target for running only the unit tests
 add_custom_target(unit

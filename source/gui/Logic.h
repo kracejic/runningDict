@@ -16,35 +16,11 @@ void ignore_arg(const T&)
 class Logic
 {
   public:
-    Logic(int argc, char* argv[])
-    {
-        try
-        {
-            loadConfig();
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Error during load configuration file: " << e.what()
-                      << '\n';
-        }
-
-        try
-        {
-            refreshAvailableDicts();
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Error during serching for new dictionaries: "
-                      << e.what() << '\n';
-        }
-
-
-        ignore_arg(argc);
-        ignore_arg(argv);
-    };
+    Logic(){};
     ~Logic()
     {
-        saveConfig();
+        if (not mFilename.empty())
+            saveConfig(mFilename);
     };
 
     int mSizeX{500}, mSizeY{300};
@@ -55,11 +31,16 @@ class Logic
 
     std::string mLastDictForNewWord{""};
 
+    std::string mFilename;
 
+
+    bool initWithConfig();
+    bool initWithConfig(const std::string& filename) ;
     void refreshAvailableDicts();
     void loadDictsInDir(const std::string& path);
     std::vector<Dict> mDicts;
+    Dict* getDict(const std::string& name);
 
-    void loadConfig();
-    void saveConfig();
+    void loadConfig(const std::string& filename);
+    void saveConfig(const std::string& filename);
 };

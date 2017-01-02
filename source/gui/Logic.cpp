@@ -94,10 +94,56 @@ void Logic::loadDictsInDir(const std::string& path)
         }
     }
 }
-//------------------------------------------------------------------------------
-void Logic::loadConfig()
+//-----------------------------------------------------------------------------
+Dict* Logic::getDict(const string& name)
 {
-    ifstream cfg_file("./config.json");
+    auto name_stem = fs::path(name).stem();
+    auto dict =
+        find_if(mDicts.begin(), mDicts.end(), [this, name_stem](auto& d) {
+            return fs::path(d.getFilename()).stem() == name_stem;
+        });
+    if (dict != mDicts.end())
+        return &(*dict);
+    else
+        return nullptr;
+}
+//------------------------------------------------------------------------------
+bool Logic::initWithConfig()
+{
+    return initWithConfig("./config.json");
+}
+//-----------------------------------------------------------------------------
+bool Logic::initWithConfig(const std::string& filename)
+{
+    bool ret = true;
+
+    try
+    {
+        loadConfig(filename);
+        mFilename = filename;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error during load configuration file: " << e.what()
+                  << '\n';
+        ret = false;
+    }
+
+    try
+    {
+        refreshAvailableDicts();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error during serching for new dictionaries: " << e.what()
+                  << '\n';
+        ret = false;
+    }
+    return ret;
+}
+void Logic::loadConfig(const std::string& filename)
+{
+    ifstream cfg_file(filename);
 
     if (cfg_file)
     {
@@ -151,7 +197,7 @@ void Logic::loadConfig()
     }
 }
 //------------------------------------------------------------------------------
-void Logic::saveConfig()
+void Logic::saveConfig(const std::string& filename)
 {
     // prepare json object with settings
     cout << "Saving config" << endl;
@@ -167,7 +213,7 @@ void Logic::saveConfig()
     cfg["lastDictForNewWord"] = mLastDictForNewWord;
 
     // save settings
-    ofstream outFile("./config.json");
+    ofstream outFile(filename);
     outFile << std::setw(4) << cfg << endl;
 }
 //------------------------------------------------------------------------------
@@ -179,8 +225,15 @@ void Logic::saveConfig()
 TEST_CASE("loading dicts")
 {
     Logic l;
-    REQUIRE();
+    l.mDicts.emplace_back("test.dict");
+    l.mDicts.emplace_back("../some_path/test2.dict");
+    l.mDicts.emplace_back("../some path/test3.dict");
+    REQUIRE(l.getDict("test.dict") != nullptr);
+    REQUIRE(l.getDict("testx.dict") == nullptr);
+    REQUIRE(l.getDict("test2") != nullptr);
+    REQUIRE(l.getDict("test2.dict") != nullptr);
+    REQUIRE(l.getDict("test3.dict") != nullptr);
+    REQUIRE(l.getDict("../other/path/test3") != nullptr);
 }
 
 #endif
-
