@@ -30,16 +30,13 @@ set(HEADERS
     SpeedTimer.h
 )
 
-# add_library(COMMON_OBJS OBJECT ${SRCS})
-
-
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
-target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
-target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
@@ -175,24 +172,7 @@ if(GTK3MM_FOUND)
         installMSYS2lib("zlib1.dll")
     endif(MINGW)
 
-    #Boost instead of C++17 filesystem (MSYS2 GCC5.3 does not have filesystem TS)
-    option(USE_BOOST_FILESYSTEM "whether to use boost::filesystem instead of the experimental filesystem"
-        FALSE)
-    if(USE_BOOST_FILESYSTEM)
-        find_package(Boost COMPONENTS filesystem system REQUIRED)
-        target_compile_definitions(runningDictGui
-            PRIVATE USE_BOOST_FILESYSTEM)
-
-        target_include_directories(runningDictGui
-            SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
-        target_link_libraries(runningDictGui ${Boost_FILESYSTEM_LIBRARY}
-            ${Boost_SYSTEM_LIBRARY})
-        #TODO install boost dll on windows
-        installMSYS2lib("libboost_filesystem-mt.dll")
-        installMSYS2lib("libboost_system-mt.dll")
-    else()
-        target_link_libraries(runningDictGui  stdc++fs)
-    endif()
+    target_link_libraries(runningDictGui  stdc++fs)
 
 else()
     message(STATUS "Standalone gui part (no Gtkmm3)           NO ")

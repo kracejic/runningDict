@@ -19,8 +19,8 @@ class Logic
     Logic(){};
     ~Logic()
     {
-        if (not mFilename.empty())
-            saveConfig(mFilename);
+        if (not mConfigFilename.empty())
+            saveConfig(mConfigFilename);
     };
 
     int mSizeX{500}, mSizeY{300};
@@ -30,16 +30,25 @@ class Logic
     bool mAlwaysOnTop{true};
 
     std::string mLastDictForNewWord{""};
-
-    std::string mFilename;
-
-
-    bool initWithConfig();
-    bool initWithConfig(const std::string& filename);
-    void refreshAvailableDicts();
-    void loadDictsInDir(const std::string& path);
     std::vector<Dict> mDicts;
+    std::vector<std::string> mAdditionalSearchDirs;
+
+    /// Returns pointer to dict or zero, only filename is checked (not
+    /// extension)
     Dict* getDict(const std::string& name);
+    /// Loads config from default positions
+    bool initWithConfig();
+    /// Loads config from parameter
+    bool initWithConfig(const std::string& filename);
+    /// Checks all usual directories for dictionaries
+    void refreshAvailableDicts();
+
+  private:
+    std::string mConfigFilename;
+    std::string mConfigDir;
+
+    /// checks dictionaries in directory
+    void loadDictsInDir(const std::string& path);
 
     void loadConfig(const std::string& filename);
     void saveConfig(const std::string& filename);

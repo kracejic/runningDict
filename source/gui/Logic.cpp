@@ -1,17 +1,13 @@
 #include "./Logic.h"
 #include "json.hpp"
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <version.h>
 
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-#else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
-#endif
 
 using namespace std;
 using json = nlohmann::json;
@@ -59,6 +55,10 @@ void Logic::refreshAvailableDicts()
 {
     auto path = fs::current_path() / ".." / "share" / "runningDict";
     this->loadDictsInDir(path);
+    this->loadDictsInDir(mConfigDir);
+
+    for (auto& dir : mAdditionalSearchDirs)
+        this->loadDictsInDir(dir);
 }
 //-----------------------------------------------------------------------------
 void Logic::loadDictsInDir(const std::string& path)
@@ -68,12 +68,8 @@ void Logic::loadDictsInDir(const std::string& path)
     // Add them if they are not added
     int safetyNum = 0;
 
-#ifdef USE_BOOST_FILESYSTEM
-    for (const auto& file : fs::recursive_directory_iterator(fs::path(path)))
-#else
     for (const auto& file : fs::recursive_directory_iterator(
              fs::path(path), fs::directory_options::skip_permission_denied))
-#endif
     {
         // early return if structure is too deep
         if (++safetyNum > 10000)
@@ -85,7 +81,8 @@ void Logic::loadDictsInDir(const std::string& path)
                     return (fs::equivalent(val.getFilename(), file.path()));
                 }))
             {
-                auto relPath = relativeTo(fs::current_path(), file.path());
+                // auto relPath = relativeTo(fs::current_path(), file.path());
+                auto relPath = fs::canonical(file.path());
                 mDicts.emplace_back(relPath.string(), 0, false);
                 std::cout << "Found new dict: " << file << std::endl;
                 std::cout << "      rel path: " << relPath.string()
@@ -110,7 +107,27 @@ Dict* Logic::getDict(const string& name)
 //------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-    return initWithConfig("./config.json");
+#ifdef WIN32
+    fs::path confdir = fs::path{string{getenv("APPDATA")}} / "runningdict";
+#else
+    fs::path confdir =
+        fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
+#endif
+    if (not fs::exists(confdir))
+    {
+        create_directories(confdir);
+        cout << "INIT: creating config dir at " << confdir << endl;
+    }
+    if (not fs::exists(confdir / "user.dict"))
+    {
+        std::ofstream outfile(confdir / "user.dict");
+        cout << "INIT: creating empty user dict at " << confdir / "user.dict"
+             << endl;
+    }
+    mConfigDir = fs::absolute(confdir);
+
+
+    return initWithConfig(confdir / "config.json");
 }
 //-----------------------------------------------------------------------------
 bool Logic::initWithConfig(const std::string& filename)
@@ -120,7 +137,7 @@ bool Logic::initWithConfig(const std::string& filename)
     try
     {
         loadConfig(filename);
-        mFilename = filename;
+        mConfigFilename = filename;
     }
     catch (const std::exception& e)
     {
@@ -183,6 +200,17 @@ void Logic::loadConfig(const std::string& filename)
             mSizeX = cfg["size"][0];
             mSizeY = cfg["size"][1];
         }
+        if (cfg.count("additionalSearchDirs") > 0 &&
+            cfg["additionalSearchDirs"].is_array())
+        {
+            for (string fil : cfg["additionalSearchDirs"])
+                if (fs::exists(fs::path(fil)))
+                    mAdditionalSearchDirs.emplace_back(fil);
+                else
+                    cout << "INIT: Search path " << fil << " does not exists"
+                         << endl;
+        }
+
         if (cfg.count("translateClipboardAtStart") > 0)
             mTranslateClipboardAtStart = cfg["translateClipboardAtStart"];
 
@@ -211,6 +239,15 @@ void Logic::saveConfig(const std::string& filename)
     cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
     cfg["alwaysOnTop"] = mAlwaysOnTop;
     cfg["lastDictForNewWord"] = mLastDictForNewWord;
+
+
+    cfg["additionalSearchDirs"] = json::array();
+    for (auto& dir : mAdditionalSearchDirs)
+        cfg["additionalSearchDirs"].push_back(dir);
+
+    cfg["version"] = {
+        Version::getMajor(), Version::getMinor(), Version::getPatch()};
+
 
     // save settings
     ofstream outFile(filename);

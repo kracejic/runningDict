@@ -24,6 +24,8 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
         dicts.begin(), dicts.end(), 0, [](long long _sum, const auto& dict) {
             return (long long)(_sum + dict.getContensSize());
         });
+    if (sum <= 0)
+        sum = 1;
     // calculating threads needed for dicts
     vector<long long> threadsForDict;
     for (auto&& dict : dicts)

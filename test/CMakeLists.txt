@@ -74,6 +74,7 @@ add_test(NAME "catch_unit_tests"
 
 set(SRCTEST
     test.cpp
+    ${PROJECT_BINARY_DIR}/source/version.cpp
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
     ${PROJECT_SOURCE_DIR}/source/Worker.cpp

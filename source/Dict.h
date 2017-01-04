@@ -18,6 +18,7 @@ class Dict
     bool mIs_open{false};
     std::shared_ptr<const std::string> mContent;
     std::string mFilename{""};
+    std::string mName{""};
     bool mEnabled{true};
 
     bool is_open();
@@ -83,6 +84,7 @@ class Dict
     void saveDictionary();
 
     const std::string& getFilename() const;
+    const std::string& getName() const;
     std::shared_ptr<const std::string> getContens() const;
     long long getContensSize() const;
 

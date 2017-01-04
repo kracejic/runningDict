@@ -9,7 +9,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
 {
     this->set_position(Gtk::WIN_POS_MOUSE);
     this->set_border_width(10);
-    this->set_default_size(900, 400);
+    this->set_default_size(500, 400);
     this->add(mGrid);
     this->set_title("Settings");
 
@@ -45,6 +45,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mTreeView.append_column("Path", mDictViewModel.mPath);
     mTreeView.get_column(1)->set_expand();
     mTreeView.append_column_editable("Priority", mDictViewModel.mBonus);
+    mTreeView.set_tooltip_column(mDictViewModel.mTooltip.index());
 
 
     Gtk::TreeViewColumn* pColumn = mTreeView.get_column(1);
@@ -105,9 +106,10 @@ SettingsWindow::SettingsWindow(Logic& logic)
         Gtk::TreeModel::iterator iter = mRefListStore->append();
         Gtk::TreeModel::Row row = *iter;
         row[mDictViewModel.mEnabled] = dict.is_enabled();
-        row[mDictViewModel.mPath] = dict.getFilename();
+        row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
-        row[mDictViewModel.mError] = (dict.mErrorState);
+        row[mDictViewModel.mError] = dict.mErrorState;
+        row[mDictViewModel.mTooltip] = dict.getFilename();
     }
 
     this->show_all_children();

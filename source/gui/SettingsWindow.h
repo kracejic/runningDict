@@ -22,12 +22,14 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
         add(mPath);
         add(mBonus);
         add(mError);
+        add(mTooltip);
     }
 
     Gtk::TreeModelColumn<bool> mEnabled;
     Gtk::TreeModelColumn<Glib::ustring> mPath;
     Gtk::TreeModelColumn<bool> mBonus;
     Gtk::TreeModelColumn<bool> mError;
+    Gtk::TreeModelColumn<Glib::ustring> mTooltip;
 };
 
 

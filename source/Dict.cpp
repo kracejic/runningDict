@@ -3,6 +3,9 @@
 #include <iostream>
 #include <sstream>
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 using namespace std;
 
 Dict::Dict()
@@ -13,50 +16,54 @@ Dict::Dict()
 Dict::Dict(const std::string& filename)
 {
     mFilename = filename;
+    mName = fs::path(filename).stem();
     mContent.reset(new std::string(""));
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Dict::Dict(const std::string& filename, int bonus, bool enabled)
     : mEnabled(enabled)
     , mBonus(bonus)
 {
     mFilename = filename;
-    // std::cout<<"New Dict: filename = "<<filename<<std::endl;
-    // std::cout<<"  bonus = "<<bonus<<std::endl;
-    // std::cout<<"  enabled = "<<enabled<<std::endl;
+    mName = fs::path(filename).stem();
     mContent.reset(new std::string(""));
     if (mEnabled)
         this->reload();
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Dict::fill(const std::string& content)
 {
     mContent.reset(new std::string(content));
     mIs_open = true;
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+const std::string& Dict::getName() const
+{
+    return mName;
+}
+//-----------------------------------------------------------------------------
 const std::string& Dict::getFilename() const
 {
     return mFilename;
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::reload()
 {
     if (!is_open() && mFilename == "")
         return false;
     return (open(mFilename));
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::is_enabled()
 {
     return mEnabled;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::toogle_enable()
 {
     return this->enable(not mEnabled);
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::enable(bool state)
 {
     if (state)
@@ -70,7 +77,7 @@ bool Dict::enable(bool state)
 
     return mEnabled;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::open(const std::string& filename)
 {
     // presume problems, reseted later
@@ -100,12 +107,12 @@ bool Dict::open(const std::string& filename)
 
     return true;
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::is_open()
 {
     return mIs_open;
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 std::shared_ptr<const std::string> Dict::getContens() const
 {
     if (not mIs_open)
@@ -113,12 +120,12 @@ std::shared_ptr<const std::string> Dict::getContens() const
             "Dictionary \"" + mFilename + "\" was not loaded."};
     return mContent;
 }
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 long long Dict::getContensSize() const
 {
     return mContent->size();
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 string getLowerCase2(const string& txt)
 {
     string res{txt};
@@ -129,7 +136,7 @@ string getLowerCase2(const string& txt)
     }
     return res;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
@@ -158,7 +165,7 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 
     return true;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Dict::hasWord(const std::string& word)
 {
     auto holder = mContent;
@@ -287,7 +294,7 @@ void Dict::saveDictionary()
     std::ofstream outfile{mFilename};
     outfile << *holder << endl;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 
 #ifdef UNIT_TESTS

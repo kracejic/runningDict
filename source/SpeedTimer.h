@@ -34,7 +34,7 @@ class SpeedTimer // C++11 compatible
     double getSec()
     {
         return std::chrono::duration_cast<std::chrono::duration<double>>(
-                   mEnd - mStart)
+            mEnd - mStart)
             .count();
     };
 };
