@@ -18,13 +18,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #------------------------------------------------------------------------------
 # set default install path
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/dist" CACHE PATH 
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/dist" CACHE PATH
         "Install path prefix, prepended onto install directories." FORCE )
 endif()
 #------------------------------------------------------------------------------
 # Custom Install target, used in run target in source/CMakeLists.txt
-add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target install
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+if (CMAKE_GENERATOR MATCHES "Makefiles")
+    # Make it multithreaded
+    add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
+        install -- -j WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+else()
+    add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
+        install WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+endif()
 
 #------------------------------------------------------------------------------
 # Included files
