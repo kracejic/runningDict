@@ -104,6 +104,8 @@ config file and adding absolute path into *additionalSearchDirs* array.
 * Gtkmm3 for standalone gui application
 * git for downloading dependencies
 
+    TODO libcurl4-openssl-dev libssh2-1-dev libssl-dev
+
 #### Prerequisites on Linux
 
 * Arch Linux: `sudo pacman -S cmake g++ graphviz git clang clang-tools-extra cppcheck java-runtime-common extra/gtkmm3`
@@ -151,6 +153,7 @@ config file and adding absolute path into *additionalSearchDirs* array.
 | clean           | clean build files                               |
 | external-update | clean build files                               |
 
+Note: You need to run **update** target first in order to download external dependencies, this is enough to do once from start.
 
 ### Build on linux
 
@@ -158,6 +161,7 @@ Standard Makefiles:
 ~~~
 mkdir build ; cd build
 cmake ..
+make update
 make -j8 install
 ~~~
 
@@ -166,6 +170,7 @@ Ninja build witch clang, build all and install it to dist folder, also build doc
 ~~~
 mkdir build ; cd build
 cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
+ninja update
 ninja all doc install
 ~~~
 
@@ -174,8 +179,11 @@ There are basic tests which can be exuted by building **check** target.
 ~~~
 mkdir build ; cd build
 cmake ..
+make update
 make check
 ~~~
+
+Update is needed only once for downloading of dependencies.
 
 If you want to install the software, do this:
 
@@ -199,6 +207,7 @@ With gcc build and install (default is build/dist):
 ~~~
 mkdir build ; cd build
 cmake -GNinja ..
+ninja update
 ninja install
 ~~~
 
@@ -206,6 +215,7 @@ With clang++, build executable, doxygen documentation and install:
 ~~~
 mkdir build ; cd build
 cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
+ninja update
 ninja all doc install
 ~~~
 
@@ -291,7 +301,7 @@ from build system in sublime-project file.
 
 # License
 
-> Copyright (c) 2016 Kracejic
+> Copyright (c) 2017 Kracejic
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 >

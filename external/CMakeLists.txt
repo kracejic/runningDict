@@ -74,7 +74,7 @@ ExternalProject_Add(
     #disable following
     CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_DIR "" INSTALL_COMMAND ""
     )
-# Update json target
+# Update spdlog target
 add_custom_target(external-spdlog-update
     COMMENT "Updated gabime/spdlog"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/spdlog/src/spdlog
@@ -83,10 +83,45 @@ add_custom_target(external-spdlog-update
 # set include directory
 set(EXTERNAL_SPDLOG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/spdlog/src/spdlog/include" PARENT_SCOPE)
 
+#------------------------------------------------------------------------------
+# whoshuu/cpr
+#  * sets EXTERNAL_CPR_INCLUDE_DIR 
+
+ExternalProject_Add(
+    Cpr-ext
+    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/cpr
+    GIT_REPOSITORY https://github.com/whoshuu/cpr.git
+    # For shallow git clone (without downloading whole history)
+    # GIT_SHALLOW 1
+    # For point at certain tag
+    # GIT_TAG 1.5.7
+    #disables auto update on every build
+    UPDATE_DISCONNECTED 1
+    #disable following
+    CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_DIR "" INSTALL_COMMAND ""
+    )
+
+# Update cpr target
+add_custom_target(external-cpr-update
+    COMMENT "Updated whoshuu/cpr"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/cpr
+    COMMAND ${GIT_EXECUTABLE} pull
+    DEPENDS Cpr-ext)
+# set include directory
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/)
+    add_subdirectory(cpr/src/Cpr-ext)
+else()
+    message(WARNING "Need to download CPR first, run make update"
+        " or the first build will fail.")
+endif()
+# Uset this with:
+# target_include_directories(your_target_name ${CPR_INCLUDE_DIRS})
+# target_link_libraries(your_target_name ${CPR_LIBRARIES})
+
 
 #------------------------------------------------------------------------------
 # Convenience update all
 add_custom_target(external-update-all
     COMMENT "Updated all external projects"
-    DEPENDS external-Catch-update external-Json-update external-spdlog-update)
+    DEPENDS external-Catch-update external-Json-update external-spdlog-update external-cpr-update)
 

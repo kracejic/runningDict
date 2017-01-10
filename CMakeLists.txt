@@ -70,6 +70,26 @@ add_subdirectory(test)
 # Source code
 add_subdirectory(source)
 
+#------------------------------------------------------------------------------
+# Included files
+
+
+# Documentation build
+add_subdirectory(doc)
+
+# External resources/repositories are downloaded here
+add_subdirectory(external)
+
+# Images, databases and other data which needs to be installed for project
+add_subdirectory(data)
+
+# Testing
+enable_testing()
+add_subdirectory(test)
+
+# Source code
+add_subdirectory(source)
+
 # Packaging stuff (deb, rpm, windows installer)
 add_subdirectory(packaging)
 
