@@ -18,6 +18,7 @@ Dict::Dict(const std::string& filename)
     mFilename = filename;
     mName = fs::path(filename).stem();
     mContent.reset(new std::string(""));
+    this->reload();
 }
 //-----------------------------------------------------------------------------
 Dict::Dict(const std::string& filename, int bonus, bool enabled)
@@ -27,8 +28,7 @@ Dict::Dict(const std::string& filename, int bonus, bool enabled)
     mFilename = filename;
     mName = fs::path(filename).stem();
     mContent.reset(new std::string(""));
-    if (mEnabled)
-        this->reload();
+    this->reload();
 }
 //-----------------------------------------------------------------------------
 void Dict::fill(const std::string& content)
@@ -245,9 +245,10 @@ bool compare_weak(const std::string& lhs, const std::string& rhs)
     return true;
 }
 //-----------------------------------------------------------------------------
-void Dict::changeWord(const std::string& word,
+bool Dict::changeWord(const std::string& word,
     const std::string& newTranslation, const std::string& wordNew)
 {
+    bool result = false;
     auto holder = mContent;
     std::istringstream iss{*holder};
     string output;
@@ -258,6 +259,7 @@ void Dict::changeWord(const std::string& word,
         // todo compare to the first non asci character
         if (compare_weak(line, word))
         {
+            result = true;
             if (wordNew == "")
                 output += line + "\n";
             else
@@ -268,7 +270,7 @@ void Dict::changeWord(const std::string& word,
 
                 if (std::getline(iss, line))
                     break;
-                if (line[0] == ' ')
+                if (line[0] != ' ')
                 {
                     output += line + "\n";
                     break;
@@ -284,6 +286,42 @@ void Dict::changeWord(const std::string& word,
         output.end());
     mContent.reset(new std::string(output));
     this->saveDictionary();
+    return result;
+}
+//-----------------------------------------------------------------------------
+bool Dict::deleteWord(const std::string& word)
+{
+    bool result = false;
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    string output;
+    for (std::string line; std::getline(iss, line);)
+    {
+        // todo compare to the first non asci character
+        if (compare_weak(line, word))
+        {
+            result = true;
+            while (true)
+            {
+                if (std::getline(iss, line))
+                    break;
+                if (line[0] != ' ')
+                {
+                    output += line + "\n";
+                    break;
+                }
+            }
+        }
+        else
+            output += line + "\n";
+    }
+    output.erase(std::find_if(output.rbegin(), output.rend(),
+                     std::not1(std::ptr_fun<int, int>(std::isspace)))
+                     .base(),
+        output.end());
+    mContent.reset(new std::string(output));
+    this->saveDictionary();
+    return result;
 }
 //-----------------------------------------------------------------------------
 void Dict::saveDictionary()
@@ -321,6 +359,23 @@ TEST_CASE("changing a words in dictionary")
     REQUIRE(not d.hasWord("three"));
     REQUIRE(not d.hasWord("one"));
     REQUIRE(not d.hasWord("one"));
+}
+TEST_CASE("add a word to the empty dictionary")
+{
+    Dict d{"test2.dict"};
+    REQUIRE(*(d.getContens()) == "katze\n cat\nhund\n dog\n");
+    d.addWord("drei", "three");
+    REQUIRE(*(d.getContens()) == "katze\n cat\nhund\n dog\ndrei\n three");
+    REQUIRE(d.changeWord("drei", "tri") == true);
+    REQUIRE(*(d.getContens()) == "katze\n cat\nhund\n dog\ndrei\n tri");
+    d.addWord("aa", "bb");
+    REQUIRE(
+        *(d.getContens()) == "katze\n cat\nhund\n dog\ndrei\n tri\naa\n bb");
+    REQUIRE(d.deleteWord("drei") == true);
+    REQUIRE(*(d.getContens()) == "katze\n cat\nhund\n dog\naa\n bb");
+    REQUIRE(d.deleteWord("aa") == true);
+    REQUIRE(d.deleteWord("aa") == false);
+    REQUIRE(*(d.getContens()) == "katze\n cat\nhund\n dog");
 }
 
 TEST_CASE("compare_weak")
@@ -367,5 +422,6 @@ TEST_CASE("checking for a word")
     REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jeden", "eine");
     REQUIRE(*(d.getContens()) == "eine\n jeden\nzwei\n zwei\ndrei\n three");
+    REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
 }
 #endif

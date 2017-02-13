@@ -1,6 +1,7 @@
 #include "SettingsWindow.h"
 #include "Logic.h"
 #include <string>
+#include "version.h"
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
@@ -13,17 +14,17 @@ SettingsWindow::SettingsWindow(Logic& logic)
     this->add(mGrid);
     this->set_title("Settings");
 
-    mGrid.attach(mToogleFirstCatch, 0, 0, 1, 1);
+    mGrid.attach(mToogleFirstCatch, 0, 0, 2, 1);
     if (mLogic.mTranslateClipboardAtStart)
         mToogleFirstCatch.set_active();
 
-    mGrid.attach(mToogleAlwaysOnTop, 0, 1, 1, 1);
+    mGrid.attach(mToogleAlwaysOnTop, 0, 1, 2, 1);
     if (mLogic.mAlwaysOnTop)
         mToogleAlwaysOnTop.set_active();
 
 
     // setup scrollView
-    mGrid.attach(mScrollView, 0, 6, 10, 1);
+    mGrid.attach(mScrollView, 0, 6, 2, 1);
     mScrollView.set_hexpand();
     mScrollView.set_vexpand();
     mScrollView.set_policy(
@@ -33,6 +34,15 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mScrollView.set_min_content_width(400);
     mScrollView.set_min_content_height(200);
 
+    mGrid.attach(mWebSiteLabel, 0, 8, 1, 1);
+    mWebSiteLabel.set_hexpand();
+    mWebSiteLabel.set_margin_top(10);
+    mWebSiteLabel.set_text("https://github.com/kracejic/runningDict");
+    
+    mGrid.attach(mVersionLabel, 1, 8, 1, 1);
+    mVersionLabel.set_hexpand();
+    mVersionLabel.set_margin_top(10);
+    mVersionLabel.set_text(Version::getVersionShort());
 
     // dict treeView
     mRefListStore = Gtk::ListStore::create(mDictViewModel);

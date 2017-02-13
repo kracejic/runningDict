@@ -77,8 +77,10 @@ class Dict
      * If wordNew is empty (""), the translated word, remains the same.
      * If wordNew is not empty translated word is replaced.
      */
-    void changeWord(const std::string& word, const std::string& newTranslation,
+    bool changeWord(const std::string& word, const std::string& newTranslation,
         const std::string& wordNew = "");
+
+    bool deleteWord(const std::string& word);
 
 
     void saveDictionary();

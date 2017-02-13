@@ -45,6 +45,8 @@ class SettingsWindow : public Gtk::Window
     Gtk::Grid mGrid;
     Gtk::CheckButton mToogleFirstCatch;
     Gtk::CheckButton mToogleAlwaysOnTop;
+    Gtk::Label mVersionLabel;
+    Gtk::Label mWebSiteLabel;
 
 
     /**

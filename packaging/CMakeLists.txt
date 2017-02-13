@@ -5,9 +5,9 @@ include(InstallRequiredSystemLibraries)
 
 set(CPACK_PACKAGE_VENDOR "kracejic")
 set(CPACK_PACKAGE_CONTACT "kracejic <kracejic@gmail.com>")
-set(HOMEPAGE "https://github.com/kracejic/cleanCppProject")
+set(HOMEPAGE "https://github.com/kracejic/runningDict")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "Clean cpp project. This is simple cpp example project build with CMake.")
+    "Source code translator for developers")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/readme.md")
 SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/license.md")
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -19,7 +19,7 @@ set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/out")
 
 
 # set human names to exetuables
-set(CPACK_PACKAGE_EXECUTABLES "runningdict" "My Example Executable")
+set(CPACK_PACKAGE_EXECUTABLES "runningdict" "RunningDictdt")
 set(CPACK_CREATE_DESKTOP_LINKS "runningdict")
 set(CPACK_STRIP_FILES TRUE)
 
@@ -39,7 +39,7 @@ if(WIN32 AND NOT UNIX)
         message(STATUS "   + NSIS                                 YES ")
         # Note: There is a bug in NSI that does not handle full unix paths properly. Make
         # sure there is at least one set of four (4) backlasshes.
-        set(CPACK_NSIS_DISPLAY_NAME "Clean cpp Project")
+        set(CPACK_NSIS_DISPLAY_NAME "RunningDict")
         # Icon of the installer
         set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\runningdict.ico")
         # set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")

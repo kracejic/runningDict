@@ -65,7 +65,18 @@ ChangeWordWindow::ChangeWordWindow(Logic& logic, std::string word,
                  << " not found" << endl;
     });
 
-    // create model for combobox with Dict selection
+    mDeleteButton.signal_clicked().connect([this]() {
+        auto dict = find_if(mLogic.mDicts.begin(), mLogic.mDicts.end(),
+            [this](auto& d) { return d.getFilename() == mDictFilename; });
+        if (dict != mLogic.mDicts.end())
+        {
+            dict->deleteWord(mChangedWord);
+            this->hide();
+        }
+        else
+            cout << "[error] dict " << mLogic.mLastDictForNewWord
+                 << " not found" << endl;
+    });
 
 
     this->check_validity();

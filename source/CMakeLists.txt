@@ -90,7 +90,7 @@ pkg_check_modules(GTK3MM gtkmm-3.0)
 if(GTK3MM_FOUND)
     message(STATUS "Standalone gui part                       YES ")
     if(WIN32) #windows icon resource file, provided from /packaging directory
-        set(WINDOWS_ICON_RESOURCE "${PROJECT_BINARY_DIR}/exampleApp.icon.rc")
+        set(WINDOWS_ICON_RESOURCE "${PROJECT_BINARY_DIR}/runningdict.icon.rc")
     endif()
 
 
