@@ -235,9 +235,12 @@ MainWindow::MainWindow(Logic& logic)
     });
 
 
-    // mWordInput.set_text("Put here text to translation...");
+#ifdef NDEBUG
+    mWordInput.set_text("Insert here text to be translated...");
+#else
     mWordInput.set_text(
         "Das ist einee CKatze Katzeee abbestellt begeststellenai...");
+#endif
     mWordInput.set_hexpand();
 
     this->show_all_children();
