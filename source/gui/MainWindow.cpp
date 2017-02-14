@@ -222,16 +222,21 @@ MainWindow::MainWindow(Logic& logic)
             ->property_wrap_width()
             .set_value(width);
 
-        // debounce
+        // debounce - not pretty, need to give it more attention in future
         static auto oldsize = 0;
-        if (oldsize != width)
+        static auto counter = 0;
+        if (oldsize != width && counter < 1)
         {
             oldsize = width;
+            cout<<width<<endl;
+            counter++;
 
             // trigger redraw of mTreeView
             unique_lock<mutex> guard{this->mSearchMutex};
             this->mRedrawNeeded = true;
         }
+        else
+            counter = 0;
     });
 
 
