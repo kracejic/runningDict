@@ -1,15 +1,15 @@
 #pragma once
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
 
 #include <gtkmm.h>
-#include <gtkmm/button.h>
-#include <gtkmm/window.h>
 #include <gtkmm/box.h>
-#include <gtkmm/grid.h>
-#include <gtkmm/entry.h>
+#include <gtkmm/button.h>
 #include <gtkmm/checkbutton.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/grid.h>
+#include <gtkmm/window.h>
 
 #include "Logic.h"
 
@@ -22,19 +22,20 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
         add(mPath);
         add(mBonus);
         add(mError);
+        add(mTooltip);
     }
 
     Gtk::TreeModelColumn<bool> mEnabled;
     Gtk::TreeModelColumn<Glib::ustring> mPath;
     Gtk::TreeModelColumn<bool> mBonus;
     Gtk::TreeModelColumn<bool> mError;
+    Gtk::TreeModelColumn<Glib::ustring> mTooltip;
 };
-
 
 
 class SettingsWindow : public Gtk::Window
 {
-private:
+  private:
     Logic& mLogic;
 
     Gtk::ScrolledWindow mScrollView;
@@ -44,16 +45,17 @@ private:
     Gtk::Grid mGrid;
     Gtk::CheckButton mToogleFirstCatch;
     Gtk::CheckButton mToogleAlwaysOnTop;
+    Gtk::Label mVersionLabel;
+    Gtk::Label mWebSiteLabel;
 
 
     /**
      * handles ESC key
      */
-    bool on_key_press_event(GdkEventKey* event) override;
+    bool on_key_press_event(GdkEventKey* key_event) override;
 
 
-public:
+  public:
     SettingsWindow(Logic& logic);
     ~SettingsWindow() override;
-
 };

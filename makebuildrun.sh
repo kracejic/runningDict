@@ -1,1 +1,0 @@
-make install && cd dist ; echo -------makebuildrun.sh--------- ; echo ; time ./runningDict -d freedict-deu-eng.dict Ihre deutsch ist möglich

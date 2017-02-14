@@ -1,16 +1,15 @@
 #pragma once
-#include <vector>
-#include <string>
-#include <iostream>
 #include <algorithm>
-#include <stdio.h>
 #include <cstdio>
 #include <future>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <vector>
 
 #include "Dict.h"
 #include "Worker.h"
 
 
-workerResult _search(std::vector<Dict>& dicts,
-                     int numthreads, const std::vector<std::string>& words,
-                     bool verbose=false);
+workerResult _search(std::vector<Dict>& dicts, int numthreads,
+    const std::vector<std::string>& words, bool verbose = false);

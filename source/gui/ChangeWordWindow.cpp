@@ -1,19 +1,22 @@
-#include "NewWordWindow.h"
+#include "ChangeWordWindow.h"
 #include <algorithm>
 #include <cctype>
 #include <string>
 
 using namespace std;
 
-NewWordWindow::NewWordWindow(Logic& logic, std::string word)
+ChangeWordWindow::ChangeWordWindow(Logic& logic, std::string word,
+    std::string translation, std::string dictFilename)
     : mLogic(logic)
     , mAddButton("Add")
-    , mComboLabel("Target dictionary: ")
 {
     this->add(mGrid);
     this->set_default_size(400, -1);
-    this->set_title("Add word");
+    this->set_title("Change a word \'" + word + "\'");
     this->set_position(Gtk::WIN_POS_MOUSE);
+    mDictFilename = dictFilename;
+    mChangedWord = word;
+    mDictLabel.set_text(dictFilename);
 
     set_border_width(10);
 
@@ -23,10 +26,13 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
 
     mGrid.attach(mWordInput, 0, 1, 2, 1);
     mGrid.attach(mTranslationInput, 0, 2, 2, 1);
-    mGrid.attach(mComboLabel, 0, 3, 1, 1);
-    mGrid.attach(mCombobox, 1, 3, 1, 1);
-    mGrid.attach(mAddButton, 0, 4, 2, 1);
+    mGrid.attach(mDictLabel, 0, 3, 2, 1);
+    mGrid.attach(mDeleteButton, 0, 4, 1, 1);
+    mGrid.attach(mAddButton, 1, 4, 1, 1);
 
+    Gdk::RGBA col2("#E5AFA5");
+    mDeleteButton.set_label("Delete word");
+    mDeleteButton.override_background_color(col2);
 
     mWordInput.set_placeholder_text("Put one word here");
     mWordInput.set_text(word);
@@ -38,77 +44,46 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
 
 
     mTranslationInput.set_placeholder_text("translation goes here");
+    mTranslationInput.set_text(translation);
     mTranslationInput.set_hexpand();
+    mTranslationInput.grab_focus();
     mTranslationInput.signal_changed().connect(
         [this]() { this->check_validity(); });
 
 
     mAddButton.signal_clicked().connect([this]() {
-        // TODO fix mLastDictForNewWord for something else
-        auto dict = find_if(
-            mLogic.mDicts.begin(), mLogic.mDicts.end(), [this](auto& d) {
-                return d.getFilename() == mLogic.mLastDictForNewWord;
-            });
+        auto dict = find_if(mLogic.mDicts.begin(), mLogic.mDicts.end(),
+            [this](auto& d) { return d.getFilename() == mDictFilename; });
         if (dict != mLogic.mDicts.end())
         {
-            if (dict->addWord(
-                    mWordInput.get_text(), mTranslationInput.get_text()))
-            {
-                this->hide();
-            }
+            dict->changeWord(mChangedWord, mTranslationInput.get_text(),
+                mWordInput.get_text());
+            this->hide();
         }
         else
-            cout << "dict " << mLogic.mLastDictForNewWord << " not found"
-                 << endl;
+            cout << "[error] dict " << mLogic.mLastDictForNewWord
+                 << " not found" << endl;
     });
 
-    // create model for combobox with Dict selection
-    {
-        mRefListStore = Gtk::ListStore::create(mDictModel);
-        mCombobox.set_model(mRefListStore);
-        mRefListStore->clear();
-        mCombobox.set_hexpand(true);
-        mCombobox.pack_start(mDictModel.mPath);
-
-        // set first dictionary as a target for new word if not set
-        if (mLogic.mLastDictForNewWord == "" && (not mLogic.mDicts.empty()))
-            mLogic.mLastDictForNewWord = mLogic.mDicts[0].getFilename();
-
-        for (auto&& dict : mLogic.mDicts)
+    mDeleteButton.signal_clicked().connect([this]() {
+        auto dict = find_if(mLogic.mDicts.begin(), mLogic.mDicts.end(),
+            [this](auto& d) { return d.getFilename() == mDictFilename; });
+        if (dict != mLogic.mDicts.end())
         {
-            Gtk::TreeModel::iterator iter = mRefListStore->append();
-            Gtk::TreeModel::Row row = *iter;
-            row[mDictModel.mPath] = dict.getFilename();
-
-            // select last selected
-            if (mLogic.mLastDictForNewWord == dict.getFilename())
-                mCombobox.set_active(row);
+            dict->deleteWord(mChangedWord);
+            this->hide();
         }
-        // if nothing selected, select first
-        if ((mCombobox.get_active_row_number() == -1) &&
-            (not mLogic.mDicts.empty()))
-            mCombobox.set_active(0);
-
-        mCombobox.signal_changed().connect([this]() {
-            auto iter = mCombobox.get_active();
-            if (iter)
-            {
-                auto row = *iter;
-                if (row)
-                {
-                    Glib::ustring name = row[mDictModel.mPath];
-                    mLogic.mLastDictForNewWord = name;
-                }
-            }
-        });
-    }
+        else
+            cout << "[error] dict " << mLogic.mLastDictForNewWord
+                 << " not found" << endl;
+    });
 
 
     this->check_validity();
     this->show_all_children();
 }
 //------------------------------------------------------------------------------
-bool NewWordWindow::on_key_press_event(GdkEventKey* key_event)
+bool ChangeWordWindow::on_key_press_event(GdkEventKey* key_event)
 {
     if (key_event->keyval == GDK_KEY_Escape)
     {
@@ -120,7 +95,7 @@ bool NewWordWindow::on_key_press_event(GdkEventKey* key_event)
     return Gtk::Window::on_key_press_event(key_event);
 }
 //------------------------------------------------------------------------------
-void NewWordWindow::check_validity()
+void ChangeWordWindow::check_validity()
 {
     string error_message{""};
     Gdk::RGBA col("#D62B0B");
@@ -160,7 +135,7 @@ void NewWordWindow::check_validity()
         mWordInput.unset_color();
         mTranslationInput.unset_color();
         mAddButton.unset_background_color();
-        mAddButton.set_label("Add");
+        mAddButton.set_label("Change");
         mAddButton.set_sensitive(true);
     }
     else

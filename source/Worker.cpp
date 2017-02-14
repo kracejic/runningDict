@@ -1,11 +1,11 @@
 #include "Worker.h"
 #include <algorithm>
-#include <iostream>
-#include <sstream>
-#include <locale>
-#include <codecvt>
 #include <algorithm>
+#include <codecvt>
+#include <iostream>
+#include <locale>
 #include <numeric>
+#include <sstream>
 
 
 using namespace std;
@@ -18,95 +18,108 @@ int levenshtein_distance(const std::u16string& s1, const std::u16string& s2)
     s1len = min(512, s1len);
     int s2len = s2.size();
 
-    int column_start = (decltype(s1len))1;
+    int column_start = 1;
+    if (s2len == 0)
+        return s1len;
 
     // auto column = new decltype(s1len)[s1len + 1];
-    int column[512];
+    int column[513];
     std::iota(column + column_start, column + s1len + 1, column_start);
 
-    for(int x = column_start; x <= s2len; x++)
+    for (int x = column_start; x <= s2len; x++)
     {
         column[0] = x;
         int last_diagonal = x - column_start;
         int y;
         // cout<<"num"<<x<<" = "<<endl<<"  ";
-        for(y = column_start; y <= s1len; y++)
+        for (y = column_start; y <= s1len; y++)
         {
             int old_diagonal = column[y];
-            auto possibilities
-                = {column[y] + 1, column[y - 1] + 1,
-                   last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
+            auto possibilities = {column[y] + 1, column[y - 1] + 1,
+                last_diagonal + (s1[y - 1] == s2[x - 1] ? 0 : 1)};
             column[y] = std::min(possibilities);
             last_diagonal = old_diagonal;
             // cout<<"("<<y<<"="<<column[y]<<" ) ";
         }
         // cout<<endl<<endl;
 
-        if(x == 4)
-            if(column[4] >= 4)
+        if (x == 4)
+            if (column[4] >= 4)
             {
                 column[s1len] = 100;
                 break;
             }
-
     }
     int result = column[s1len];
     // delete[] column;
     return result;
 }
 
+//-----------------------------------------------------------------------------
 // utility wrapper to adapt locale-bound facets for wstring/wbuffer convert
-template <class Facet> struct deletable_facet : Facet
+template <class Facet>
+struct deletable_facet : Facet
 {
     template <class... Args>
-    deletable_facet(Args&&... args) : Facet(std::forward<Args>(args)...) {}
-    ~deletable_facet() {}
+    deletable_facet(Args&&... args)
+        : Facet(std::forward<Args>(args)...)
+    {
+    }
 };
 
-workerResult Worker::search(const std::vector<std::string>& wordsIn)
+//-----------------------------------------------------------------------------
+workerResult Worker::search(const Dict& mDict,
+    const std::vector<std::string>& wordsIn, long long start, long long end)
 {
     workerResult result;
-    std::istringstream text(mDict.Dict::getContens());
+    std::shared_ptr<const string> dictHolder = mDict.Dict::getContens();
+    int mBonus = mDict.mBonus;
+    std::istringstream text(*dictHolder);
 
     // convert words to char16
-    wstring_convert<deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>,
-                    char16_t> utfConvertor;
+    wstring_convert<
+        deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>, char16_t>
+        utfConvertor;
     std::vector<pair<u16string, int>> words;
-    for(auto&& w : wordsIn)
+    for (auto&& w : wordsIn)
     {
         // cout<<"  converting: \""<<w<<"\" size="<<w.size()<<endl;
-        words.emplace_back(utfConvertor.from_bytes(w), (2*w.size())/3+1);
+        words.emplace_back(utfConvertor.from_bytes(w), (2 * w.size()) / 3 + 1);
     }
 
-    //some overlap is neccessary for start if not starting from the beginning
-    if(mStart > 0)
+    // some overlap is neccessary for start if not starting from the beginning
+    if (start > 0)
     {
-        mStart = (mStart > 256) ? (mStart - 256) : 0;
-        text.seekg(mStart);
+        start = (start > 256) ? (start - 256) : 0;
+        text.seekg(start);
         string tmp;
-        do { // reset line position
+        do
+        { // reset line position
             getline(text, tmp);
-        } while(tmp[0] == ' ');
+        } while (tmp[0] == ' ');
     }
-    if(mEnd > (int)mDict.getContens().size())
-        mEnd = mDict.getContens().size();
+    else if (start < 0)
+        throw std::domain_error{
+            "workerResult Worker::search start is bellow zero"};
+    if (end > (int)dictHolder->size())
+        end = dictHolder->size();
 
 
     string german, firstLine, english, newLine;
     u16string german2;
-    if(!getline(text, firstLine))
+    if (!getline(text, firstLine))
         return {};
     bool cont = true;
-    while(cont)
+    while (cont)
     {
-        if(!getline(text, english))
+        if (!getline(text, english))
             break;
-        if(getline(text, newLine))
+        if (getline(text, newLine))
         {
-            while(newLine[0] == ' ')
+            while (newLine[0] == ' ')
             {
                 english.append(newLine);
-                if(!getline(text, newLine))
+                if (!getline(text, newLine))
                 {
                     cont = false;
                     break;
@@ -116,49 +129,62 @@ workerResult Worker::search(const std::vector<std::string>& wordsIn)
         else
             cont = false;
         german = firstLine.substr(0, firstLine.find('/'));
-        if(german[german.size()-1] == ' ')
-            german.resize(german.size()-1);
+        german = german.substr(0, german.find('<'));
+        if (german[german.size() - 1] == ' ')
+            german.resize(german.size() - 1);
 
         // cout << "  testing:" << german << endl;
-        for(auto&& w : words)
+        for (auto&& w : words)
         {
             german2 = utfConvertor.from_bytes(german);
             int dist = 2 * levenshtein_distance(w.first, german2);
-            if(dist < w.second)
+            if (dist < w.second)
             {
-                // cout << "     *- (" << dist << ")" << utfConvertor.to_bytes(w.first)
+                // cout << "     *- (" << dist << ")" <<
+                // utfConvertor.to_bytes(w.first)
                 //      << " = " << german << " = " << english << endl;
                 result[utfConvertor.to_bytes(w.first)].emplace_back(
                     mBonus + dist,
                     english.c_str() + 1, // first character is space
-                    german,
-                    mDict.getFilename()
-                    );
+                    german, mDict.getFilename());
                 // result[utfConvertor.to_bytes(w.first)].emplace_back(english);
             }
         }
 
 
-
         firstLine = newLine;
-        if(text.tellg() > mEnd)
+        if (text.tellg() > end)
             break;
     }
 
-    for(auto&& w : result)
+    for (auto&& w : result)
         sort(w.second.begin(), w.second.end(),
-                [](auto& x, auto& y) {return x.score < y.score; }
-                );
+            [](auto& x, auto& y) { return x.score < y.score; });
 
 
     return result;
 }
 //-----------------------------------------------------------------------------------
-workerResult Worker::search(const std::vector<std::string>& words,
-                            long long start, long long end)
+
+#ifdef UNIT_TESTS
+#include "catch.hpp"
+
+int levenshtein(const string& x, const string& y)
 {
-    mStart = start;
-    mEnd = end;
-    return search(words);
+    wstring_convert<
+        deletable_facet<std::codecvt<char16_t, char, std::mbstate_t>>, char16_t>
+        utfConvertor;
+    return levenshtein_distance(
+        utfConvertor.from_bytes(x), utfConvertor.from_bytes(y));
 }
-//-----------------------------------------------------------------------------------
+
+TEST_CASE("levenshtein_distance")
+{
+    REQUIRE(levenshtein("test", "") == 4);
+    REQUIRE(levenshtein("test", "test") == 0);
+    REQUIRE(levenshtein("", "test") >= 4);
+    REQUIRE(levenshtein("testa", "test") == 1);
+    REQUIRE(levenshtein("teta", "test") == 2);
+}
+
+#endif

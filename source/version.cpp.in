@@ -10,29 +10,29 @@ std::string Version::getBuildTime()
 //-----------------------------------------------------------------------------------
 int Version::getMajor()
 {
-    return @MAJOR_VERSION@;
+    return @PROJECT_VERSION_MAJOR@;
 }
 //-----------------------------------------------------------------------------------
 int Version::getMinor()
 {
-    return @MINOR_VERSION@;
+    return @PROJECT_VERSION_MINOR@;
 }
 //-----------------------------------------------------------------------------------
 int Version::getPatch()
 {
-    return @PATCH_VERSION@;
+    return @PROJECT_VERSION_PATCH@;
 }
 //-----------------------------------------------------------------------------------
 long long Version::getVersionNumber()
 {
-    return @MAJOR_VERSION@ * 10000 * 10000 + @MINOR_VERSION@ * 10000
-           + @PATCH_VERSION@;
+    return @PROJECT_VERSION_MAJOR@ * 10000 * 10000 + @PROJECT_VERSION_MINOR@ * 10000 +
+           @PROJECT_VERSION_PATCH@;
 }
 //-----------------------------------------------------------------------------------
 std::string Version::getVersionShort()
 {
-    string version = to_string(getMajor()) + "." + to_string(getMinor()) + "."
-                     + to_string(getPatch()) + " @VERSION_TYPE@";
+    string version = to_string(getMajor()) + "." + to_string(getMinor()) + "." +
+                     to_string(getPatch()) + " @VERSION_TYPE@";
     return version;
 }
 //-----------------------------------------------------------------------------------
@@ -41,5 +41,8 @@ std::string Version::getVersionLong()
     return getVersionShort() + " / " + getBuildTime() + " / @VERSION_HOST@";
 }
 //-----------------------------------------------------------------------------------
-
-
+std::string Version::getBuildMachine()
+{
+    return "@VERSION_HOST@";
+}
+//-----------------------------------------------------------------------------------

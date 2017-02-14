@@ -7,7 +7,7 @@
  * @param  priority priority
  * @return          true if found
  */
-extern "C" bool addDictionary(const char *filename, bool priority);
+extern "C" bool addDictionary(const char* filename, bool priority);
 
 
 /**
@@ -16,7 +16,7 @@ extern "C" bool addDictionary(const char *filename, bool priority);
  * @param  priority priority
  * @return          true if found
  */
-extern "C" bool addDictionaryForce(const char *filename, bool priority);
+extern "C" bool addDictionaryForce(const char* filename, bool priority);
 
 
 /**
@@ -36,15 +36,8 @@ extern "C" int clearDictionaries();
 extern "C" char* search(const char* words);
 
 
-
 /**
  * set number of threads used for searching
  * @param numThreads
  */
 extern "C" void setNumberOfThreads(int numThreads);
-
-
-
-
-
-

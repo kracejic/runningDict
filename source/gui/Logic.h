@@ -2,45 +2,25 @@
 #include <string>
 
 #include "Dict.h"
-#include "Search.h"
 #include "Processer.h"
+#include "Search.h"
 #include "SpeedTimer.h"
 
 
-//TODO temporary
-template <class T> void ignore_arg(const T &) {}
+// TODO temporary
+template <class T>
+void ignore_arg(const T&)
+{
+}
 
 class Logic
 {
   public:
-    Logic(int argc, char *argv[])
+    Logic(){};
+    ~Logic()
     {
-        try
-        {
-            loadConfig();
-        }
-        catch(const std::exception &e)
-        {
-            std::cerr << "Error during load configuration file: " << e.what()
-                      << '\n';
-        }
-
-        try
-        {
-            refreshAvailableFiles();
-        }
-        catch(const std::exception &e)
-        {
-            std::cerr << "Error during serching for new dictionaries: "
-                      << e.what() << '\n';
-        }
-
-
-        ignore_arg(argc);
-        ignore_arg(argv);
-    };
-    ~Logic(){
-        saveConfig();
+        if (not mConfigFilename.empty())
+            saveConfig(mConfigFilename);
     };
 
     int mSizeX{500}, mSizeY{300};
@@ -50,11 +30,26 @@ class Logic
     bool mAlwaysOnTop{true};
 
     std::string mLastDictForNewWord{""};
-
-
-    void refreshAvailableFiles();
     std::vector<Dict> mDicts;
+    std::vector<std::string> mAdditionalSearchDirs;
 
-    void loadConfig();
-    void saveConfig();
+    /// Returns pointer to dict or zero, only filename is checked (not
+    /// extension)
+    Dict* getDict(const std::string& name);
+    /// Loads config from default positions
+    bool initWithConfig();
+    /// Loads config from parameter
+    bool initWithConfig(const std::string& filename);
+    /// Checks all usual directories for dictionaries
+    void refreshAvailableDicts();
+
+  private:
+    std::string mConfigFilename;
+    std::string mConfigDir;
+
+    /// checks dictionaries in directory
+    void loadDictsInDir(const std::string& path);
+
+    void loadConfig(const std::string& filename);
+    void saveConfig(const std::string& filename);
 };

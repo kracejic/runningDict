@@ -67,15 +67,18 @@ add_test(NAME "testLibrary"
 
 # Add unit test to CTest suite as one of the tests
 add_test(NAME "catch_unit_tests"
-        COMMAND $<TARGET_FILE:unittests> --use-colour yes
+        COMMAND $<TARGET_FILE:unittests>
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 #------------------------------------------------------------------------------
 # Unit tests
 
 set(SRCTEST
     test.cpp
+    ${PROJECT_BINARY_DIR}/source/version.cpp
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
+    ${PROJECT_SOURCE_DIR}/source/Worker.cpp
+    ${PROJECT_SOURCE_DIR}/source/gui/Logic.cpp
     )
 
 add_executable(unittests EXCLUDE_FROM_ALL ${SRCTEST})
@@ -84,17 +87,18 @@ set_property(TARGET unittests PROPERTY CXX_STANDARD 14) # we want C++14
 add_dependencies(unittests Catch) # Catch is needed for unit tests, located in ../external
 target_include_directories(unittests SYSTEM PRIVATE
     ${EXTERNAL_CATCH_INCLUDE_DIR}
+    ${EXTERNAL_JSON_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/)
 
 # convenience target for running only the unit tests
 add_custom_target(unit
     #this way we can use faux data from /test dir (if we hady any):
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND $<TARGET_FILE:unittests> --use-colour yes
     DEPENDS unittests)
 add_custom_target(unitall
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND $<TARGET_FILE:unittests> -s -a -r=compact --use-colour yes
     DEPENDS unittests)
 
