@@ -19,8 +19,8 @@ set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/out")
 
 
 # set human names to exetuables
-set(CPACK_PACKAGE_EXECUTABLES "runningdict" "RunningDictdt")
-set(CPACK_CREATE_DESKTOP_LINKS "runningdict")
+set(CPACK_PACKAGE_EXECUTABLES "runningDictGui" "RunningDict")
+set(CPACK_CREATE_DESKTOP_LINKS "runningDictGui")
 set(CPACK_STRIP_FILES TRUE)
 
 
