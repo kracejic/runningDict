@@ -129,6 +129,7 @@ workerResult Worker::search(const Dict& mDict,
         else
             cont = false;
         german = firstLine.substr(0, firstLine.find('/'));
+        german = german.substr(0, german.find('<'));
         if (german[german.size() - 1] == ' ')
             german.resize(german.size() - 1);
 

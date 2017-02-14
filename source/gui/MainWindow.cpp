@@ -66,12 +66,19 @@ MainWindow::MainWindow(Logic& logic)
         // find word with lowest number of translations
         // TODO fix
         auto leastKnown = min_element(mTranslationResult.begin(),
-            mTranslationResult.end(),
-            [](auto& a, auto& b) { return a.second.size() < b.second.size(); });
+            mTranslationResult.end(), [](auto& a, auto& b) {
+                int aScore = 99;
+                int bScore = 99;
+                if (a.second.size() > 0)
+                    aScore = a.second[0].score;
+                if (b.second.size() > 0)
+                    bScore = b.second[0].score;
+                return aScore > bScore;
+            });
         if (leastKnown != mTranslationResult.end())
         {
-            std::cout << "leastKnown->first = " << leastKnown->first
-                      << std::endl;
+            // std::cout << "leastKnown->first = " << leastKnown->first
+            //           << std::endl;
             leastKnownWord = leastKnown->first;
         }
 
@@ -181,7 +188,7 @@ MainWindow::MainWindow(Logic& logic)
             Gtk::TreeModel::iterator iter = this->mRefListStore->get_iter(path);
             Gtk::TreeModel::Row row = *iter;
 
-            cout << row[mColumns.mGerman_hidden];
+            // cout << row[mColumns.mGerman_hidden];
 
             string text = Glib::ustring(row[mColumns.mGerman_found]);
             string translation = Glib::ustring(row[mColumns.mEnglish]);
@@ -228,7 +235,6 @@ MainWindow::MainWindow(Logic& logic)
         if (oldsize != width && counter < 1)
         {
             oldsize = width;
-            cout<<width<<endl;
             counter++;
 
             // trigger redraw of mTreeView
@@ -275,7 +281,7 @@ bool MainWindow::pulse(int num)
     if (mOldTextInEntry != tmp)
     {
         mOldTextInEntry = tmp;
-        std::cout << "changed..." << std::endl;
+        // std::cout << "changed..." << std::endl;
         // todo max size of the text
 
         executeSearch(tmp);
@@ -360,7 +366,7 @@ void MainWindow::searchThread()
         std::vector<string> words = Processer::splitToWords(text.c_str());
 
         workerResult results = _search(mLogic.mDicts, numthreads, words, false);
-        cout << "results are here" << endl;
+        // cout << "results are here" << endl;
         // for(auto &&w : words)
         // {
         //     auto &rr = results[w];
@@ -381,7 +387,7 @@ void MainWindow::searchThread()
             break;
     }
 
-    cout << "Finish" << endl;
+    // cout << "Finish" << endl;
     mSearchInProgress = false;
 }
 //------------------------------------------------------------------------------
@@ -397,7 +403,7 @@ void MainWindow::on_clipboard_received(const Glib::ustring& data)
         mOldClipboard = text;
         if (!mIgnoreClipboardChange)
         {
-            std::cout << "Clipboard changed..." << std::endl;
+            // std::cout << "Clipboard changed..." << std::endl;
             mWordInput.set_text(text);
             // we do not need to execute search, since pulse does that for us
             // when text is changed.
