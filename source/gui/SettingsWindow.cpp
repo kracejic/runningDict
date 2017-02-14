@@ -1,7 +1,7 @@
 #include "SettingsWindow.h"
 #include "Logic.h"
-#include <string>
 #include "version.h"
+#include <string>
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
@@ -38,7 +38,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mWebSiteLabel.set_hexpand();
     mWebSiteLabel.set_margin_top(10);
     mWebSiteLabel.set_text("https://github.com/kracejic/runningDict");
-    
+
     mGrid.attach(mVersionLabel, 1, 8, 1, 1);
     mVersionLabel.set_hexpand();
     mVersionLabel.set_margin_top(10);

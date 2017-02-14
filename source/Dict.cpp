@@ -3,8 +3,13 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
 
 using namespace std;
 
@@ -16,7 +21,7 @@ Dict::Dict()
 Dict::Dict(const std::string& filename)
 {
     mFilename = filename;
-    mName = fs::path(filename).stem();
+    mName = fs::path(filename).stem().string();
     mContent.reset(new std::string(""));
     this->reload();
 }
@@ -26,7 +31,7 @@ Dict::Dict(const std::string& filename, int bonus, bool enabled)
     , mBonus(bonus)
 {
     mFilename = filename;
-    mName = fs::path(filename).stem();
+    mName = fs::path(filename).stem().string();
     mContent.reset(new std::string(""));
     this->reload();
 }

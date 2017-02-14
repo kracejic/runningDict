@@ -6,8 +6,13 @@
 #include <iostream>
 #include <version.h>
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
 
 using namespace std;
 using json = nlohmann::json;
@@ -54,7 +59,7 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
 void Logic::refreshAvailableDicts()
 {
     auto path = fs::current_path() / ".." / "share" / "runningDict";
-    this->loadDictsInDir(path);
+    this->loadDictsInDir(path.string());
     this->loadDictsInDir(mConfigDir);
 
     for (auto& dir : mAdditionalSearchDirs)
@@ -68,8 +73,12 @@ void Logic::loadDictsInDir(const std::string& path)
     // Add them if they are not added
     int safetyNum = 0;
 
+#ifdef USE_BOOST_FILESYSTEM
+    for (const auto& file : fs::recursive_directory_iterator(fs::path(path)))
+#else
     for (const auto& file : fs::recursive_directory_iterator(
              fs::path(path), fs::directory_options::skip_permission_denied))
+#endif
     {
         // early return if structure is too deep
         if (++safetyNum > 10000)
@@ -120,14 +129,16 @@ bool Logic::initWithConfig()
     }
     if (not fs::exists(confdir / "user.dict"))
     {
-        std::ofstream outfile(confdir / "user.dict");
+        auto userdictpath = confdir / "user.dict";
+        std::ofstream outfile(userdictpath.string());
         cout << "INIT: creating empty user dict at " << confdir / "user.dict"
              << endl;
     }
-    mConfigDir = fs::absolute(confdir);
+    mConfigDir = fs::absolute(confdir).string();
 
 
-    return initWithConfig(confdir / "config.json");
+    auto configPath = confdir / "config.json";
+    return initWithConfig(configPath.string());
 }
 //-----------------------------------------------------------------------------
 bool Logic::initWithConfig(const std::string& filename)

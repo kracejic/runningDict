@@ -90,7 +90,6 @@ target_include_directories(unittests SYSTEM PRIVATE
     ${EXTERNAL_JSON_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/source
     ${PROJECT_SOURCE_DIR}/)
-target_link_libraries(unittests  stdc++fs)
 
 # convenience target for running only the unit tests
 add_custom_target(unit

@@ -32,11 +32,11 @@ set(HEADERS
 
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
-target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
+target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
-target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
+target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
 
 
@@ -46,7 +46,11 @@ install(TARGETS runningDict DESTINATION bin)
 install(TARGETS libRunningDict DESTINATION bin)
 
 
-
+#windows MSYS2 support, helper macro
+macro(installMSYS2lib FilePattern)
+    install(DIRECTORY ${GCC_PATH}/ DESTINATION bin
+        FILES_MATCHING PATTERN ${FilePattern})
+endmacro()
 
 #-------------------------------------------------------------------------------
 # Copy MINGW libraries
@@ -63,11 +67,13 @@ if(MINGW)
         message(STATUS "  32bit dlls is building")
     endif()
 
-    install(FILES ${GCC_PATH}/${libgcc}
-        ${GCC_PATH}/libwinpthread-1.dll
-        ${GCC_PATH}/libstdc++-6.dll
-        DESTINATION bin
-    )
+    installMSYS2lib("${libgcc}")
+    installMSYS2lib("libwinpthread-1.dll")
+    installMSYS2lib("libstdc++-6.dll")
+    if(USE_BOOST_FILESYSTEM)
+        installMSYS2lib("libboost_filesystem-mt.dll")
+        installMSYS2lib("libboost_system-mt.dll")
+    endif()
 endif(MINGW)
 
 
@@ -128,11 +134,6 @@ if(GTK3MM_FOUND)
 
     install(TARGETS runningDictGui DESTINATION bin)
 
-    #windows MSYS2 support
-    macro(installMSYS2lib FilePattern)
-        install(DIRECTORY ${GCC_PATH}/ DESTINATION bin
-            FILES_MATCHING PATTERN ${FilePattern})
-    endmacro()
     if(MINGW)
         installMSYS2lib("libatk-1.0-0.dll")
         installMSYS2lib("libatkmm-1.6-1.dll")
@@ -172,7 +173,6 @@ if(GTK3MM_FOUND)
         installMSYS2lib("zlib1.dll")
     endif(MINGW)
 
-    target_link_libraries(runningDictGui  stdc++fs)
 
 else()
     message(STATUS "Standalone gui part (no Gtkmm3)           NO ")

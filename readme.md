@@ -127,6 +127,7 @@ config file and adding absolute path into *additionalSearchDirs* array.
 | -DCMAKE_CXX_COMPILER="clang++" | change compiler to clang         |
 | -DCMAKE_BUILD_TYPE=Release     | change build type to release     |
 | -DCMAKE_INSTALL_PREFIX="/"     | change install location          |
+| -DUSE_BOOST_FILESYSTEM=FALSE   | whether to use boost::filesystem instead of the experimental filesystem |
 
 
 ### Build targets
