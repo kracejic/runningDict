@@ -27,9 +27,8 @@ set(CPACK_STRIP_FILES TRUE)
 if(WIN32 AND NOT UNIX)
     #--------------------------------------------------------------------------
     # Windows specific
-    set(CPACK_GENERATOR "STGZ;ZIP")
+    set(CPACK_GENERATOR "ZIP")
     message(STATUS "Package generation - Windows")
-    message(STATUS "   + STGZ                                 YES ")
     message(STATUS "   + ZIP                                  YES ")
 
     # NSIS windows installer

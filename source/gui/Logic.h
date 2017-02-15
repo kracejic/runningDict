@@ -43,6 +43,8 @@ class Logic
     /// Checks all usual directories for dictionaries
     void refreshAvailableDicts();
 
+    std::string getPackagePath();
+
   private:
     std::string mConfigFilename;
     std::string mConfigDir;

@@ -58,7 +58,9 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
 //-----------------------------------------------------------------------------
 void Logic::refreshAvailableDicts()
 {
-    auto path = fs::current_path() / ".." / "share" / "runningDict";
+    // auto path = fs::current_path() / ".." / "share" / "runningDict";
+    auto path = fs::path(getPackagePath()) / "share" / "runningDict";
+
     this->loadDictsInDir(path.string());
     this->loadDictsInDir(mConfigDir);
 
@@ -114,9 +116,36 @@ Dict* Logic::getDict(const string& name)
         return nullptr;
 }
 //------------------------------------------------------------------------------
+std::string Logic::getPackagePath()
+{
+    cout<<"test"<<endl;
+#ifdef WIN32
+    if (fs::exists("./bin/runningDictGui.exe"))
+        return "./";
+    if (fs::exists("./runningDictGui.exe"))
+        return "../";
+    if (fs::exists("c:/Program Files/runningdict"))
+        return "c:/Program Files/runningdict/";
+    if (fs::exists("c:/Program Files (x86)/runningdict"))
+        return "c:/Program Files (x86)/runningdict/";
+#else
+    if (fs::exists("./bin/runningDictGui"))
+        return "./";
+    if (fs::exists("./runningDictGui"))
+        return "../";
+    if (fs::exists("/usr/bin/runningDictGui"))
+        return "/usr";
+    if (fs::exists("/usr/local/bin/runningDictGui"))
+        return "/usr/local/";
+    if (fs::exists("/bin/runningDictGui"))
+        return "/";
+#endif
+    return "./";
+}
+//------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-#ifdef WIN32
+#ifdef WIN32yy
     fs::path confdir = fs::path{string{getenv("APPDATA")}} / "runningdict";
 #else
     fs::path confdir =

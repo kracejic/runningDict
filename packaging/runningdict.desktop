@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Example Application
-Comment=This is an example application for C++
+Name=Running Dict
+Comment=Translator for developers
 Keywords=cpp;cmake;example;
-Exec=runningdict
+Exec=runningDictGui
 Icon=runningdict.png
 Terminal=true
 Type=Application
-Categories=Utility;Photography;GNOME;GTK;
+Categories=Utility;

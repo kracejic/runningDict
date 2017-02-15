@@ -164,7 +164,7 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 
     // add word
     tmp.append("\n"s + wordCopy + "\n " + translation);
-    if(tmp[0] == '\n')
+    if (tmp[0] == '\n')
         tmp.erase(0, 1);
 
     mContent.reset(new string(move(tmp)));
@@ -411,11 +411,11 @@ TEST_CASE("adding to an empty dictionary")
 {
     Dict d;
     d.fill("");
-    d.addWord("test","test");
+    d.addWord("test", "test");
     REQUIRE(*(d.getContens()) == "test\n test");
 
     d.fill("\n");
-    d.addWord("test","test");
+    d.addWord("test", "test");
     REQUIRE(*(d.getContens()) == "test\n test");
 }
 
