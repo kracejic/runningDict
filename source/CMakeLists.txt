@@ -19,6 +19,7 @@ set(SRCS
     Worker.cpp
     Search.cpp
     Processer.cpp
+    log.cpp
 )
 
 set(HEADERS
@@ -28,6 +29,7 @@ set(HEADERS
     Search.h
     Processer.h
     SpeedTimer.h
+    log.h
 )
 
 find_package (Threads)

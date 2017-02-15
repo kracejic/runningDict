@@ -16,7 +16,7 @@ void ignore_arg(const T&)
 class Logic
 {
   public:
-    Logic(){};
+    Logic();
     ~Logic()
     {
         if (not mConfigFilename.empty())

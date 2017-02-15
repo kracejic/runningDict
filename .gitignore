@@ -5,6 +5,9 @@ external/*
 .tags
 *.out
 *.swp
+*.swo
+*.swn
 *.pyc
 *.exe
 tags
+*.log

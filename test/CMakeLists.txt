@@ -78,6 +78,7 @@ set(SRCTEST
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
     ${PROJECT_SOURCE_DIR}/source/Worker.cpp
+    ${PROJECT_SOURCE_DIR}/source/log.cpp
     ${PROJECT_SOURCE_DIR}/source/gui/Logic.cpp
     )
 

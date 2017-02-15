@@ -17,6 +17,13 @@ namespace fs = std::experimental::filesystem;
 using namespace std;
 using json = nlohmann::json;
 
+#include "log.h"
+
+Logic::Logic()
+{
+    logging::init();
+    L->info("Logic created");
+}
 
 /**
  * Returns relative path from *from* to *to*.
@@ -58,7 +65,6 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
 //-----------------------------------------------------------------------------
 void Logic::refreshAvailableDicts()
 {
-    // auto path = fs::current_path() / ".." / "share" / "runningDict";
     auto path = fs::path(getPackagePath()) / "share" / "runningDict";
 
     this->loadDictsInDir(path.string());
@@ -95,9 +101,8 @@ void Logic::loadDictsInDir(const std::string& path)
                 // auto relPath = relativeTo(fs::current_path(), file.path());
                 auto relPath = fs::canonical(file.path());
                 mDicts.emplace_back(relPath.string(), 0, false);
-                std::cout << "Found new dict: " << file << std::endl;
-                std::cout << "      rel path: " << relPath.string()
-                          << std::endl;
+                L->info("Found new dict: {}", file.path().string());
+                L->info("      rel path: {}", relPath.string());
             }
         }
     }
@@ -118,7 +123,6 @@ Dict* Logic::getDict(const string& name)
 //------------------------------------------------------------------------------
 std::string Logic::getPackagePath()
 {
-    cout<<"test"<<endl;
 #ifdef WIN32
     if (fs::exists("./bin/runningDictGui.exe"))
         return "./";
@@ -145,23 +149,25 @@ std::string Logic::getPackagePath()
 //------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-#ifdef WIN32yy
+    L->info("Logic::initWithConfig()");
+#ifdef WIN32
     fs::path confdir = fs::path{string{getenv("APPDATA")}} / "runningdict";
 #else
     fs::path confdir =
         fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
 #endif
+    L->info("checking config directory config {}", confdir.string());
     if (not fs::exists(confdir))
     {
+        L->info("... directory does not exist, creating");
         create_directories(confdir);
-        cout << "INIT: creating config dir at " << confdir << endl;
+        L->info("INIT: creating config dir at {}", confdir.string());
     }
     if (not fs::exists(confdir / "user.dict"))
     {
+        L->info("... user.dict does not exist, creating");
         auto userdictpath = confdir / "user.dict";
         std::ofstream outfile(userdictpath.string());
-        cout << "INIT: creating empty user dict at " << confdir / "user.dict"
-             << endl;
     }
     mConfigDir = fs::absolute(confdir).string();
 
@@ -181,8 +187,7 @@ bool Logic::initWithConfig(const std::string& filename)
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Error during load configuration file: " << e.what()
-                  << '\n';
+        L->error("Error during load configuration file: {}", e.what());
         ret = false;
     }
 
@@ -192,8 +197,7 @@ bool Logic::initWithConfig(const std::string& filename)
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Error during serching for new dictionaries: " << e.what()
-                  << '\n';
+        L->error("Error during serching for new dictionaries: {}", e.what());
         ret = false;
     }
     return ret;
@@ -204,7 +208,7 @@ void Logic::loadConfig(const std::string& filename)
 
     if (cfg_file)
     {
-        cout << "Loading config" << endl;
+        L->info("Loading config");
         json cfg;
         cfg_file >> cfg;
 
@@ -216,27 +220,25 @@ void Logic::loadConfig(const std::string& filename)
                 string dictFile = dict[0];
                 if (fs::exists(dictFile))
                 {
-                    cout << "importing new dict: " << dictFile << endl;
+                    L->info("importing new dict: {}", dictFile);
                     mDicts.emplace_back(dictFile, dict[1], dict[2]);
                 }
                 else
                 {
-                    // mDicts.emplace_back(dictFile, dict[1], dict[2]);
-                    cerr << "dictionary does not exist: '" << dictFile << "'"
-                         << endl;
+                    L->error("dictionary does not exist: {}", dictFile);
                 }
             }
         }
 
         if (cfg.count("position") > 0 && cfg["position"].size() == 2)
         {
-            cout << "loading position" << endl;
+            L->info("loading position");
             mPositionX = cfg["position"][0];
             mPositionY = cfg["position"][1];
         }
         if (cfg.count("size") > 0 && cfg["size"].size() == 2)
         {
-            cout << "loading size" << endl;
+            L->info("loading size");
             mSizeX = cfg["size"][0];
             mSizeY = cfg["size"][1];
         }
@@ -247,8 +249,7 @@ void Logic::loadConfig(const std::string& filename)
                 if (fs::exists(fs::path(fil)))
                     mAdditionalSearchDirs.emplace_back(fil);
                 else
-                    cout << "INIT: Search path " << fil << " does not exists"
-                         << endl;
+                    L->info("INIT: Search path {} does not exists", fil);
         }
 
         if (cfg.count("translateClipboardAtStart") > 0)
@@ -259,16 +260,13 @@ void Logic::loadConfig(const std::string& filename)
 
         if (cfg.count("lastDictForNewWord") > 0)
             mLastDictForNewWord = cfg["lastDictForNewWord"];
-
-
-        // cout << std::setw(4) << cfg <<endl;
     }
 }
 //------------------------------------------------------------------------------
 void Logic::saveConfig(const std::string& filename)
 {
     // prepare json object with settings
-    cout << "Saving config" << endl;
+    L->info("Saving config");
     json cfg;
     for (auto& dict : mDicts)
         cfg["dicts"].push_back(
