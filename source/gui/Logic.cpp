@@ -120,7 +120,7 @@ Dict* Logic::getDict(const string& name)
     else
         return nullptr;
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 std::string Logic::getPackagePath()
 {
 #ifdef WIN32
@@ -147,15 +147,33 @@ std::string Logic::getPackagePath()
     return "./";
 }
 //------------------------------------------------------------------------------
+fs::path getAppConfigPath()
+{
+#ifdef WIN32
+    return fs::path{string{getenv("APPDATA")}} / "runningdict";
+#else
+    return fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
+#endif
+}
+//-----------------------------------------------------------------------------
+bool Logic::createDict(const std::string& filename)
+{
+    auto userdictpath = getAppConfigPath() / (filename + ".dict");
+    L->info("creating new empty user dict at {}", userdictpath.string());
+    if (fs::exists(userdictpath))
+    {
+        L->warn("... file already exists");
+        return false;
+    }
+    std::ofstream outfile(userdictpath.string());
+    outfile.close();
+    this->refreshAvailableDicts();
+    return true;
+}
+//------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-    L->info("Logic::initWithConfig()");
-#ifdef WIN32
-    fs::path confdir = fs::path{string{getenv("APPDATA")}} / "runningdict";
-#else
-    fs::path confdir =
-        fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
-#endif
+    auto confdir = getAppConfigPath();
     L->info("checking config directory config {}", confdir.string());
     if (not fs::exists(confdir))
     {

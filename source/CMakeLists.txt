@@ -89,6 +89,7 @@ set(GUISRC
     gui/SettingsWindow.cpp
     gui/NewWordWindow.cpp
     gui/ChangeWordWindow.cpp
+    gui/NewDictWindow.cpp
     gui/Logic.cpp
 )
 

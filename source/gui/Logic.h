@@ -45,6 +45,8 @@ class Logic
 
     std::string getPackagePath();
 
+    bool createDict(const std::string& filename);
+
   private:
     std::string mConfigFilename;
     std::string mConfigDir;
