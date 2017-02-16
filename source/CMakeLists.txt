@@ -108,7 +108,7 @@ if(GTK3MM_FOUND)
     else()
         add_executable(runningDictGui ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     endif()
-    add_dependencies(runningDictGui Json)
+    add_dependencies(runningDictGui Json spdlog)
 
     add_custom_target(gui-run
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin

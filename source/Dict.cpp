@@ -38,7 +38,9 @@ Dict::Dict(const std::string& filename, int bonus, bool enabled)
 //-----------------------------------------------------------------------------
 void Dict::fill(const std::string& content)
 {
-    mContent.reset(new std::string(content));
+    string temp = content;
+    temp.erase( std::remove(temp.begin(), temp.end(), '\r'), temp.end() );
+    mContent.reset(new string(std::move(temp)));
     mIs_open = true;
 }
 //-----------------------------------------------------------------------------
@@ -105,6 +107,7 @@ bool Dict::open(const std::string& filename)
     tmp.assign((std::istreambuf_iterator<char>(file)),
         std::istreambuf_iterator<char>());
     file.close();
+    tmp.erase( std::remove(tmp.begin(), tmp.end(), '\r'), tmp.end() );
     mContent.reset(new std::string(move(tmp)));
     mIs_open = true;
     mErrorState = false;
@@ -417,6 +420,13 @@ TEST_CASE("adding to an empty dictionary")
     d.fill("\n");
     d.addWord("test", "test");
     REQUIRE(*(d.getContens()) == "test\n test");
+}
+
+TEST_CASE("cr lf removal")
+{
+    Dict d;
+    d.fill("test\r\n test\n");
+    REQUIRE(*(d.getContens()) == "test\n test\n");
 }
 
 TEST_CASE("checking for a word")
