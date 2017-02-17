@@ -177,6 +177,14 @@ cmake ..
 make check
 ~~~
 
+If you want to install the software, do this:
+
+~~~
+mkdir build ; cd build
+cmake -DCMAKE_INSTALL_PREFIX="/usr" -DCMAKE_BUILD_TYPE=Release -DVERSION_HOST=linux -DVERSION_TYPE=stable ..
+sudo make install
+~~~
+
 
 ### Build on windows
 

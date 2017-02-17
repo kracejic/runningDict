@@ -36,10 +36,12 @@ find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
 target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
+add_dependencies(runningDict Json spdlog)
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
 target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
+add_dependencies(libRunningDict Json spdlog)
 
 
 

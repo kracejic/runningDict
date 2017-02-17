@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Running Dict
+Name=RunningDict
 Comment=Translator for developers
-Keywords=cpp;cmake;example;
+Keywords=dictionary
 Exec=runningDictGui
-Icon=runningdict.png
-Terminal=true
+Icon=runningdict
+Terminal=false
 Type=Application
 Categories=Utility;

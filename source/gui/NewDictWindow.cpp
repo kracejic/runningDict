@@ -32,7 +32,8 @@ NewDictWindow::NewDictWindow(Logic& logic)
                 return d.getFilename() == mDictName.get_text();
             }))
             return;
-        //TODO create new
+        mLogic.createDict(mDictName.get_text());
+        this->hide();
     });
 
     this->show_all_children();
