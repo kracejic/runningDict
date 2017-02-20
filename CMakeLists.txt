@@ -58,6 +58,7 @@ add_subdirectory(doc)
 
 # External resources/repositories are downloaded here
 add_subdirectory(external)
+include_directories( ${EXTERNAL_SPDLOG_INCLUDE_DIR} )
 
 # Images, databases and other data which needs to be installed for project
 add_subdirectory(data)

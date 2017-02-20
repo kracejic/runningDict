@@ -12,6 +12,7 @@
 #include <gtkmm/window.h>
 
 #include "Logic.h"
+#include "NewDictWindow.h"
 
 class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
 {
@@ -47,6 +48,9 @@ class SettingsWindow : public Gtk::Window
     Gtk::CheckButton mToogleAlwaysOnTop;
     Gtk::Label mVersionLabel;
     Gtk::Label mWebSiteLabel;
+    Gtk::Button mAddDictButton;
+
+    std::unique_ptr<NewDictWindow> mAddDictWindow;
 
 
     /**
@@ -54,6 +58,7 @@ class SettingsWindow : public Gtk::Window
      */
     bool on_key_press_event(GdkEventKey* key_event) override;
 
+    void refreshDicts();
 
   public:
     SettingsWindow(Logic& logic);

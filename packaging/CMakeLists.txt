@@ -19,17 +19,16 @@ set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/out")
 
 
 # set human names to exetuables
-set(CPACK_PACKAGE_EXECUTABLES "runningdict" "RunningDictdt")
-set(CPACK_CREATE_DESKTOP_LINKS "runningdict")
+set(CPACK_PACKAGE_EXECUTABLES "runningDictGui" "RunningDict")
+set(CPACK_CREATE_DESKTOP_LINKS "runningDictGui")
 set(CPACK_STRIP_FILES TRUE)
 
 
 if(WIN32 AND NOT UNIX)
     #--------------------------------------------------------------------------
     # Windows specific
-    set(CPACK_GENERATOR "STGZ;ZIP")
+    set(CPACK_GENERATOR "ZIP")
     message(STATUS "Package generation - Windows")
-    message(STATUS "   + STGZ                                 YES ")
     message(STATUS "   + ZIP                                  YES ")
 
     # NSIS windows installer
@@ -85,9 +84,9 @@ else()
             /usr/share/icons/hicolor
             /usr/share/icons/hicolor/256x256
             /usr/share/icons/hicolor/256x256/apps
-            /usr/share/icons/hicolor
-            /usr/share/icons/hicolor/256x256
-            /usr/share/icons/hicolor/256x256/apps)
+            /usr/share/icons/gnome
+            /usr/share/icons/gnome/256x256
+            /usr/share/icons/gnome/256x256/apps)
     else()
         message(STATUS "   + RPM                                  NO ")
     endif()
@@ -102,12 +101,17 @@ else()
 
 
     # Icon and app shortcut for Linux systems
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runningdict.desktop
+    # Note: .desktop must have same name as executable
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runningdictgui.desktop
         DESTINATION share/applications/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runningdict.png
         DESTINATION share/icons/hicolor/256x256/apps/
+        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        )
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runningdict.png
+        DESTINATION share/icons/gnome/256x256/apps/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )
     # License file

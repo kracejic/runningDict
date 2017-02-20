@@ -2,10 +2,12 @@
 
 #include <cstdlib>
 #include <gtkmm/application.h>
+#include <iostream>
 
 
 int main(int argc, char* argv[])
 {
+    std::cout << "starting the app" << std::endl;
     auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
 
     Logic logic{};

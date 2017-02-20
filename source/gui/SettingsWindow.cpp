@@ -14,14 +14,29 @@ SettingsWindow::SettingsWindow(Logic& logic)
     this->add(mGrid);
     this->set_title("Settings");
 
-    mGrid.attach(mToogleFirstCatch, 0, 0, 2, 1);
+    mGrid.attach(mToogleFirstCatch, 0, 0, 1, 1);
     if (mLogic.mTranslateClipboardAtStart)
         mToogleFirstCatch.set_active();
 
-    mGrid.attach(mToogleAlwaysOnTop, 0, 1, 2, 1);
+    mGrid.attach(mToogleAlwaysOnTop, 0, 1, 1, 1);
     if (mLogic.mAlwaysOnTop)
         mToogleAlwaysOnTop.set_active();
 
+    mGrid.attach(mAddDictButton, 1, 0, 2, 2);
+    mAddDictButton.set_label("New dict");
+    mAddDictButton.signal_clicked().connect([this]() {
+        if (mAddDictWindow)
+            return;
+        mAddDictWindow.reset(new NewDictWindow(mLogic));
+        mAddDictWindow->show();
+
+        // refresh on settings closed
+        mAddDictWindow->signal_hide().connect([this]() {
+            // delete mAddDictWindow;
+            mAddDictWindow.reset(); // destructor is called
+            this->refreshDicts();
+        });
+    });
 
     // setup scrollView
     mGrid.attach(mScrollView, 0, 6, 2, 1);
@@ -109,18 +124,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
 
 
-    // fill
-    mRefListStore->clear();
-    for (auto&& dict : logic.mDicts)
-    {
-        Gtk::TreeModel::iterator iter = mRefListStore->append();
-        Gtk::TreeModel::Row row = *iter;
-        row[mDictViewModel.mEnabled] = dict.is_enabled();
-        row[mDictViewModel.mPath] = dict.getName();
-        row[mDictViewModel.mBonus] = (dict.mBonus < 0);
-        row[mDictViewModel.mError] = dict.mErrorState;
-        row[mDictViewModel.mTooltip] = dict.getFilename();
-    }
+    this->refreshDicts();
 
     this->show_all_children();
 }
@@ -131,6 +135,21 @@ SettingsWindow::~SettingsWindow()
     mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
 }
 //------------------------------------------------------------------------------
+void SettingsWindow::refreshDicts()
+{
+    mRefListStore->clear();
+    for (auto&& dict : mLogic.mDicts)
+    {
+        Gtk::TreeModel::iterator iter = mRefListStore->append();
+        Gtk::TreeModel::Row row = *iter;
+        row[mDictViewModel.mEnabled] = dict.is_enabled();
+        row[mDictViewModel.mPath] = dict.getName();
+        row[mDictViewModel.mBonus] = (dict.mBonus < 0);
+        row[mDictViewModel.mError] = dict.mErrorState;
+        row[mDictViewModel.mTooltip] = dict.getFilename();
+    }
+}
+//-----------------------------------------------------------------------------
 bool SettingsWindow::on_key_press_event(GdkEventKey* key_event)
 {
     if (key_event->keyval == GDK_KEY_Escape)

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=RunningDict
+Comment=Translator for developers
+Keywords=dictionary
+Exec=runningDictGui
+Icon=runningdict
+Terminal=false
+Type=Application
+Categories=Utility;

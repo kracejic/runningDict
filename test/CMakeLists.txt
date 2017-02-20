@@ -78,13 +78,14 @@ set(SRCTEST
     ${PROJECT_SOURCE_DIR}/source/Dict.cpp
     ${PROJECT_SOURCE_DIR}/source/Processer.cpp
     ${PROJECT_SOURCE_DIR}/source/Worker.cpp
+    ${PROJECT_SOURCE_DIR}/source/log.cpp
     ${PROJECT_SOURCE_DIR}/source/gui/Logic.cpp
     )
 
 add_executable(unittests EXCLUDE_FROM_ALL ${SRCTEST})
 target_compile_definitions(unittests PRIVATE UNIT_TESTS)
 set_property(TARGET unittests PROPERTY CXX_STANDARD 14) # we want C++14
-add_dependencies(unittests Catch) # Catch is needed for unit tests, located in ../external
+add_dependencies(unittests Catch spdlog Json) # Catch, spdlog, Json is needed for unit tests, located in ../external
 target_include_directories(unittests SYSTEM PRIVATE
     ${EXTERNAL_CATCH_INCLUDE_DIR}
     ${EXTERNAL_JSON_INCLUDE_DIR}

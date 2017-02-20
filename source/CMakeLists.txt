@@ -19,6 +19,7 @@ set(SRCS
     Worker.cpp
     Search.cpp
     Processer.cpp
+    log.cpp
 )
 
 set(HEADERS
@@ -28,16 +29,19 @@ set(HEADERS
     Search.h
     Processer.h
     SpeedTimer.h
+    log.h
 )
 
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
 target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
+add_dependencies(runningDict Json spdlog)
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
 target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
+add_dependencies(libRunningDict Json spdlog)
 
 
 
@@ -87,6 +91,7 @@ set(GUISRC
     gui/SettingsWindow.cpp
     gui/NewWordWindow.cpp
     gui/ChangeWordWindow.cpp
+    gui/NewDictWindow.cpp
     gui/Logic.cpp
 )
 
@@ -106,7 +111,7 @@ if(GTK3MM_FOUND)
     else()
         add_executable(runningDictGui ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     endif()
-    add_dependencies(runningDictGui Json)
+    add_dependencies(runningDictGui Json spdlog)
 
     add_custom_target(gui-run
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin

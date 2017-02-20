@@ -125,7 +125,9 @@ config file and adding absolute path into *additionalSearchDirs* array.
 |             option             |       description                |
 |--------------------------------|----------------------------------|
 | -DCMAKE_CXX_COMPILER="clang++" | change compiler to clang         |
-| -DCMAKE_BUILD_TYPE=Release     | change build type to release     |
+| -DCMAKE_BUILD_TYPE=Release     | change build type to Release     |
+| -DVERSION_TYPE=stable          | change version type to stable    |
+| -DVERSION_HOST=build           | change build machine name        |
 | -DCMAKE_INSTALL_PREFIX="/"     | change install location          |
 | -DUSE_BOOST_FILESYSTEM=FALSE   | whether to use boost::filesystem instead of the experimental filesystem |
 
@@ -173,6 +175,14 @@ There are basic tests which can be exuted by building **check** target.
 mkdir build ; cd build
 cmake ..
 make check
+~~~
+
+If you want to install the software, do this:
+
+~~~
+mkdir build ; cd build
+cmake -DCMAKE_INSTALL_PREFIX="/usr" -DCMAKE_BUILD_TYPE=Release -DVERSION_HOST=linux -DVERSION_TYPE=stable ..
+sudo make install
 ~~~
 
 
@@ -228,6 +238,18 @@ console widow is closed too fast.
 [bug](https://social.msdn.microsoft.com/Forums/en-US/8f40dcd8-c67f-4eba-9134-a19b9178e481/vs-2015-rc-linker-stdcodecvt-error?forum=vcgeneral)
 which prevents this project being built.
 
+### Release
+
+* Increase version in master *CMakeLists.txt*.
+* Build configuration
+    * Windows: `cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_FILESYSTEM=TRUE -DVERSION_HOST=win7 -DVERSION_TYPE=stable ..`
+    * Linux: `cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DVERSION_HOST=linux -DVERSION_TYPE=stable ..`
+* `ninja check`
+* `ninja package`
+* packages are in *out* directory inside of the build folder.
+* commit changes
+* create git tag
+* push changes and tag to server
 
 
 ## Notes
