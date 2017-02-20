@@ -43,6 +43,7 @@ class Logic
     /// Checks all usual directories for dictionaries
     void refreshAvailableDicts();
 
+    static std::string getConfigPath();
     std::string getPackagePath();
 
     bool createDict(const std::string& filename);

@@ -21,7 +21,7 @@ using json = nlohmann::json;
 
 Logic::Logic()
 {
-    logging::init();
+    logging::init(getConfigPath());
     L->info("Logic created");
 }
 
@@ -65,6 +65,7 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
 //-----------------------------------------------------------------------------
 void Logic::refreshAvailableDicts()
 {
+    L->info("refreshing available dictionaries");
     auto path = fs::path(getPackagePath()) / "share" / "runningDict";
 
     this->loadDictsInDir(path.string());
@@ -76,6 +77,7 @@ void Logic::refreshAvailableDicts()
 //-----------------------------------------------------------------------------
 void Logic::loadDictsInDir(const std::string& path)
 {
+    L->info("load directories in {}", path);
 
     // recursively go through child directories and find .dict files
     // Add them if they are not added
@@ -100,7 +102,7 @@ void Logic::loadDictsInDir(const std::string& path)
             {
                 // auto relPath = relativeTo(fs::current_path(), file.path());
                 auto relPath = fs::canonical(file.path());
-                mDicts.emplace_back(relPath.string(), 0, false);
+                mDicts.emplace_back(relPath.string(), 0, true);
                 L->info("Found new dict: {}", file.path().string());
                 L->info("      rel path: {}", relPath.string());
             }
@@ -124,10 +126,10 @@ Dict* Logic::getDict(const string& name)
 std::string Logic::getPackagePath()
 {
 #ifdef WIN32
-    if (fs::exists("./bin/runningDictGui.exe"))
-        return "./";
-    if (fs::exists("./runningDictGui.exe"))
-        return "../";
+    if (fs::exists("bin/runningDictGui.exe"))
+        return ".";
+    if (fs::exists("runningDictGui.exe"))
+        return "..";
     if (fs::exists("c:/Program Files/runningdict"))
         return "c:/Program Files/runningdict/";
     if (fs::exists("c:/Program Files (x86)/runningdict"))
@@ -144,21 +146,23 @@ std::string Logic::getPackagePath()
     if (fs::exists("/bin/runningDictGui"))
         return "/";
 #endif
-    return "./";
+    return "";
 }
 //------------------------------------------------------------------------------
-fs::path getAppConfigPath()
+std::string Logic::getConfigPath()
 {
 #ifdef WIN32
-    return fs::path{string{getenv("APPDATA")}} / "runningdict";
+    auto confdir = fs::path{string{getenv("APPDATA")}} / "runningdict";
 #else
-    return fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
+    auto confdir = fs::path{string{getenv("HOME")}} / ".config" / "runningdict";
 #endif
+    return confdir.string();
 }
 //-----------------------------------------------------------------------------
 bool Logic::createDict(const std::string& filename)
 {
-    auto userdictpath = getAppConfigPath() / (filename + ".dict");
+    auto confdir = fs::path(getConfigPath());
+    auto userdictpath = confdir / (filename + ".dict");
     L->info("creating new empty user dict at {}", userdictpath.string());
     if (fs::exists(userdictpath))
     {
@@ -173,8 +177,9 @@ bool Logic::createDict(const std::string& filename)
 //------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-    auto confdir = getAppConfigPath();
-    L->info("checking config directory config {}", confdir.string());
+    L->info("bool Logic::initWithConfig()");
+    auto confdir = fs::path(getConfigPath());
+    L->info("config dir is {}", confdir.string());
     if (not fs::exists(confdir))
     {
         L->info("... directory does not exist, creating");
@@ -197,6 +202,7 @@ bool Logic::initWithConfig()
 bool Logic::initWithConfig(const std::string& filename)
 {
     bool ret = true;
+    L->info("bool Logic::initWithConfig({})", filename);
 
     try
     {
