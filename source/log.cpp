@@ -28,7 +28,7 @@ void logging::init(std::string directory)
     vector<spdlog::sink_ptr> sinks;
     sinks.push_back(make_shared<spdlog::sinks::stdout_sink_mt>());
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        filepath.string(), "log", 1048576 * 2, 3));
+        filepath.string(), 1048576 * 2, 3));
 
     L = make_shared<spdlog::logger>("main", sinks.begin(), sinks.end());
 

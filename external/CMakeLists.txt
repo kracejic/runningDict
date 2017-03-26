@@ -97,9 +97,14 @@ ExternalProject_Add(
     # GIT_TAG 1.5.7
     #disables auto update on every build
     UPDATE_DISCONNECTED 1
-    #disable following
-    CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_DIR "" INSTALL_COMMAND ""
+    #disable install step
+    INSTALL_DIR "" INSTALL_COMMAND ""
     )
+set(CPR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/include CACHE
+    INTERNAL "")
+set(CPR_LIBRARIES
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext-build/lib/libcpr.a curl CACHE
+    INTERNAL "")
 
 # Update cpr target
 add_custom_target(external-cpr-update
@@ -107,13 +112,7 @@ add_custom_target(external-cpr-update
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/cpr
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Cpr-ext)
-# set include directory
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/)
-    add_subdirectory(cpr/src/Cpr-ext)
-else()
-    message(WARNING "Need to download CPR first, run make update"
-        " or the first build will fail.")
-endif()
+
 # Uset this with:
 # target_include_directories(your_target_name ${CPR_INCLUDE_DIRS})
 # target_link_libraries(your_target_name ${CPR_LIBRARIES})
@@ -124,4 +123,8 @@ endif()
 add_custom_target(external-update-all
     COMMENT "Updated all external projects"
     DEPENDS external-Catch-update external-Json-update external-spdlog-update external-cpr-update)
+
+add_custom_target(update
+    COMMENT "Updated all external projects"
+    DEPENDS external-update-all)
 

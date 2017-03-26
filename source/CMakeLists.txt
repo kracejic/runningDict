@@ -13,8 +13,24 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/source
 )
 
+#------------------------------------------------------------------------------
+# Dependencies for all targets
+
+# Boost instead of C++17 filesystem (MSYS2 GCC5.3 does not have filesystem TS)
+option(USE_BOOST_FILESYSTEM 
+    "whether to use boost::filesystem instead of the std::filesystem" FALSE)
+if(USE_BOOST_FILESYSTEM)
+    find_package(Boost COMPONENTS filesystem system REQUIRED)
+    add_definitions("-DUSE_BOOST_FILESYSTEM")
+    include_directories( SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
+    link_libraries(${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+else()
+    link_libraries(stdc++fs)
+endif()
+
+
 set(SRCS
-    ${PROJECT_BINARY_DIR}/source/version.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
     Dict.cpp
     Worker.cpp
     Search.cpp
@@ -184,6 +200,10 @@ else()
 endif()
 
 
+#------------------------------------------------------------------------------
+# Unit test
+
+add_subdirectory(unittest)
 
 #------------------------------------------------------------------------------
 # Other targets
