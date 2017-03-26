@@ -7,6 +7,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
     , mToogleFirstCatch("Translate clipboard at start")
     , mToogleAlwaysOnTop("Main window stays always on top")
+      , mServerLabel("Remote server (none)")
 {
     this->set_position(Gtk::WIN_POS_MOUSE);
     this->set_border_width(10);
@@ -22,7 +23,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     if (mLogic.mAlwaysOnTop)
         mToogleAlwaysOnTop.set_active();
 
-    mGrid.attach(mAddDictButton, 1, 0, 2, 2);
+    mGrid.attach(mAddDictButton, 3, 0, 1, 2);
     mAddDictButton.set_label("New dict");
     mAddDictButton.signal_clicked().connect([this]() {
         if (mAddDictWindow)
@@ -38,8 +39,13 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
     });
 
+    mGrid.attach(mServerLabel, 0, 3, 1, 1);
+    mGrid.attach(mServer, 1, 3, 1, 1);
+    mGrid.attach(mServerStatus, 2, 3, 1, 1);
+    mServer.set_margin_top(10);
+
     // setup scrollView
-    mGrid.attach(mScrollView, 0, 6, 2, 1);
+    mGrid.attach(mScrollView, 0, 6, 4, 1);
     mScrollView.set_hexpand();
     mScrollView.set_vexpand();
     mScrollView.set_policy(
@@ -49,12 +55,12 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mScrollView.set_min_content_width(400);
     mScrollView.set_min_content_height(200);
 
-    mGrid.attach(mWebSiteLabel, 0, 8, 1, 1);
+    mGrid.attach(mWebSiteLabel, 1, 8, 1, 1);
     mWebSiteLabel.set_hexpand();
     mWebSiteLabel.set_margin_top(10);
     mWebSiteLabel.set_text("https://github.com/kracejic/runningDict");
 
-    mGrid.attach(mVersionLabel, 1, 8, 1, 1);
+    mGrid.attach(mVersionLabel, 2, 8, 1, 1);
     mVersionLabel.set_hexpand();
     mVersionLabel.set_margin_top(10);
     mVersionLabel.set_text(Version::getVersionShort());

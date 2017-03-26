@@ -52,6 +52,9 @@ class SettingsWindow : public Gtk::Window
 
     std::unique_ptr<NewDictWindow> mAddDictWindow;
 
+    Gtk::Label mServerStatus;
+    Gtk::Label mServerLabel;
+    Gtk::Entry mServer;
 
     /**
      * handles ESC key

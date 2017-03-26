@@ -284,6 +284,9 @@ void Logic::loadConfig(const std::string& filename)
 
         if (cfg.count("lastDictForNewWord") > 0)
             mLastDictForNewWord = cfg["lastDictForNewWord"];
+
+        if (cfg.count("server") > 0)
+            mServer = cfg["server"];
     }
 }
 //------------------------------------------------------------------------------
@@ -301,6 +304,7 @@ void Logic::saveConfig(const std::string& filename)
     cfg["translateClipboardAtStart"] = mTranslateClipboardAtStart;
     cfg["alwaysOnTop"] = mAlwaysOnTop;
     cfg["lastDictForNewWord"] = mLastDictForNewWord;
+    cfg["server"] = mServer;
 
 
     cfg["additionalSearchDirs"] = json::array();
@@ -316,7 +320,48 @@ void Logic::saveConfig(const std::string& filename)
     outFile << std::setw(4) << cfg << endl;
 }
 //------------------------------------------------------------------------------
+//
 
+#include "cpr/cpr.h"
+future<void> Logic::connectToServerAndSync(const std::string& url)
+{
+    if (mServerStatus == ServerStatus::offline)
+        mServerStatus = ServerStatus::connecting;
+    mLastServerSync = std::chrono::system_clock::now();
+
+    auto fut = async(launch::async, [this, url]() {
+        if (url == "")
+            return;
+
+        // test if server is there
+        auto re = cpr::Get(cpr::Url{url + "/api/version"});
+        json r = json::parse(re.text);
+        L->info(re.text);
+        L->info(r.dump());
+        L->info(r["app"].get<string>());
+        L->info(r["version"].get<string>());
+
+        // check server type and compatible versions
+        if (r["app"] == "dictionaryServer" &&
+            r["version"].get<string>()[0] == '0')
+            this->mServerStatus = ServerStatus::connected;
+
+
+        // TODO
+        // sync dictionaries
+        mServerStatus = ServerStatus::synchronizing;
+        // for(auto&& dic : mDicts)
+
+
+        mLastServerSync = std::chrono::system_clock::now();
+        mServerStatus = ServerStatus::connected;
+    });
+
+    return fut;
+}
+
+
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 #ifdef UNIT_TESTS
 #include "catch.hpp"
@@ -333,6 +378,14 @@ TEST_CASE("loading dicts")
     REQUIRE(l.getDict("test2.dict") != nullptr);
     REQUIRE(l.getDict("test3.dict") != nullptr);
     REQUIRE(l.getDict("../other/path/test3") != nullptr);
+}
+
+TEST_CASE("Connect to server", "[!hide][server]")
+{
+    Logic l;
+    auto fut = l.connectToServerAndSync("localhost:3000");
+    fut.get();
+    REQUIRE(l.mServerStatus == ServerStatus::connected);
 }
 
 #endif

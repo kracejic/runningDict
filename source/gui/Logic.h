@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <future>
+#include <chrono>
 
 #include "Dict.h"
 #include "Processer.h"
@@ -12,6 +14,13 @@ template <class T>
 void ignore_arg(const T&)
 {
 }
+
+enum class ServerStatus {
+    offline,
+    connecting,
+    connected,
+    synchronizing
+};
 
 class Logic
 {
@@ -28,6 +37,8 @@ class Logic
 
     bool mTranslateClipboardAtStart{false};
     bool mAlwaysOnTop{true};
+
+    std::string mServer{""};
 
     std::string mLastDictForNewWord{""};
     std::vector<Dict> mDicts;
@@ -47,6 +58,11 @@ class Logic
     std::string getPackagePath();
 
     bool createDict(const std::string& filename);
+
+    std::future<void> connectToServerAndSync(const std::string& url);
+
+    ServerStatus mServerStatus {ServerStatus::offline};
+    std::chrono::system_clock::time_point mLastServerSync;
 
   private:
     std::string mConfigFilename;

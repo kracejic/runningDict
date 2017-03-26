@@ -4,13 +4,6 @@
 #include <string>
 
 
-namespace Dicts
-{
-bool deleteWord(const std::string& word, const std::string dictname);
-bool changeWord(const std::string& word, const std::string& newTranslation,
-    const std::string dictname);
-} /* Dicts */
-
 
 class Dict
 {

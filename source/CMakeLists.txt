@@ -127,7 +127,7 @@ if(GTK3MM_FOUND)
     else()
         add_executable(runningDictGui ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     endif()
-    add_dependencies(runningDictGui Json spdlog)
+    add_dependencies(runningDictGui Json spdlog Cpr-ext)
 
     add_custom_target(gui-run
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
@@ -148,9 +148,10 @@ if(GTK3MM_FOUND)
 
     target_include_directories(runningDictGui SYSTEM PRIVATE 
         ${GTK3MM_INCLUDE_DIRS} 
-        ${EXTERNAL_JSON_INCLUDE_DIR})
+        ${EXTERNAL_JSON_INCLUDE_DIR}
+        ${CPR_INCLUDE_DIRS})
     target_link_libraries (runningDictGui
-        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
+        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES} ${CPR_LIBRARIES})
     set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
 
     install(TARGETS runningDictGui DESTINATION bin)
