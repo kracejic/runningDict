@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
-#include <future>
 #include <chrono>
+#include <future>
+#include <string>
 
 #include "Dict.h"
 #include "Processer.h"
@@ -15,7 +15,8 @@ void ignore_arg(const T&)
 {
 }
 
-enum class ServerStatus {
+enum class ServerStatus
+{
     offline,
     connecting,
     connected,
@@ -60,8 +61,9 @@ class Logic
     bool createDict(const std::string& filename);
 
     std::future<void> connectToServerAndSync(const std::string& url);
+    std::future<void> connectToServerAndSync();
 
-    ServerStatus mServerStatus {ServerStatus::offline};
+    ServerStatus mServerStatus{ServerStatus::offline};
     std::chrono::system_clock::time_point mLastServerSync;
 
   private:

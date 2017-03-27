@@ -7,7 +7,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
     , mToogleFirstCatch("Translate clipboard at start")
     , mToogleAlwaysOnTop("Main window stays always on top")
-      , mServerLabel("Remote server (none)")
+    , mServerLabel("Remote server (none)")
 {
     this->set_position(Gtk::WIN_POS_MOUSE);
     this->set_border_width(10);

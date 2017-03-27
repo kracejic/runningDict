@@ -320,14 +320,18 @@ void Logic::saveConfig(const std::string& filename)
     outFile << std::setw(4) << cfg << endl;
 }
 //------------------------------------------------------------------------------
-//
-
 #include "cpr/cpr.h"
+future<void> Logic::connectToServerAndSync()
+{
+    return connectToServerAndSync(mServer);
+}
+
 future<void> Logic::connectToServerAndSync(const std::string& url)
 {
     if (mServerStatus == ServerStatus::offline)
         mServerStatus = ServerStatus::connecting;
     mLastServerSync = std::chrono::system_clock::now();
+    L->info("Trying to sync with server: {}", url);
 
     auto fut = async(launch::async, [this, url]() {
         if (url == "")
@@ -345,18 +349,18 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         if (r["app"] == "dictionaryServer" &&
             r["version"].get<string>()[0] == '0')
             this->mServerStatus = ServerStatus::connected;
+        else
+            return;
+        L->info("Server connection succesfull ({})", url);
 
-
-        // TODO
         // sync dictionaries
         mServerStatus = ServerStatus::synchronizing;
-        // for(auto&& dic : mDicts)
-
+        for (auto&& dict : mDicts)
+            dict.sync(url);
 
         mLastServerSync = std::chrono::system_clock::now();
         mServerStatus = ServerStatus::connected;
     });
-
     return fut;
 }
 

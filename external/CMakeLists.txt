@@ -99,6 +99,7 @@ ExternalProject_Add(
     UPDATE_DISCONNECTED 1
     #disable install step
     INSTALL_DIR "" INSTALL_COMMAND ""
+    CMAKE_ARGS "-DCMAKE_CXX_FLAGS=-fPIC"
     )
 set(CPR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/include CACHE
     INTERNAL "")

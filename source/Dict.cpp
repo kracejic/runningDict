@@ -1,4 +1,6 @@
 #include "Dict.h"
+#include "cpr/cpr.h"
+#include "json.hpp"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -12,18 +14,12 @@ namespace fs = std::experimental::filesystem;
 #endif
 
 using namespace std;
+using json = nlohmann::json;
 
 Dict::Dict()
 {
     // create empty string
     mContent.reset(new std::string(""));
-}
-Dict::Dict(const std::string& filename)
-{
-    mFilename = filename;
-    mName = fs::path(filename).stem().string();
-    mContent.reset(new std::string(""));
-    this->reload();
 }
 //-----------------------------------------------------------------------------
 Dict::Dict(const std::string& filename, int bonus, bool enabled)
@@ -44,45 +40,11 @@ void Dict::fill(const std::string& content)
     mIs_open = true;
 }
 //-----------------------------------------------------------------------------
-const std::string& Dict::getName() const
-{
-    return mName;
-}
-//-----------------------------------------------------------------------------
-const std::string& Dict::getFilename() const
-{
-    return mFilename;
-}
-//-----------------------------------------------------------------------------
 bool Dict::reload()
 {
     if (!is_open() && mFilename == "")
         return false;
     return (open(mFilename));
-}
-//-----------------------------------------------------------------------------
-bool Dict::is_enabled()
-{
-    return mEnabled;
-}
-//-----------------------------------------------------------------------------
-bool Dict::toogle_enable()
-{
-    return this->enable(not mEnabled);
-}
-//-----------------------------------------------------------------------------
-bool Dict::enable(bool state)
-{
-    if (state)
-    {
-        mEnabled = true;
-        if (not mIs_open)
-            mEnabled = reload();
-    }
-    else
-        mEnabled = false;
-
-    return mEnabled;
 }
 //-----------------------------------------------------------------------------
 bool Dict::open(const std::string& filename)
@@ -112,13 +74,44 @@ bool Dict::open(const std::string& filename)
     mIs_open = true;
     mErrorState = false;
 
+    // load metadata
+    if (fs::exists(filename + ".meta") == true)
+    {
+        ifstream metaFile{filename + ".meta"};
+        json meta;
+        metaFile >> meta;
+
+        mOnline = meta.value("online", false);
+        mReadOnly = meta.value("readOnly", false);
+    }
 
     return true;
 }
 //-----------------------------------------------------------------------------
-bool Dict::is_open()
+void Dict::saveDictionary()
 {
-    return mIs_open;
+    auto holder = mContent;
+    if (mFilename == "")
+        return;
+    std::ofstream outfile{mFilename};
+    outfile << *holder << endl;
+
+    // save metadata
+    json meta;
+    meta["online"] = mOnline;
+    meta["readOnly"] = mReadOnly;
+
+    std::ofstream outMeta{mFilename+".meta"};
+    outMeta << std::setw(4) << meta << endl;
+}
+//-----------------------------------------------------------------------------
+void Dict::sync(std::string serverUrl)
+{
+    if (mOnline == false)
+        return;
+
+    auto re = cpr::Get(cpr::Url{serverUrl + "/api/version"});
+    json r = json::parse(re.text);
 }
 //-----------------------------------------------------------------------------
 std::shared_ptr<const std::string> Dict::getContens() const
@@ -335,13 +328,48 @@ bool Dict::deleteWord(const std::string& word)
     return result;
 }
 //-----------------------------------------------------------------------------
-void Dict::saveDictionary()
+bool Dict::is_enabled()
 {
-    auto holder = mContent;
-    if (mFilename == "")
-        return;
-    std::ofstream outfile{mFilename};
-    outfile << *holder << endl;
+    return mEnabled;
+}
+//-----------------------------------------------------------------------------
+bool Dict::toogle_enable()
+{
+    return this->enable(not mEnabled);
+}
+//-----------------------------------------------------------------------------
+bool Dict::enable(bool state)
+{
+    if (state)
+    {
+        mEnabled = true;
+        if (not mIs_open)
+            mEnabled = reload();
+    }
+    else
+        mEnabled = false;
+
+    return mEnabled;
+}
+//-----------------------------------------------------------------------------
+void Dict::setName(const std::string name)
+{
+    mName = name;
+}
+//-----------------------------------------------------------------------------
+const std::string& Dict::getName() const
+{
+    return mName;
+}
+//-----------------------------------------------------------------------------
+const std::string& Dict::getFilename() const
+{
+    return mFilename;
+}
+//-----------------------------------------------------------------------------
+bool Dict::is_open()
+{
+    return mIs_open;
 }
 //-----------------------------------------------------------------------------
 
@@ -453,5 +481,17 @@ TEST_CASE("checking for a word")
     d.changeWord("ein", "jeden", "eine");
     REQUIRE(*(d.getContens()) == "eine\n jeden\nzwei\n zwei\ndrei\n three");
     REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
+}
+
+TEST_CASE("Test syncing of dictionary", "[!hide][server]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+
+    d.sync("localhost:3000");
+
+    // REQUIRE();
 }
 #endif

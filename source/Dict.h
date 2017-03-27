@@ -4,7 +4,6 @@
 #include <string>
 
 
-
 class Dict
 {
   private:
@@ -18,8 +17,8 @@ class Dict
 
   public:
     Dict();
-    Dict(const std::string& filename);
-    Dict(const std::string& filename, int bonus, bool enabled);
+    // Dict(const std::string& filename);
+    Dict(const std::string& filename, int bonus = 0, bool enabled = true);
 
     /// Fill dictionary with custom string, usefull for testing
     void fill(const std::string& content);
@@ -75,14 +74,18 @@ class Dict
 
     bool deleteWord(const std::string& word);
 
+    void sync(std::string serverUrl);
 
     void saveDictionary();
 
     const std::string& getFilename() const;
+    void setName(const std::string name);
     const std::string& getName() const;
     std::shared_ptr<const std::string> getContens() const;
     long long getContensSize() const;
 
     int mBonus{0}; ///< Lower means higher
+    bool mOnline{false};
+    bool mReadOnly{false};
     bool mErrorState{false};
 };

@@ -28,6 +28,8 @@ else()
     link_libraries(stdc++fs)
 endif()
 
+#------------------------------------------------------------------------------
+# Targets
 
 set(SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
@@ -50,14 +52,17 @@ set(HEADERS
 
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
-target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT} ${CPR_LIBRARIES})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
-add_dependencies(runningDict Json spdlog)
+add_dependencies(runningDict Json spdlog Cpr-ext)
+target_include_directories(runningDict SYSTEM PRIVATE ${CPR_INCLUDE_DIRS}
+    ${EXTERNAL_JSON_INCLUDE_DIR})
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
-target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT} ${CPR_LIBRARIES})
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
-add_dependencies(libRunningDict Json spdlog)
+add_dependencies(libRunningDict Json spdlog Cpr-ext)
+target_include_directories(libRunningDict SYSTEM PRIVATE ${CPR_INCLUDE_DIRS} ${EXTERNAL_JSON_INCLUDE_DIR})
 
 
 
