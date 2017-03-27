@@ -14,7 +14,7 @@ using namespace std;
 
 std::shared_ptr<spdlog::logger> L;
 
-void logging::init(std::string directory)
+void logging::init(const std::string& directory)
 {
     static bool done = false;
     if (done == true)

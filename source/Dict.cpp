@@ -75,7 +75,7 @@ bool Dict::open(const std::string& filename)
     mErrorState = false;
 
     // load metadata
-    if (fs::exists(filename + ".meta") == true)
+    if (fs::exists(filename + ".meta"))
     {
         ifstream metaFile{filename + ".meta"};
         json meta;
@@ -105,9 +105,9 @@ void Dict::saveDictionary()
     outMeta << std::setw(4) << meta << endl;
 }
 //-----------------------------------------------------------------------------
-void Dict::sync(std::string serverUrl)
+void Dict::sync(const std::string& serverUrl)
 {
-    if (mOnline == false)
+    if (not mOnline)
         return;
 
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/version"});
@@ -352,7 +352,7 @@ bool Dict::enable(bool state)
     return mEnabled;
 }
 //-----------------------------------------------------------------------------
-void Dict::setName(const std::string name)
+void Dict::setName(const std::string& name)
 {
     mName = name;
 }

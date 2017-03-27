@@ -74,12 +74,12 @@ class Dict
 
     bool deleteWord(const std::string& word);
 
-    void sync(std::string serverUrl);
+    void sync(const std::string& serverUrl);
 
     void saveDictionary();
 
     const std::string& getFilename() const;
-    void setName(const std::string name);
+    void setName(const std::string& name);
     const std::string& getName() const;
     std::shared_ptr<const std::string> getContens() const;
     long long getContensSize() const;
