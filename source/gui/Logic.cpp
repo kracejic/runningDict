@@ -339,6 +339,11 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
 
         // test if server is there
         auto re = cpr::Get(cpr::Url{url + "/api/version"});
+        if (re.status_code != 200)
+        {
+            mServerStatus = ServerStatus::serverNotAvailable;
+            return;
+        }
         json r = json::parse(re.text);
         L->info(re.text);
         L->info(r.dump());

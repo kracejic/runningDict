@@ -99,7 +99,7 @@ ExternalProject_Add(
     UPDATE_DISCONNECTED 1
     #disable install step
     INSTALL_DIR "" INSTALL_COMMAND ""
-    CMAKE_ARGS "-DCMAKE_CXX_FLAGS=-fPIC"
+    CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fPIC -DBUILD_CPR_TESTS=OFF
     )
 set(CPR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/include CACHE
     INTERNAL "")
@@ -110,7 +110,7 @@ set(CPR_LIBRARIES
 # Update cpr target
 add_custom_target(external-cpr-update
     COMMENT "Updated whoshuu/cpr"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/cpr
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Cpr-ext)
 

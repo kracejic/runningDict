@@ -18,6 +18,7 @@ void ignore_arg(const T&)
 enum class ServerStatus
 {
     offline,
+    serverNotAvailable,
     connecting,
     connected,
     synchronizing

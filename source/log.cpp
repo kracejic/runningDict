@@ -22,7 +22,7 @@ void logging::init(const std::string& directory)
     done = true;
 
     auto filepath = fs::path(directory) / "logfile";
-    if (not fs::exists(fs::path(directory)))
+    if (directory != "" && not fs::exists(fs::path(directory)))
         create_directories(fs::path(directory));
 
     vector<spdlog::sink_ptr> sinks;
