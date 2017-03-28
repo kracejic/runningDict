@@ -19,6 +19,7 @@ enum class ServerStatus
 {
     offline,
     serverNotAvailable,
+    serverError,
     connecting,
     connected,
     synchronizing

@@ -353,15 +353,22 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         // check server type and compatible versions
         if (r["app"] == "dictionaryServer" &&
             r["version"].get<string>()[0] == '0')
+        {
             this->mServerStatus = ServerStatus::connected;
+        }
         else
+        {
+            mServerStatus = ServerStatus::serverError;
             return;
+        }
         L->info("Server connection succesfull ({})", url);
 
         // sync dictionaries
         mServerStatus = ServerStatus::synchronizing;
         for (auto&& dict : mDicts)
             dict.sync(url);
+
+        // TODO download new dictionaries
 
         mLastServerSync = std::chrono::system_clock::now();
         mServerStatus = ServerStatus::connected;

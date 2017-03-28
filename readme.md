@@ -113,6 +113,8 @@ config file and adding absolute path into *additionalSearchDirs* array.
 
 * Ubuntu 16.04: `sudo apt-get install cmake g++ graphviz plantuml git clang clang-tidy clang-format libgtkmm-3.0-dev`
 
+* TODO curl-devel (open)ssl-devel
+
 #### Prerequisites on Windows
 
 * Install msys2 and install these packages:
@@ -161,7 +163,6 @@ Standard Makefiles:
 ~~~
 mkdir build ; cd build
 cmake ..
-make update
 make -j8 install
 ~~~
 
@@ -170,7 +171,6 @@ Ninja build witch clang, build all and install it to dist folder, also build doc
 ~~~
 mkdir build ; cd build
 cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
-ninja update
 ninja all doc install
 ~~~
 
@@ -179,7 +179,6 @@ There are basic tests which can be exuted by building **check** target.
 ~~~
 mkdir build ; cd build
 cmake ..
-make update
 make check
 ~~~
 
@@ -206,16 +205,14 @@ On windows prefer Ninja since it is **MUCH** faster than make.
 With gcc build and install (default is build/dist):
 ~~~
 mkdir build ; cd build
-cmake -GNinja ..
-ninja update
+cmake -GNinja -DUSE_BOOST_FILESYSTEM=TRUE ..
 ninja install
 ~~~
 
 With clang++, build executable, doxygen documentation and install:
 ~~~
 mkdir build ; cd build
-cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
-ninja update
+cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" -DUSE_BOOST_FILESYSTEM=TRUE ..
 ninja all doc install
 ~~~
 
@@ -236,7 +233,7 @@ this:
 ~~~
 mkdir buildmsvc
 cd buildmsvc
-cmake -G "Visual Studio 14 2015" ..
+cmake -G "Visual Studio 14 2015"  -DUSE_BOOST_FILESYSTEM=TRUE ..
 ~~~
 
 and you can now open a `.sln` file with Visual Studio. You need to RMB click on

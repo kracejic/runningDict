@@ -3,7 +3,29 @@
 #include <future>
 #include <memory>
 #include <string>
+#include <vector>
 
+enum class ChangeType
+{
+    addWord,
+    deleteWord,
+    changeWord
+};
+
+struct Change
+{
+    ChangeType changeType;
+    std::string word;
+    std::string wordNew{""};
+    std::string translation;
+
+    Change(ChangeType _type, std::string _word, std::string _translation,
+        std::string _wordNew = "")
+        : changeType(_type)
+        , word(_word)
+        , wordNew(_wordNew)
+        , translation(_translation){};
+};
 
 class Dict
 {
@@ -13,6 +35,8 @@ class Dict
     std::string mFilename{""};
     std::string mName{""};
     bool mEnabled{true};
+
+    std::vector<Change> history;
 
   public:
     Dict();

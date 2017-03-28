@@ -1,10 +1,10 @@
 #include "Dict.h"
 #include "cpr/cpr.h"
 #include "json.hpp"
+#include "log.h"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
-#include "log.h"
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -109,7 +109,7 @@ bool Dict::sync(const std::string& serverUrl)
 {
     if (not mOnline)
         return false;
-    L->debug("Syncin dict {} to {}",mName, serverUrl);
+    L->info("Syncin dict {} to {}", mName, serverUrl);
 
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
     if (re.status_code != 200)
@@ -120,24 +120,43 @@ bool Dict::sync(const std::string& serverUrl)
     {
         if (mName == dict.get<string>())
         {
-            // TODO implement sync
             L->info("Synchronizing with server");
+            // This dictionary is on server
+            if (*mContent == "")
+            {
+                L->info("Dictionary is empty, downloading");
+                // TODO implement sync
+                // auto re =
+                //     cpr::Get(cpr::Url{serverUrl + "/api/dictionary/delete"},
+                //         cpr::Parameters{{"dict", mName}});
+                // string txt = cpr::get(sadfasdfasf);
+                // fill(txt);
+            }
+            else
+            {
+                L->info("Dictionary is not empty, synchronizing history");
+                // Later
+            }
+
+            saveDictionary();
             return true;
         }
     }
-    
-    L->info("Uploading to server");
 
+    // This dictionary is not on server
+    L->info("Uploading to server");
     // when dictionary is not on server, it is created and filled with current
     // data.
+    // TODO fix
     auto re2 = cpr::Get(cpr::Url{serverUrl + "/api/dictionary/create"},
-            cpr::Parameters{{"name", mName}, {"data", *mContent}});
+        cpr::Parameters{{"name", mName}, {"data", *mContent}});
     L->info("re2.text = {}", re2.text);
     L->info("re2.status_code = {}", re2.status_code);
 
     if (re2.status_code != 200)
         return false;
 
+    saveDictionary();
     return true;
 }
 //-----------------------------------------------------------------------------
@@ -518,13 +537,13 @@ TEST_CASE("checking for a word")
 string server = "localhost:3000";
 
 // TODO remove !mayfail
-TEST_CASE("Test syncing of dictionary with server", "[!hide][server][!mayfail]")
+TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
 {
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
-    d.deleteFromServer(server);
+    d.deleteFromServer(server).get();
     REQUIRE(d.sync(server));
 
     // test that server has the same dict
@@ -536,7 +555,7 @@ TEST_CASE("Test syncing of dictionary with server", "[!hide][server][!mayfail]")
 }
 
 // TODO remove !mayfail
-TEST_CASE("Test adding to server", "[!hide][server][!mayfail]")
+TEST_CASE("Test adding to server", "[!hide][serverNotReady][!mayfail]")
 {
     Dict d;
     d.setName("testDictionary");
