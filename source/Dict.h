@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <future>
 #include <memory>
 #include <string>
 
@@ -13,46 +14,14 @@ class Dict
     std::string mName{""};
     bool mEnabled{true};
 
-    bool is_open();
-
   public:
     Dict();
-    // Dict(const std::string& filename);
     Dict(const std::string& filename, int bonus = 0, bool enabled = true);
 
     /// Fill dictionary with custom string, usefull for testing
     void fill(const std::string& content);
 
-    /**
-     * Load the file
-     * @param  filename
-     * @return          [description]
-     */
-    bool open(const std::string& filename);
-
-    /**
-     * Is dictionary enabled (thus loaded)?
-     */
-    bool is_enabled();
-
-    /**
-     * Tries to enable or disable dict. Also loads the file if neccessary.
-     * @param  state desired state
-     * @return       returns end state
-     */
-    bool enable(bool state = true);
-
-    /**
-     * Flips enable state (if possible). Also loads the file if neccessary.
-     * @return       returns end state
-     */
-    bool toogle_enable();
-
-    /**
-     * Reloads the content from dict file.
-     */
-    bool reload();
-
+    bool hasWord(const std::string& word);
 
     /**
      * Add new word to dictionary.
@@ -61,8 +30,6 @@ class Dict
      * @return             was this succesfull?
      */
     bool addWord(const std::string& word, const std::string& translation);
-
-    bool hasWord(const std::string& word);
 
     /**
      * Changes the word in dictionary.
@@ -74,15 +41,24 @@ class Dict
 
     bool deleteWord(const std::string& word);
 
-    void sync(const std::string& serverUrl);
 
+    bool open(const std::string& filename);
+    bool reload();
     void saveDictionary();
+    bool sync(const std::string& serverUrl);
+    std::future<bool> deleteFromServer(const std::string& serverUrl);
 
+    // content getters
+    std::shared_ptr<const std::string> getContens() const;
+    long long getContensSize() const;
+
+    // getters, setters
+    bool is_enabled();
+    bool enable(bool state = true);
+    bool toogle_enable();
     const std::string& getFilename() const;
     void setName(const std::string& name);
     const std::string& getName() const;
-    std::shared_ptr<const std::string> getContens() const;
-    long long getContensSize() const;
 
     int mBonus{0}; ///< Lower means higher
     bool mOnline{false};

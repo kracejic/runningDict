@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include "log.h"
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -18,7 +19,6 @@ using json = nlohmann::json;
 
 Dict::Dict()
 {
-    // create empty string
     mContent.reset(new std::string(""));
 }
 //-----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ void Dict::fill(const std::string& content)
 //-----------------------------------------------------------------------------
 bool Dict::reload()
 {
-    if (!is_open() && mFilename == "")
+    if (not mIs_open && mFilename == "")
         return false;
     return (open(mFilename));
 }
@@ -101,17 +101,55 @@ void Dict::saveDictionary()
     meta["online"] = mOnline;
     meta["readOnly"] = mReadOnly;
 
-    std::ofstream outMeta{mFilename+".meta"};
+    std::ofstream outMeta{mFilename + ".meta"};
     outMeta << std::setw(4) << meta << endl;
 }
 //-----------------------------------------------------------------------------
-void Dict::sync(const std::string& serverUrl)
+bool Dict::sync(const std::string& serverUrl)
 {
     if (not mOnline)
-        return;
+        return false;
+    L->debug("Syncin dict {} to {}",mName, serverUrl);
 
-    auto re = cpr::Get(cpr::Url{serverUrl + "/api/version"});
+    auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
+    if (re.status_code != 200)
+        return false;
+
     json r = json::parse(re.text);
+    for (auto& dict : r)
+    {
+        if (mName == dict.get<string>())
+        {
+            // TODO implement sync
+            L->info("Synchronizing with server");
+            return true;
+        }
+    }
+    
+    L->info("Uploading to server");
+
+    // when dictionary is not on server, it is created and filled with current
+    // data.
+    auto re2 = cpr::Get(cpr::Url{serverUrl + "/api/dictionary/create"},
+            cpr::Parameters{{"name", mName}, {"data", *mContent}});
+    L->info("re2.text = {}", re2.text);
+    L->info("re2.status_code = {}", re2.status_code);
+
+    if (re2.status_code != 200)
+        return false;
+
+    return true;
+}
+//-----------------------------------------------------------------------------
+future<bool> Dict::deleteFromServer(const std::string& serverUrl)
+{
+    return async(std::launch::async, [this, serverUrl]() {
+        if (not mOnline)
+            return false;
+        auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary/delete"},
+            cpr::Parameters{{"dict", mName}});
+        return re.status_code == 200;
+    });
 }
 //-----------------------------------------------------------------------------
 std::shared_ptr<const std::string> Dict::getContens() const
@@ -138,7 +176,16 @@ string getLowerCase2(const string& txt)
     return res;
 }
 //-----------------------------------------------------------------------------
-
+bool Dict::hasWord(const std::string& word)
+{
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+        if (line == word)
+            return true;
+    return false;
+}
+//-----------------------------------------------------------------------------
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
     if (not mIs_open)
@@ -168,16 +215,6 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     this->saveDictionary();
 
     return true;
-}
-//-----------------------------------------------------------------------------
-bool Dict::hasWord(const std::string& word)
-{
-    auto holder = mContent;
-    std::istringstream iss{*holder};
-    for (std::string line; std::getline(iss, line);)
-        if (line == word)
-            return true;
-    return false;
 }
 //-----------------------------------------------------------------------------
 bool myIsPunct2(char ch)
@@ -367,11 +404,6 @@ const std::string& Dict::getFilename() const
     return mFilename;
 }
 //-----------------------------------------------------------------------------
-bool Dict::is_open()
-{
-    return mIs_open;
-}
-//-----------------------------------------------------------------------------
 
 
 #ifdef UNIT_TESTS
@@ -483,15 +515,44 @@ TEST_CASE("checking for a word")
     REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
 }
 
-TEST_CASE("Test syncing of dictionary", "[!hide][server]")
+string server = "localhost:3000";
+
+// TODO remove !mayfail
+TEST_CASE("Test syncing of dictionary with server", "[!hide][server][!mayfail]")
 {
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.deleteFromServer(server);
+    REQUIRE(d.sync(server));
 
-    d.sync("localhost:3000");
+    // test that server has the same dict
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(*(d.getContens()) == *(d2.getContens()));
+}
 
-    // REQUIRE();
+// TODO remove !mayfail
+TEST_CASE("Test adding to server", "[!hide][server][!mayfail]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
+
+    d.addWord("katze", "kocicka");
+    REQUIRE(d.sync(server));
+
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(*(d.getContens()) == *(d2.getContens()));
 }
 #endif

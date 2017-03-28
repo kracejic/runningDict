@@ -35,6 +35,12 @@ add_custom_target(unit
     DEPENDS unittests)
 add_custom_target(unitall
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+    # COMMAND $<TARGET_FILE:unittests> \"[server],*\" -s -a -r=compact --use-colour yes
     COMMAND $<TARGET_FILE:unittests> \"[server],*\" -s -a -r=compact --use-colour yes
+    DEPENDS unittests)
+add_custom_target(unitserver
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+    # COMMAND $<TARGET_FILE:unittests> \"[server],*\" -s -a -r=compact --use-colour yes
+    COMMAND $<TARGET_FILE:unittests> \"[server]\" -s -a -r=compact --use-colour yes
     DEPENDS unittests)
 
