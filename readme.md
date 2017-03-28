@@ -118,8 +118,8 @@ config file and adding absolute path into *additionalSearchDirs* array.
 #### Prerequisites on Windows
 
 * Install msys2 and install these packages:
-    * Minimal: `pacman -S cmake g++ git mingw-w64-x86_64-gtkmm3`
-    * Additional software `pacman -S mingw-w64-x86_64-clang mingw-w64-x86_64-clang-tools-extra mingw-w64-x86_64-clang-analyzer doxygen`
+    * Minimal: `mingw32/mingw-w64-i686-gcc mingw32/mingw-w64-i686-gtkmm3 mingw32/mingw-w64-i686-cmake git`
+    * Additional software `pacman -S mingw-w64-i686-clang mingw-w64-i686-clang-tools-extra mingw-w64-i686-clang-analyzer doxygen`
     * For graphs in documentation install Graphviz (to `c:\Program Files\Graphviz`, so scripts can find it) and add its `bin` subdirectory to *PATH*, install java (have it on *PATH*), download PlantUML jar file and have it on *PATH*.
 
 
