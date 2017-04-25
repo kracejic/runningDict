@@ -205,7 +205,7 @@ bool Dict::hasWord(const std::string& word)
     return false;
 }
 //-----------------------------------------------------------------------------
-bool Dict::addWord(const std::string& word, const std::string& translation)
+bool Dict::addWord(const std::string& word, const std::string& translation, bool history)
 {
     if (not mIs_open)
         throw std::domain_error{
@@ -306,7 +306,7 @@ bool compare_weak(const std::string& lhs, const std::string& rhs)
 }
 //-----------------------------------------------------------------------------
 bool Dict::changeWord(const std::string& word,
-    const std::string& newTranslation, const std::string& wordNew)
+    const std::string& newTranslation, const std::string& wordNew, bool history)
 {
     bool result = false;
     auto holder = mContent;
@@ -349,7 +349,7 @@ bool Dict::changeWord(const std::string& word,
     return result;
 }
 //-----------------------------------------------------------------------------
-bool Dict::deleteWord(const std::string& word)
+bool Dict::deleteWord(const std::string& word, bool history)
 {
     bool result = false;
     auto holder = mContent;

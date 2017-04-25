@@ -99,6 +99,7 @@ ExternalProject_Add(
     UPDATE_DISCONNECTED 1
     #disable install step
     INSTALL_DIR "" INSTALL_COMMAND ""
+    # BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext-build-${CMAKE_GENERATOR}"
     CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fPIC -DBUILD_CPR_TESTS=OFF
     )
 set(CPR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/include CACHE

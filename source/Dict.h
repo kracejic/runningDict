@@ -19,7 +19,7 @@ struct Change
     std::string wordNew{""};
     std::string translation;
 
-    Change(ChangeType _type, std::string _word, std::string _translation,
+    Change(ChangeType _type, std::string _word, std::string _translation = "",
         std::string _wordNew = "")
         : changeType(_type)
         , word(_word)
@@ -37,6 +37,7 @@ class Dict
     bool mEnabled{true};
 
     std::vector<Change> history;
+    int revision{0};
 
   public:
     Dict();
@@ -50,10 +51,9 @@ class Dict
     /**
      * Add new word to dictionary.
      * This causes write to harddrive.
-     *
      * @return             was this succesfull?
      */
-    bool addWord(const std::string& word, const std::string& translation);
+    bool addWord(const std::string& word, const std::string& translation, bool history=true);
 
     /**
      * Changes the word in dictionary.
@@ -61,14 +61,15 @@ class Dict
      * If wordNew is not empty translated word is replaced.
      */
     bool changeWord(const std::string& word, const std::string& newTranslation,
-        const std::string& wordNew = "");
+        const std::string& wordNew = "", bool history=true);
 
-    bool deleteWord(const std::string& word);
+    bool deleteWord(const std::string& word, bool history=true);
 
 
     bool open(const std::string& filename);
     bool reload();
     void saveDictionary();
+
     bool sync(const std::string& serverUrl);
     std::future<bool> deleteFromServer(const std::string& serverUrl);
 
