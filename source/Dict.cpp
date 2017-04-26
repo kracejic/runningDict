@@ -109,7 +109,7 @@ bool Dict::sync(const std::string& serverUrl)
 {
     if (not mOnline)
         return false;
-    L->info("Syncin dict {} to {}", mName, serverUrl);
+    L->info("Synchronizing dict {} to {}", mName, serverUrl);
 
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
     if (re.status_code != 200)
@@ -120,24 +120,23 @@ bool Dict::sync(const std::string& serverUrl)
     {
         if (mName == dict.get<string>())
         {
-            L->info("Synchronizing with server");
-            // This dictionary is on server
+            L->info("Dictionary found on server, synchronizing");
             if (*mContent == "")
             {
                 L->info("Dictionary is empty, downloading");
-                // TODO implement sync
-                // auto re =
-                //     cpr::Get(cpr::Url{serverUrl + "/api/dictionary/delete"},
-                //         cpr::Parameters{{"dict", mName}});
-                // string txt = cpr::get(sadfasdfasf);
-                // fill(txt);
+                auto re2 =
+                    cpr::Get(cpr::Url{serverUrl + "/api/dictionary/" + mName},
+                        cpr::Parameters{{"dict", mName}});
+                json r2 = json::parse(re2.text);
+                fill(r2["text"]);
+                // TODO Backend should return revision
             }
             else
             {
+                // TODO implement sync
                 L->info("Dictionary is not empty, synchronizing history");
                 // Later
             }
-
             saveDictionary();
             return true;
         }
@@ -148,12 +147,13 @@ bool Dict::sync(const std::string& serverUrl)
     // when dictionary is not on server, it is created and filled with current
     // data.
     // TODO fix
-    auto re2 = cpr::Get(cpr::Url{serverUrl + "/api/dictionary/create"},
-        cpr::Parameters{{"name", mName}, {"data", *mContent}});
-    L->info("re2.text = {}", re2.text);
-    L->info("re2.status_code = {}", re2.status_code);
+    auto re3 = cpr::Post(cpr::Url{serverUrl + "/api/dictionary"},
+        cpr::Payload{{"name", mName}, {"text", *mContent}});
+    L->info("What we are uploading: {}", *mContent);
+    L->info("re3.text = {}", re3.text);
+    L->info("re3.status_code = {}", re3.status_code);
 
-    if (re2.status_code != 200)
+    if (re3.status_code != 201)
         return false;
 
     saveDictionary();
@@ -165,8 +165,10 @@ future<bool> Dict::deleteFromServer(const std::string& serverUrl)
     return async(std::launch::async, [this, serverUrl]() {
         if (not mOnline)
             return false;
-        auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary/delete"},
+        auto re = cpr::Delete(cpr::Url{serverUrl + "/api/dictionary/"+mName},
             cpr::Parameters{{"dict", mName}});
+        if (re.status_code != 200)
+            L->info("Delete from server for {} not succesfull: \n   {}", mName, re.text);
         return re.status_code == 200;
     });
 }
@@ -205,7 +207,16 @@ bool Dict::hasWord(const std::string& word)
     return false;
 }
 //-----------------------------------------------------------------------------
-bool Dict::addWord(const std::string& word, const std::string& translation, bool history)
+bool Dict::addWord(const std::string& word, const std::string& translation)
+{
+    if (_addWord(word, translation))
+    {
+        history.emplace_back(ChangeType::addWord, word, translation);
+        return true;
+    }
+    return false;
+}
+bool Dict::_addWord(const std::string& word, const std::string& translation)
 {
     if (not mIs_open)
         throw std::domain_error{
@@ -306,7 +317,18 @@ bool compare_weak(const std::string& lhs, const std::string& rhs)
 }
 //-----------------------------------------------------------------------------
 bool Dict::changeWord(const std::string& word,
-    const std::string& newTranslation, const std::string& wordNew, bool history)
+    const std::string& newTranslation, const std::string& wordNew)
+{
+    if (_changeWord(word, newTranslation, wordNew))
+    {
+        history.emplace_back(
+            ChangeType::changeWord, word, newTranslation, wordNew);
+        return true;
+    }
+    return false;
+}
+bool Dict::_changeWord(const std::string& word,
+    const std::string& newTranslation, const std::string& wordNew)
 {
     bool result = false;
     auto holder = mContent;
@@ -349,7 +371,16 @@ bool Dict::changeWord(const std::string& word,
     return result;
 }
 //-----------------------------------------------------------------------------
-bool Dict::deleteWord(const std::string& word, bool history)
+bool Dict::deleteWord(const std::string& word)
+{
+    if (_deleteWord(word))
+    {
+        history.emplace_back(ChangeType::deleteWord, word);
+        return true;
+    }
+    return false;
+}
+bool Dict::_deleteWord(const std::string& word)
 {
     bool result = false;
     auto holder = mContent;
@@ -534,9 +565,10 @@ TEST_CASE("checking for a word")
     REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
 }
 
+//-----------------------------------------------------------------------------
+// SERVER tests
 string server = "localhost:3000";
 
-// TODO remove !mayfail
 TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
 {
     Dict d;

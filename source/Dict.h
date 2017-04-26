@@ -53,7 +53,7 @@ class Dict
      * This causes write to harddrive.
      * @return             was this succesfull?
      */
-    bool addWord(const std::string& word, const std::string& translation, bool history=true);
+    bool addWord(const std::string& word, const std::string& translation);
 
     /**
      * Changes the word in dictionary.
@@ -61,9 +61,9 @@ class Dict
      * If wordNew is not empty translated word is replaced.
      */
     bool changeWord(const std::string& word, const std::string& newTranslation,
-        const std::string& wordNew = "", bool history=true);
+        const std::string& wordNew = "");
 
-    bool deleteWord(const std::string& word, bool history=true);
+    bool deleteWord(const std::string& word);
 
 
     bool open(const std::string& filename);
@@ -89,4 +89,10 @@ class Dict
     bool mOnline{false};
     bool mReadOnly{false};
     bool mErrorState{false};
+  private:
+    
+    bool _addWord(const std::string& word, const std::string& translation);
+    bool _changeWord(const std::string& word, const std::string& newTranslation,
+        const std::string& wordNew = "");
+    bool _deleteWord(const std::string& word);
 };
