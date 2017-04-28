@@ -89,10 +89,12 @@ class Dict
     bool mOnline{false};
     bool mReadOnly{false};
     bool mErrorState{false};
+
   private:
-    
     bool _addWord(const std::string& word, const std::string& translation);
     bool _changeWord(const std::string& word, const std::string& newTranslation,
         const std::string& wordNew = "");
     bool _deleteWord(const std::string& word);
+
+    bool synchronizeHistory(const std::string& serverUrl);
 };

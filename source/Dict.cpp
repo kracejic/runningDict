@@ -135,7 +135,9 @@ bool Dict::sync(const std::string& serverUrl)
             {
                 // TODO implement sync
                 L->info("Dictionary is not empty, synchronizing history");
-                // Later
+                bool ret = this->synchronizeHistory(serverUrl);
+                saveDictionary();
+                return ret;
             }
             saveDictionary();
             return true;
@@ -160,15 +162,69 @@ bool Dict::sync(const std::string& serverUrl)
     return true;
 }
 //-----------------------------------------------------------------------------
+bool Dict::synchronizeHistory(const std::string& serverUrl)
+{
+    // Prepare changelist in json array
+    auto changes = json::array();
+    for (const auto& change : history)
+    {
+        switch (change.changeType)
+        {
+            case ChangeType::addWord:
+                changes.push_back({{"type", "add"}, {"word", change.word},
+                    {"translation", change.translation}});
+                break;
+            case ChangeType::deleteWord:
+                changes.push_back({{"type", "delete"}, {"word", change.word}});
+                break;
+            case ChangeType::changeWord:
+                changes.push_back({{"type", "change"}, {"word", change.word},
+                    {"translation", change.translation},
+                    {"newWord", change.wordNew}});
+                break;
+        }
+    }
+    L->info("Our revision: {}", revision);
+    L->info("Our changes: {}", changes.dump());
+
+    // Sync with server (push our changes, receive server changes)
+    auto re = cpr::Post(cpr::Url{serverUrl + "/api/sync/dictionary/" + mName},
+        cpr::Payload{{"dict", mName}, {"revision", revision},
+            {"changes", changes.dump()}});
+
+    L->info("Response: {}", re.text);
+    if (re.status_code != 200)
+    {
+        L->info("Server responded: {}", re.status_code);
+        return false;
+    }
+
+    json response = json::parse(re.text);
+    for (const auto& change : response["changes"])
+    {
+        if (change["type"] == "add")
+            this->_addWord(change["word"], change["translation"]);
+        if (change["type"] == "delete")
+            this->_deleteWord(change["word"]);
+        if (change["type"] == "change")
+            this->_changeWord(change["word"], change["translation"],
+                change["newTranslation"]);
+    }
+    revision = response["revision"];
+
+    return true;
+}
+//-----------------------------------------------------------------------------
 future<bool> Dict::deleteFromServer(const std::string& serverUrl)
 {
     return async(std::launch::async, [this, serverUrl]() {
         if (not mOnline)
             return false;
-        auto re = cpr::Delete(cpr::Url{serverUrl + "/api/dictionary/"+mName},
+        auto re = cpr::Delete(cpr::Url{serverUrl + "/api/dictionary/" + mName},
             cpr::Parameters{{"dict", mName}});
         if (re.status_code != 200)
-            L->info("Delete from server for {} not succesfull: \n   {}", mName, re.text);
+            L->info("Delete from server for {} not succesfull: \n   {}", mName,
+                re.text);
         return re.status_code == 200;
     });
 }
@@ -574,7 +630,7 @@ TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
-    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three\n");
     d.deleteFromServer(server).get();
     REQUIRE(d.sync(server));
 
@@ -586,13 +642,12 @@ TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
     REQUIRE(*(d.getContens()) == *(d2.getContens()));
 }
 
-// TODO remove !mayfail
-TEST_CASE("Test adding to server", "[!hide][serverNotReady][!mayfail]")
+TEST_CASE("Test adding to server", "[!hide][server]")
 {
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
-    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three\n");
     d.deleteFromServer(server).get();
     REQUIRE(d.sync(server));
 
