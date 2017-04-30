@@ -1,4 +1,5 @@
 #pragma once
+#include <future>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -52,8 +53,9 @@ class SettingsWindow : public Gtk::Window
 
     std::unique_ptr<NewDictWindow> mAddDictWindow;
 
+    Gtk::Box mServerSettingBox;
     Gtk::Label mServerStatus;
-    Gtk::Label mServerLabel;
+    Gtk::CheckButton mToogleServer;
     Gtk::Entry mServer;
 
     /**
@@ -62,6 +64,9 @@ class SettingsWindow : public Gtk::Window
     bool on_key_press_event(GdkEventKey* key_event) override;
 
     void refreshDicts();
+    bool pulse(int num);
+    sigc::connection mPulseConnection;
+    std::future<void> mServerConnection;
 
   public:
     SettingsWindow(Logic& logic);

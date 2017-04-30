@@ -137,7 +137,7 @@ if(GTK3MM_FOUND)
     add_custom_target(gui-run
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
 	COMMAND ./runningDictGui
-	DEPENDS runningDictGui Install_)
+	DEPENDS runningDictGui)
     add_custom_target(run DEPENDS gui-run)
 
 
@@ -147,7 +147,7 @@ if(GTK3MM_FOUND)
         add_custom_target(gdb
             WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
             COMMAND ${GDB_PATH} ./runningDictGui
-            DEPENDS runningDictGui Install_)
+            DEPENDS runningDictGui)
     endif()
     
 

@@ -120,21 +120,22 @@ bool Dict::sync(const std::string& serverUrl)
     {
         if (mName == dict.get<string>())
         {
-            L->info("Dictionary found on server, synchronizing");
+            L->debug("Dictionary found on server, synchronizing");
             if (*mContent == "")
             {
-                L->info("Dictionary is empty, downloading");
+                L->debug("Dictionary is empty, downloading");
                 auto re2 =
                     cpr::Get(cpr::Url{serverUrl + "/api/dictionary/" + mName},
                         cpr::Parameters{{"dict", mName}});
                 json r2 = json::parse(re2.text);
                 fill(r2["text"]);
-                // TODO Backend should return revision
+                revision = r2["revision"];
+                /// @todo Backend should return revision, check if that is working
             }
             else
             {
-                // TODO implement sync
-                L->info("Dictionary is not empty, synchronizing history");
+                /// @todo implement sync
+                L->debug("Dictionary is not empty, synchronizing history");
                 bool ret = this->synchronizeHistory(serverUrl);
                 saveDictionary();
                 return ret;
@@ -145,18 +146,23 @@ bool Dict::sync(const std::string& serverUrl)
     }
 
     // This dictionary is not on server
-    L->info("Uploading to server");
+    L->debug("Uploading to server");
     // when dictionary is not on server, it is created and filled with current
     // data.
-    // TODO fix
+
+    /// @todo fix
     auto re3 = cpr::Post(cpr::Url{serverUrl + "/api/dictionary"},
         cpr::Payload{{"name", mName}, {"text", *mContent}});
-    L->info("What we are uploading: {}", *mContent);
-    L->info("re3.text = {}", re3.text);
-    L->info("re3.status_code = {}", re3.status_code);
+    L->debug("What we are uploading: {}", *mContent);
+    L->debug("re3.text = {}", re3.text);
+    L->debug("re3.status_code = {}", re3.status_code);
 
     if (re3.status_code != 201)
         return false;
+
+    json r3 = json::parse(re3.text);
+    revision = r3["revision"];
+    /// @todo Backend should return revision, check if that is working
 
     saveDictionary();
     return true;
@@ -184,18 +190,18 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
                 break;
         }
     }
-    L->info("Our revision: {}", revision);
-    L->info("Our changes: {}", changes.dump());
+    L->debug("Our revision: {}", revision);
+    L->debug("Our changes: {}", changes.dump());
 
     // Sync with server (push our changes, receive server changes)
     auto re = cpr::Post(cpr::Url{serverUrl + "/api/sync/dictionary/" + mName},
         cpr::Payload{{"dict", mName}, {"revision", revision},
             {"changes", changes.dump()}});
 
-    L->info("Response: {}", re.text);
+    L->debug("Response: {}", re.text);
     if (re.status_code != 200)
     {
-        L->info("Server responded: {}", re.status_code);
+        L->debug("Server responded: {}", re.status_code);
         return false;
     }
 
@@ -223,7 +229,7 @@ future<bool> Dict::deleteFromServer(const std::string& serverUrl)
         auto re = cpr::Delete(cpr::Url{serverUrl + "/api/dictionary/" + mName},
             cpr::Parameters{{"dict", mName}});
         if (re.status_code != 200)
-            L->info("Delete from server for {} not succesfull: \n   {}", mName,
+            L->debug("Delete from server for {} not succesfull: \n   {}", mName,
                 re.text);
         return re.status_code == 200;
     });

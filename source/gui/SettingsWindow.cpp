@@ -1,13 +1,18 @@
 #include "SettingsWindow.h"
 #include "Logic.h"
+#include "log.h"
 #include "version.h"
+#include <chrono>
 #include <string>
+
+using namespace std;
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
     , mToogleFirstCatch("Translate clipboard at start")
     , mToogleAlwaysOnTop("Main window stays always on top")
-    , mServerLabel("Remote server (none)")
+    , mServerStatus("")
+    , mToogleServer("Synchronization server")
 {
     this->set_position(Gtk::WIN_POS_MOUSE);
     this->set_border_width(10);
@@ -39,10 +44,25 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
     });
 
-    mGrid.attach(mServerLabel, 0, 3, 1, 1);
-    mGrid.attach(mServer, 1, 3, 1, 1);
-    mGrid.attach(mServerStatus, 2, 3, 1, 1);
-    mServer.set_margin_top(10);
+
+    // server settings
+    mGrid.attach(mServerSettingBox, 0, 3, 3, 1);
+    // mServerSettingBox.set_margin_top(10);
+    mServerSettingBox.pack_start(mToogleServer, false, false, 0);
+    mServerSettingBox.pack_start(mServer, false, false, 10);
+    mServerSettingBox.pack_start(mServerStatus, false, false, 0);
+    mServer.set_placeholder_text("url");
+    if (mLogic.mServer == "")
+    {
+        mServer.set_sensitive(false);
+        mToogleServer.set_active(false);
+    }
+    else
+    {
+        mServer.set_sensitive(true);
+        mToogleServer.set_active(true);
+        mServer.set_text(mLogic.mServer);
+    }
 
     // setup scrollView
     mGrid.attach(mScrollView, 0, 6, 4, 1);
@@ -60,10 +80,11 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mWebSiteLabel.set_margin_top(10);
     mWebSiteLabel.set_text("https://github.com/kracejic/runningDict");
 
-    mGrid.attach(mVersionLabel, 2, 8, 1, 1);
+    mGrid.attach(mVersionLabel, 2, 8, 2, 1);
     mVersionLabel.set_hexpand();
     mVersionLabel.set_margin_top(10);
     mVersionLabel.set_text(Version::getVersionShort());
+    mVersionLabel.set_halign(Gtk::Align::ALIGN_END);
 
     // dict treeView
     mRefListStore = Gtk::ListStore::create(mDictViewModel);
@@ -133,6 +154,11 @@ SettingsWindow::SettingsWindow(Logic& logic)
     this->refreshDicts();
 
     this->show_all_children();
+
+    // make pulse called repeatedly every 100ms
+    sigc::slot<bool> my_slot =
+        sigc::bind(sigc::mem_fun(*this, &SettingsWindow::pulse), 0);
+    mPulseConnection = Glib::signal_timeout().connect(my_slot, 500);
 }
 //------------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow()
@@ -141,6 +167,70 @@ SettingsWindow::~SettingsWindow()
     mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
 }
 //------------------------------------------------------------------------------
+bool SettingsWindow::pulse(int num)
+{
+    ignore_arg(num);
+
+    if (mToogleServer.get_active() &&
+        (!mServerConnection.valid() ||
+            mServerConnection.wait_for(1ns) == future_status::ready))
+    {
+        mLogic.mServer = mServer.get_text();
+        mServerConnection = mLogic.connectToServerAndSync();
+    }
+
+    if (mToogleServer.get_active())
+    {
+        mServerStatus.set_text("");
+
+        mServer.set_sensitive(true);
+        // Compute last contact with server
+        auto now = std::chrono::system_clock::now();
+        int diff =
+            chrono::duration_cast<chrono::seconds>(now - mLogic.mLastServerSync)
+                .count();
+
+        string textDiff = to_string(diff) + "seconds ago";
+        if (diff > 60)
+            textDiff = to_string(diff / 60) + "minutes ago";
+        if (diff > 3600)
+            textDiff = to_string(diff / 3600) + "hours ago";
+        if (diff > 3600 * 24 + 365)
+            textDiff = "not available";
+
+        mServerStatus.set_tooltip_text(
+            "Last contact with server was: " + textDiff);
+
+        switch (mLogic.mServerStatus)
+        {
+            case ServerStatus::offline:
+                mServerStatus.set_text("offline");
+                break;
+            case ServerStatus::serverNotAvailable:
+                mServerStatus.set_text("server offline");
+                break;
+            case ServerStatus::serverError:
+                mServerStatus.set_text("server error");
+                break;
+            case ServerStatus::connecting:
+                mServerStatus.set_text("connecting");
+                break;
+            case ServerStatus::connected:
+                mServerStatus.set_text("connected");
+                break;
+            case ServerStatus::synchronizing:
+                mServerStatus.set_text("synchronizing");
+                break;
+        }
+    }
+    else
+    {
+        mServer.set_sensitive(false);
+    }
+
+    return true;
+}
+//-----------------------------------------------------------------------------
 void SettingsWindow::refreshDicts()
 {
     mRefListStore->clear();

@@ -40,6 +40,7 @@ class Logic
 
     bool mTranslateClipboardAtStart{false};
     bool mAlwaysOnTop{true};
+    bool mDebug{false};
 
     std::string mServer{""};
 

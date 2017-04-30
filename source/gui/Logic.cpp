@@ -22,7 +22,7 @@ using json = nlohmann::json;
 Logic::Logic()
 {
     logging::init(getConfigPath());
-    L->info("Logic created");
+    L->debug("Logic created");
 }
 
 /**
@@ -65,7 +65,7 @@ fs::path relativeTo(const fs::path& from, const fs::path& to)
 //-----------------------------------------------------------------------------
 void Logic::refreshAvailableDicts()
 {
-    L->info("refreshing available dictionaries");
+    L->debug("refreshing available dictionaries");
     auto path = fs::path(getPackagePath()) / "share" / "runningDict";
 
     this->loadDictsInDir(path.string());
@@ -77,7 +77,7 @@ void Logic::refreshAvailableDicts()
 //-----------------------------------------------------------------------------
 void Logic::loadDictsInDir(const std::string& path)
 {
-    L->info("load directories in {}", path);
+    L->debug("load directories in {}", path);
 
     // recursively go through child directories and find .dict files
     // Add them if they are not added
@@ -103,8 +103,8 @@ void Logic::loadDictsInDir(const std::string& path)
                 // auto relPath = relativeTo(fs::current_path(), file.path());
                 auto relPath = fs::canonical(file.path());
                 mDicts.emplace_back(relPath.string(), 0, true);
-                L->info("Found new dict: {}", file.path().string());
-                L->info("      rel path: {}", relPath.string());
+                L->debug("Found new dict: {}", file.path().string());
+                L->debug("      rel path: {}", relPath.string());
             }
         }
     }
@@ -177,18 +177,18 @@ bool Logic::createDict(const std::string& filename)
 //------------------------------------------------------------------------------
 bool Logic::initWithConfig()
 {
-    L->info("bool Logic::initWithConfig()");
+    L->debug("bool Logic::initWithConfig()");
     auto confdir = fs::path(getConfigPath());
-    L->info("config dir is {}", confdir.string());
+    L->debug("config dir is {}", confdir.string());
     if (not fs::exists(confdir))
     {
-        L->info("... directory does not exist, creating");
+        L->debug("... directory does not exist, creating");
         create_directories(confdir);
-        L->info("INIT: creating config dir at {}", confdir.string());
+        L->debug("INIT: creating config dir at {}", confdir.string());
     }
     if (not fs::exists(confdir / "user.dict"))
     {
-        L->info("... user.dict does not exist, creating");
+        L->debug("... user.dict does not exist, creating");
         auto userdictpath = confdir / "user.dict";
         std::ofstream outfile(userdictpath.string());
     }
@@ -202,7 +202,7 @@ bool Logic::initWithConfig()
 bool Logic::initWithConfig(const std::string& filename)
 {
     bool ret = true;
-    L->info("bool Logic::initWithConfig({})", filename);
+    L->debug("bool Logic::initWithConfig({})", filename);
 
     try
     {
@@ -244,7 +244,7 @@ void Logic::loadConfig(const std::string& filename)
                 string dictFile = dict[0];
                 if (fs::exists(dictFile))
                 {
-                    L->info("importing new dict: {}", dictFile);
+                    L->debug("importing new dict: {}", dictFile);
                     mDicts.emplace_back(dictFile, dict[1], dict[2]);
                 }
                 else
@@ -256,13 +256,13 @@ void Logic::loadConfig(const std::string& filename)
 
         if (cfg.count("position") > 0 && cfg["position"].size() == 2)
         {
-            L->info("loading position");
+            L->debug("loading position");
             mPositionX = cfg["position"][0];
             mPositionY = cfg["position"][1];
         }
         if (cfg.count("size") > 0 && cfg["size"].size() == 2)
         {
-            L->info("loading size");
+            L->debug("loading size");
             mSizeX = cfg["size"][0];
             mSizeY = cfg["size"][1];
         }
@@ -273,7 +273,7 @@ void Logic::loadConfig(const std::string& filename)
                 if (fs::exists(fs::path(fil)))
                     mAdditionalSearchDirs.emplace_back(fil);
                 else
-                    L->info("INIT: Search path {} does not exists", fil);
+                    L->warn("INIT: Search path {} does not exists", fil);
         }
 
         if (cfg.count("translateClipboardAtStart") > 0)
@@ -287,6 +287,10 @@ void Logic::loadConfig(const std::string& filename)
 
         if (cfg.count("server") > 0)
             mServer = cfg["server"];
+
+        mDebug = cfg.value("debug", false);
+        if (mDebug)
+            L->set_level(spdlog::level::debug);
     }
 }
 //------------------------------------------------------------------------------
@@ -305,6 +309,7 @@ void Logic::saveConfig(const std::string& filename)
     cfg["alwaysOnTop"] = mAlwaysOnTop;
     cfg["lastDictForNewWord"] = mLastDictForNewWord;
     cfg["server"] = mServer;
+    cfg["debug"] = mDebug;
 
 
     cfg["additionalSearchDirs"] = json::array();
@@ -334,21 +339,26 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
     L->info("Trying to sync with server: {}", url);
 
     auto fut = async(launch::async, [this, url]() {
+        L->debug("Trying to sync with server: {} Thread", url);
         if (url == "")
+        {
+            L->warn("Server url is emtpy");
             return;
+        }
 
         // test if server is there
-        auto re = cpr::Get(cpr::Url{url + "/api/version"});
+        auto re = cpr::Get(cpr::Url{url + "/api/version"}, cpr::Timeout{2000});
         if (re.status_code != 200)
         {
+            L->info("Server not available: returns {}", re.status_code);
             mServerStatus = ServerStatus::serverNotAvailable;
             return;
         }
         json r = json::parse(re.text);
-        L->info(re.text);
-        L->info(r.dump());
-        L->info(r["app"].get<string>());
-        L->info(r["version"].get<string>());
+        L->debug(re.text);
+        L->debug(r.dump());
+        L->debug(r["app"].get<string>());
+        L->debug(r["version"].get<string>());
 
         // check server type and compatible versions
         if (r["app"] == "dictionaryServer" &&
@@ -359,16 +369,17 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         else
         {
             mServerStatus = ServerStatus::serverError;
+            L->info("Server connection was not succesfull.");
             return;
         }
-        L->info("Server connection succesfull ({})", url);
+        L->debug("Server connection succesfull ({})", url);
 
         // sync dictionaries
         mServerStatus = ServerStatus::synchronizing;
         for (auto&& dict : mDicts)
             dict.sync(url);
 
-        // TODO download new dictionaries
+        /// @todo download new dictionaries
 
         mLastServerSync = std::chrono::system_clock::now();
         mServerStatus = ServerStatus::connected;

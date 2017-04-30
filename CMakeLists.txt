@@ -26,11 +26,12 @@ endif()
 if (CMAKE_GENERATOR MATCHES "Makefiles")
     # Make it multithreaded
     add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
-        install -- -j WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+        install -- -j8 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 else()
     add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
-        install WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+        install WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 endif()
+
 
 
 #------------------------------------------------------------------------------
