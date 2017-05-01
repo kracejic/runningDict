@@ -130,7 +130,8 @@ bool Dict::sync(const std::string& serverUrl)
                 json r2 = json::parse(re2.text);
                 fill(r2["text"]);
                 revision = r2["revision"];
-                /// @todo Backend should return revision, check if that is working
+                /// @todo Backend should return revision, check if that is
+                /// working
             }
             else
             {
