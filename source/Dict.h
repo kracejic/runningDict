@@ -36,9 +36,9 @@ class Dict
     std::string mFilename{""};
     std::string mName{""};
     bool mEnabled{true};
+    int revision{0};
 
     std::vector<Change> history;
-    int revision{0};
 
   public:
     Dict();
@@ -47,7 +47,7 @@ class Dict
     /// Fill dictionary with custom string, usefull for testing
     void fill(const std::string& content);
 
-    bool hasWord(const std::string& word);
+    bool hasWord(const std::string& word) const;
 
     /**
      * Add new word to dictionary.
@@ -85,11 +85,20 @@ class Dict
     const std::string& getFilename() const;
     void setName(const std::string& name);
     const std::string& getName() const;
+    int getRevision() const
+    {
+        return revision;
+    };
 
     int mBonus{0}; ///< Lower means higher
     bool mOnline{false};
     bool mReadOnly{false};
     bool mErrorState{false};
+
+    // Helper function for tests TODO wip
+    bool operator==(const Dict& d) const;
+    bool operator!=(const Dict& d) const;
+    std::string translationOfWord(const std::string& word) const;
 
   private:
     bool _addWord(const std::string& word, const std::string& translation);

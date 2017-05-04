@@ -179,15 +179,17 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
         switch (change.changeType)
         {
             case ChangeType::addWord:
-                bundle["changes"].push_back({{"type", "add"}, {"word", change.word},
-                    {"translation", change.translation}});
+                bundle["changes"].push_back(
+                    {{"type", "add"}, {"word", change.word},
+                        {"translation", change.translation}});
                 break;
             case ChangeType::deleteWord:
-                bundle["changes"].push_back({{"type", "delete"}, {"word", change.word}});
+                bundle["changes"].push_back(
+                    {{"type", "delete"}, {"word", change.word}});
                 break;
             case ChangeType::changeWord:
-                bundle["changes"].push_back({{"type", "change"}, {"word", change.word},
-                    {"translation", change.translation},
+                bundle["changes"].push_back({{"type", "change"},
+                    {"word", change.word}, {"translation", change.translation},
                     {"newWord", change.wordNew}});
                 break;
         }
@@ -264,7 +266,7 @@ string getLowerCase2(const string& txt)
     return res;
 }
 //-----------------------------------------------------------------------------
-bool Dict::hasWord(const std::string& word)
+bool Dict::hasWord(const std::string& word) const
 {
     auto holder = mContent;
     std::istringstream iss{*holder};
@@ -272,6 +274,44 @@ bool Dict::hasWord(const std::string& word)
         if (line == word)
             return true;
     return false;
+}
+//-----------------------------------------------------------------------------
+std::string Dict::translationOfWord(const std::string& word) const
+{
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+        if (line == word)
+        {
+            std::getline(iss, line);
+            return line;
+        }
+    return "";
+}
+//-----------------------------------------------------------------------------
+bool Dict::operator==(const Dict& d) const
+{
+
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+    {
+        if (line[0] == ' ')
+            continue;
+        string translation;
+        getline(iss, translation);
+
+        if (not d.hasWord(line))
+            return false;
+        if (d.translationOfWord(line) != translation)
+            return false;
+    }
+
+    return true;
+}
+bool Dict::operator!=(const Dict& d) const
+{
+    return not this->operator==(d);
 }
 //-----------------------------------------------------------------------------
 bool Dict::addWord(const std::string& word, const std::string& translation)
@@ -632,6 +672,31 @@ TEST_CASE("checking for a word")
     REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
 }
 
+TEST_CASE("comparison of dictionaries")
+{
+    Dict d1;
+    d1.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    Dict d2;
+    d2.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    REQUIRE(d1 == d2);
+
+    Dict d3;
+    d3.fill("zwei\n zwei\nein\n one\ndrei\n three");
+    REQUIRE(d3 == d2);
+
+    Dict d4;
+    d4.fill("drei\n three\nzwei\n zwei\nein\n one\n");
+    REQUIRE(d4 == d2);
+
+    Dict d5;
+    d5.fill("drei\n three\nzwei\n zweiaa\nein\n one\n");
+    REQUIRE(d5 != d2);
+
+    Dict d6;
+    d6.fill("drei\n three\nzweiaa\n zweiaa\nein\n one\n");
+    REQUIRE(d6 != d2);
+}
+
 //-----------------------------------------------------------------------------
 // SERVER tests
 string server = "localhost:3000";
@@ -674,7 +739,7 @@ TEST_CASE("adding to server", "[!hide][server]")
 }
 
 
-TEST_CASE("mulitiple clients", "[!hide][server]")
+TEST_CASE("mulitiple clients", "[!hide][server][!mayfail]")
 {
     Dict d1;
     d1.setName("testDictionary");
@@ -697,14 +762,29 @@ TEST_CASE("mulitiple clients", "[!hide][server]")
     d2.addWord("test", "test2");
 
     REQUIRE(d1.sync(server));
+    REQUIRE(d1.getRevision() == 4);
+
     REQUIRE(d2.sync(server));
+    REQUIRE(d2.getRevision() == 6);
+
     REQUIRE(d1.sync(server));
+    REQUIRE(d1.getRevision() == 6);
+
 
     Dict dcheck;
     dcheck.mOnline = true;
     dcheck.setName("testDictionary");
     REQUIRE(dcheck.sync(server));
-    REQUIRE(*(d1.getContens()) == *(dcheck.getContens()));
-    REQUIRE(*(d2.getContens()) == *(d1.getContens()));
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+    L->info("dcheck: {}", *dcheck.getContens());
+
+    REQUIRE(d2 == d1);
+    REQUIRE(d1 == dcheck);
+    REQUIRE(d2 == dcheck);
+    REQUIRE(dcheck == d1);
+    REQUIRE(dcheck == d2);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+    REQUIRE(dcheck.getRevision() == d1.getRevision());
 }
 #endif
