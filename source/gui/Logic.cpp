@@ -380,6 +380,17 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             dict.sync(url);
 
         /// @todo download new dictionaries
+        re = cpr::Get(cpr::Url{url + "/api/dictionary"});
+        if (re.status_code != 200)
+        {
+            mServerStatus = ServerStatus::serverError;
+            return;
+        }
+        json dictsFromServer = json::parse(re.text);
+        for (auto& i : dictsFromServer)
+        {
+        }
+
 
         mLastServerSync = std::chrono::system_clock::now();
         mServerStatus = ServerStatus::connected;

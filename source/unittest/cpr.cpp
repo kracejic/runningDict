@@ -4,9 +4,9 @@
 
 #include <cpr/cpr.h>
 
-TEST_CASE("CPR test", "[!mayfail]")
+TEST_CASE("CPR test", "[server][!mayfail]")
 {
-    auto r = cpr::Get(cpr::Url{"https://google.com"});
+    auto r = cpr::Get(cpr::Url{"https://google.com"}, cpr::Timeout{2000});
 
     REQUIRE(r.status_code == 200);
 }

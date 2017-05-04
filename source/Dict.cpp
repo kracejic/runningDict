@@ -172,32 +172,35 @@ bool Dict::sync(const std::string& serverUrl)
 bool Dict::synchronizeHistory(const std::string& serverUrl)
 {
     // Prepare changelist in json array
-    auto changes = json::array();
+    json bundle;
+    bundle["changes"] = json::array();
     for (const auto& change : history)
     {
         switch (change.changeType)
         {
             case ChangeType::addWord:
-                changes.push_back({{"type", "add"}, {"word", change.word},
+                bundle["changes"].push_back({{"type", "add"}, {"word", change.word},
                     {"translation", change.translation}});
                 break;
             case ChangeType::deleteWord:
-                changes.push_back({{"type", "delete"}, {"word", change.word}});
+                bundle["changes"].push_back({{"type", "delete"}, {"word", change.word}});
                 break;
             case ChangeType::changeWord:
-                changes.push_back({{"type", "change"}, {"word", change.word},
+                bundle["changes"].push_back({{"type", "change"}, {"word", change.word},
                     {"translation", change.translation},
                     {"newWord", change.wordNew}});
                 break;
         }
     }
-    L->debug("Our revision: {}", revision);
-    L->debug("Our changes: {}", changes.dump());
+    bundle["dict"] = mName;
+    bundle["revision"] = revision;
+
+    L->debug("Our request: {}", bundle.dump());
 
     // Sync with server (push our changes, receive server changes)
     auto re = cpr::Post(cpr::Url{serverUrl + "/api/sync/dictionary/" + mName},
-        cpr::Payload{{"dict", mName}, {"revision", revision},
-            {"changes", changes.dump()}});
+        cpr::Body{bundle.dump()},
+        cpr::Header{{"content-type", "application/json"}});
 
     L->debug("Response: {}", re.text);
     if (re.status_code != 200)
@@ -218,6 +221,7 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
                 change["newTranslation"]);
     }
     revision = response["revision"];
+    history.clear();
 
     return true;
 }
@@ -632,12 +636,12 @@ TEST_CASE("checking for a word")
 // SERVER tests
 string server = "localhost:3000";
 
-TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
+TEST_CASE("syncing of dictionary with server", "[!hide][server]")
 {
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
-    d.fill("ein\n one\nzwei\n zwei\ndrei\n three\n");
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.deleteFromServer(server).get();
     REQUIRE(d.sync(server));
 
@@ -649,12 +653,12 @@ TEST_CASE("Test syncing of dictionary with server", "[!hide][server]")
     REQUIRE(*(d.getContens()) == *(d2.getContens()));
 }
 
-TEST_CASE("Test adding to server", "[!hide][server]")
+TEST_CASE("adding to server", "[!hide][server]")
 {
     Dict d;
     d.setName("testDictionary");
     d.mOnline = true;
-    d.fill("ein\n one\nzwei\n zwei\ndrei\n three\n");
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.deleteFromServer(server).get();
     REQUIRE(d.sync(server));
 
@@ -667,5 +671,40 @@ TEST_CASE("Test adding to server", "[!hide][server]")
     d2.setName("testDictionary");
     REQUIRE(d2.sync(server));
     REQUIRE(*(d.getContens()) == *(d2.getContens()));
+}
+
+
+TEST_CASE("mulitiple clients", "[!hide][server]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    d1.deleteWord("katze");
+    d1.addWord("german", "nemecky");
+
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("katze", "kocicka2");
+    d2.addWord("test", "test2");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+    REQUIRE(d1.sync(server));
+
+    Dict dcheck;
+    dcheck.mOnline = true;
+    dcheck.setName("testDictionary");
+    REQUIRE(dcheck.sync(server));
+    REQUIRE(*(d1.getContens()) == *(dcheck.getContens()));
+    REQUIRE(*(d2.getContens()) == *(d1.getContens()));
 }
 #endif

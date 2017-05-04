@@ -145,7 +145,7 @@ pacman -S mingw32/mingw-w64-i686-cmake msys/make mingw32/mingw-w64-i686-boost mi
 | all             | build all                                       |
 | install         | install to install prefix location              |
 | package         | generates packages (DEB, RPM, MSI, etc.)        |
-| gui-run run     | install and run gui standalone gui application  |
+| gui-run run     | run gui standalone gui application              |
 | gdb             | runs gdb on gui app                             |
 | doc             | produce doxygen documentation                   |
 | unit            | run unit tests only                             |
@@ -207,8 +207,8 @@ On windows prefer Ninja since it is **MUCH** faster than make.
 With gcc build and install (default is build/dist):
 ~~~
 mkdir build ; cd build
-cmake -GNinja -DUSE_BOOST_FILESYSTEM=TRUE ..
-ninja install
+cmake -G "MSYS Makefiles" -DUSE_BOOST_FILESYSTEM=TRUE ..
+make install
 ~~~
 
 With clang++, build executable, doxygen documentation and install:

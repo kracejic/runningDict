@@ -12,6 +12,7 @@ enum class ChangeType
     changeWord
 };
 
+
 struct Change
 {
     ChangeType changeType;

@@ -29,7 +29,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         mToogleAlwaysOnTop.set_active();
 
     mGrid.attach(mAddDictButton, 3, 0, 1, 2);
-    mAddDictButton.set_label("New dict");
+    mAddDictButton.set_label("New dictionary");
     mAddDictButton.signal_clicked().connect([this]() {
         if (mAddDictWindow)
             return;
@@ -51,6 +51,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mServerSettingBox.pack_start(mToogleServer, false, false, 0);
     mServerSettingBox.pack_start(mServer, false, false, 10);
     mServerSettingBox.pack_start(mServerStatus, false, false, 0);
+    mServerStatus.override_color(Gdk::RGBA{"#909090"});
     mServer.set_placeholder_text("url");
     if (mLogic.mServer == "")
     {
@@ -97,6 +98,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mTreeView.append_column("Path", mDictViewModel.mPath);
     mTreeView.get_column(1)->set_expand();
     mTreeView.append_column_editable("Priority", mDictViewModel.mBonus);
+    mTreeView.append_column("Shared", mDictViewModel.mOnline);
     mTreeView.set_tooltip_column(mDictViewModel.mTooltip.index());
 
 
@@ -226,6 +228,7 @@ bool SettingsWindow::pulse(int num)
     else
     {
         mServer.set_sensitive(false);
+        mServerStatus.set_text("");
     }
 
     return true;
@@ -241,6 +244,7 @@ void SettingsWindow::refreshDicts()
         row[mDictViewModel.mEnabled] = dict.is_enabled();
         row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
+        row[mDictViewModel.mOnline] = dict.mOnline;
         row[mDictViewModel.mError] = dict.mErrorState;
         row[mDictViewModel.mTooltip] = dict.getFilename();
     }

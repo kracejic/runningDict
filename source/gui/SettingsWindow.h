@@ -23,6 +23,7 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
         add(mEnabled);
         add(mPath);
         add(mBonus);
+        add(mOnline);
         add(mError);
         add(mTooltip);
     }
@@ -30,6 +31,7 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
     Gtk::TreeModelColumn<bool> mEnabled;
     Gtk::TreeModelColumn<Glib::ustring> mPath;
     Gtk::TreeModelColumn<bool> mBonus;
+    Gtk::TreeModelColumn<bool> mOnline;
     Gtk::TreeModelColumn<bool> mError;
     Gtk::TreeModelColumn<Glib::ustring> mTooltip;
 };
