@@ -475,6 +475,7 @@ bool Dict::_changeWord(const std::string& word,
         output.end());
     mContent.reset(new std::string(output));
     this->saveDictionary();
+
     return result;
 }
 //-----------------------------------------------------------------------------
@@ -519,6 +520,10 @@ bool Dict::_deleteWord(const std::string& word)
         output.end());
     mContent.reset(new std::string(output));
     this->saveDictionary();
+
+    // Make it recursive
+    if (result)
+        _deleteWord(word);
     return result;
 }
 //-----------------------------------------------------------------------------
@@ -739,7 +744,41 @@ TEST_CASE("adding to server", "[!hide][server]")
 }
 
 
-TEST_CASE("mulitiple clients", "[!hide][server][!mayfail]")
+
+TEST_CASE("two dicts", "[!hide][server][!mayfail]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("base\n base2");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    d1.deleteWord("katze");
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("katze", "kocicka2");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+
+    REQUIRE(d2 == d1);
+    REQUIRE(d1 == d2);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// disabled more complex test
+TEST_CASE("mulitiple clients", "[!hide][!mayfail]")
 {
     Dict d1;
     d1.setName("testDictionary");
