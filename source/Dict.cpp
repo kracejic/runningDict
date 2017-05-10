@@ -529,7 +529,7 @@ bool Dict::_deleteWord(const std::string& word)
     return result;
 }
 //-----------------------------------------------------------------------------
-bool Dict::is_enabled()
+bool Dict::isEnabled()
 {
     return mEnabled;
 }

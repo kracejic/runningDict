@@ -241,7 +241,7 @@ void SettingsWindow::refreshDicts()
     {
         Gtk::TreeModel::iterator iter = mRefListStore->append();
         Gtk::TreeModel::Row row = *iter;
-        row[mDictViewModel.mEnabled] = dict.is_enabled();
+        row[mDictViewModel.mEnabled] = dict.isEnabled();
         row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
         row[mDictViewModel.mOnline] = dict.mOnline;

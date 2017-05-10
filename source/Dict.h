@@ -92,8 +92,9 @@ class Dict
     long long getContensSize() const;
 
     // getters, setters
-    bool is_enabled();
+    bool isEnabled();
     bool enable(bool state = true);
+    bool isLoaded(){return mIsLoaded;};
     bool toogle_enable();
     void setFileName(const std::string& name);
     const std::string& getFilename() const;

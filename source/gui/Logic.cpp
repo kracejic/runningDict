@@ -301,7 +301,7 @@ void Logic::saveConfig(const std::string& filename)
     json cfg;
     for (auto& dict : mDicts)
         cfg["dicts"].push_back(
-            {dict.getFilename(), dict.mBonus, dict.is_enabled()});
+            {dict.getFilename(), dict.mBonus, dict.isEnabled()});
 
     cfg["size"] = {mSizeX, mSizeY};
     cfg["position"] = {mPositionX, mPositionY};
@@ -377,7 +377,8 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         // sync dictionaries
         mServerStatus = ServerStatus::synchronizing;
         for (auto&& dict : mDicts)
-            dict.sync(url);
+            if (dict.isLoaded() || dict.isEnabled())
+                dict.sync(url);
 
         // download new dictionaries
         re = cpr::Get(cpr::Url{url + "/api/dictionary"});
