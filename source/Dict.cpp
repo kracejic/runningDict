@@ -37,22 +37,19 @@ void Dict::fill(const std::string& content)
     string temp = content;
     temp.erase(std::remove(temp.begin(), temp.end(), '\r'), temp.end());
     mContent.reset(new string(std::move(temp)));
-    mIs_open = true;
+    mIsLoaded = true;
 }
 //-----------------------------------------------------------------------------
 bool Dict::reload()
 {
-    if (not mIs_open && mFilename == "")
+    if (not mIsLoaded && mFilename == "")
         return false;
     return (open(mFilename));
 }
 //-----------------------------------------------------------------------------
 bool Dict::open(const std::string& filename)
 {
-    // presume problems, reseted later
-    mErrorState = true;
-
-    mIs_open = false;
+    mIsLoaded = false;
     string tmp;
 
     // reopen
@@ -71,7 +68,7 @@ bool Dict::open(const std::string& filename)
     file.close();
     tmp.erase(std::remove(tmp.begin(), tmp.end(), '\r'), tmp.end());
     mContent.reset(new std::string(move(tmp)));
-    mIs_open = true;
+    mIsLoaded = true;
     mErrorState = false;
 
     // load metadata
@@ -83,6 +80,8 @@ bool Dict::open(const std::string& filename)
 
         mOnline = meta.value("online", false);
         mReadOnly = meta.value("readOnly", false);
+        if (mOnline)
+            mIsSynchronized = true;
     }
 
     return true;
@@ -109,7 +108,7 @@ bool Dict::sync(const std::string& serverUrl)
 {
     if (not mOnline)
         return false;
-    L->info("Synchronizing dict {} to {}", mName, serverUrl);
+    L->info("Synchronizing dict {} with {}", mName, serverUrl);
 
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
     if (re.status_code != 200)
@@ -127,21 +126,22 @@ bool Dict::sync(const std::string& serverUrl)
                 auto re2 =
                     cpr::Get(cpr::Url{serverUrl + "/api/dictionary/" + mName},
                         cpr::Parameters{{"dict", mName}});
+                if (re.status_code != 200)
+                    return false;
                 json r2 = json::parse(re2.text);
                 fill(r2["text"]);
                 revision = r2["revision"];
-                /// @todo Backend should return revision, check if that is
-                /// working
             }
             else
             {
-                /// @todo implement sync
                 L->debug("Dictionary is not empty, synchronizing history");
-                bool ret = this->synchronizeHistory(serverUrl);
-                saveDictionary();
-                return ret;
+                if (not this->synchronizeHistory(serverUrl))
+                    return false;
             }
             saveDictionary();
+            mIsSynchronized = true;
+            mIsLoaded = true;
+            mErrorState = false;
             return true;
         }
     }
@@ -163,9 +163,11 @@ bool Dict::sync(const std::string& serverUrl)
 
     json r3 = json::parse(re3.text);
     revision = r3["revision"];
-    /// @todo Backend should return revision, check if that is working
 
     saveDictionary();
+    mIsSynchronized = true;
+    mIsLoaded = true;
+    mErrorState = false;
     return true;
 }
 //-----------------------------------------------------------------------------
@@ -244,9 +246,9 @@ future<bool> Dict::deleteFromServer(const std::string& serverUrl)
 //-----------------------------------------------------------------------------
 std::shared_ptr<const std::string> Dict::getContens() const
 {
-    if (not mIs_open)
-        throw std::domain_error{
-            "Dictionary \"" + mFilename + "\" was not loaded."};
+    // if (not mIsLoaded)
+    //     throw std::domain_error{
+    //         "Dictionary \"" + mFilename + "\" was not loaded."};
     return mContent;
 }
 //-----------------------------------------------------------------------------
@@ -325,11 +327,11 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
 }
 bool Dict::_addWord(const std::string& word, const std::string& translation)
 {
-    if (not mIs_open)
+    if (not mIsLoaded)
         throw std::domain_error{
             "Dictionary \"" + mFilename + "\" was not loaded."};
     // this->open(mFilename);
-    if (not mIs_open)
+    if (not mIsLoaded)
         return false;
 
     // Make lower case
@@ -542,7 +544,7 @@ bool Dict::enable(bool state)
     if (state)
     {
         mEnabled = true;
-        if (not mIs_open)
+        if (not mIsLoaded)
             mEnabled = reload();
     }
     else
@@ -559,6 +561,11 @@ void Dict::setName(const std::string& name)
 const std::string& Dict::getName() const
 {
     return mName;
+}
+//-----------------------------------------------------------------------------
+void Dict::setFileName(const std::string& name)
+{
+    mFilename = name;
 }
 //-----------------------------------------------------------------------------
 const std::string& Dict::getFilename() const
@@ -742,7 +749,6 @@ TEST_CASE("adding to server", "[!hide][server]")
     REQUIRE(d2.sync(server));
     REQUIRE(*(d.getContens()) == *(d2.getContens()));
 }
-
 
 
 TEST_CASE("two dicts", "[!hide][server][!mayfail]")

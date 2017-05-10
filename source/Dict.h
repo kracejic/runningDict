@@ -31,14 +31,27 @@ struct Change
 class Dict
 {
   private:
-    bool mIs_open{false};
     std::shared_ptr<const std::string> mContent;
     std::string mFilename{""};
     std::string mName{""};
-    bool mEnabled{true};
     int revision{0};
 
     std::vector<Change> history;
+
+    bool mEnabled{true};
+    bool mIsLoaded{false};
+    bool mErrorState{false};
+    bool mIsSynchronized{false};
+
+  public:
+    bool mReadOnly{false};
+    bool mOnline{false};
+
+    bool isReady()
+    {
+        return mIsLoaded && (mIsSynchronized || !mOnline) && !mErrorState;
+    };
+
 
   public:
     Dict();
@@ -82,6 +95,7 @@ class Dict
     bool is_enabled();
     bool enable(bool state = true);
     bool toogle_enable();
+    void setFileName(const std::string& name);
     const std::string& getFilename() const;
     void setName(const std::string& name);
     const std::string& getName() const;
@@ -91,9 +105,6 @@ class Dict
     };
 
     int mBonus{0}; ///< Lower means higher
-    bool mOnline{false};
-    bool mReadOnly{false};
-    bool mErrorState{false};
 
     // Helper function for tests TODO wip
     bool operator==(const Dict& d) const;

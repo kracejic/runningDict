@@ -379,7 +379,7 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         for (auto&& dict : mDicts)
             dict.sync(url);
 
-        /// @todo download new dictionaries
+        // download new dictionaries
         re = cpr::Get(cpr::Url{url + "/api/dictionary"});
         if (re.status_code != 200)
         {
@@ -387,8 +387,25 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             return;
         }
         json dictsFromServer = json::parse(re.text);
+
+        // recreate sync folder
+        fs::path syncDirPath = fs::path(mConfigDir) / "sync";
+        if (not fs::exists(syncDirPath))
+            fs::create_directories(syncDirPath);
+
+        // setup new dictionaries
         for (auto& i : dictsFromServer)
         {
+            if (i.is_string())
+            {
+                string name = i;
+                this->mDicts.emplace_back();
+                mDicts.back().setName(name);
+                mDicts.back().enable(false);
+                mDicts.back().mOnline = true;
+                mDicts.back().setFileName(syncDirPath / name += ".dict");
+                // no syncing yet, syncing, when user enables it
+            }
         }
 
 

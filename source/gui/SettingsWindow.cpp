@@ -160,7 +160,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     // make pulse called repeatedly every 100ms
     sigc::slot<bool> my_slot =
         sigc::bind(sigc::mem_fun(*this, &SettingsWindow::pulse), 0);
-    mPulseConnection = Glib::signal_timeout().connect(my_slot, 500);
+    mPulseConnection = Glib::signal_timeout().connect(my_slot, 5000);
 }
 //------------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow()
@@ -245,7 +245,6 @@ void SettingsWindow::refreshDicts()
         row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
         row[mDictViewModel.mOnline] = dict.mOnline;
-        row[mDictViewModel.mError] = dict.mErrorState;
         row[mDictViewModel.mTooltip] = dict.getFilename();
     }
 }
