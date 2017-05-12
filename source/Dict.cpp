@@ -112,12 +112,15 @@ bool Dict::sync(const std::string& serverUrl)
 
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
     if (re.status_code != 200)
+    {
+        L->warn("Getting list of dictionaries failed with {}, {}", re.status_code, re.text);
         return false;
+    }
 
     json r = json::parse(re.text);
     for (auto& dict : r)
     {
-        if (mName == dict.get<string>())
+        if (mName == dict["name"].get<string>())
         {
             L->debug("Dictionary found on server, synchronizing");
             if (*mContent == "")
@@ -126,8 +129,11 @@ bool Dict::sync(const std::string& serverUrl)
                 auto re2 =
                     cpr::Get(cpr::Url{serverUrl + "/api/dictionary/" + mName},
                         cpr::Parameters{{"dict", mName}});
-                if (re.status_code != 200)
+                if (re2.status_code != 200)
+                {
+                    L->warn("Fetching changes failed with {}, {}", re.status_code, re.text);
                     return false;
+                }
                 json r2 = json::parse(re2.text);
                 fill(r2["text"]);
                 revision = r2["revision"];
@@ -209,7 +215,7 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
     L->debug("Response: {}", re.text);
     if (re.status_code != 200)
     {
-        L->debug("Server responded: {}", re.status_code);
+        L->warn("Sychronizing dict failed with {}, {}", re.status_code, re.text);
         return false;
     }
 

@@ -394,8 +394,10 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         if (re.status_code != 200)
         {
             mServerStatus = ServerStatus::serverError;
+            L->warn("Error {} dictionary: {}", re.status_code, re.text);
             return;
         }
+        L->debug("XX: {}", re.text);
         json dictsFromServer = json::parse(re.text);
 
         // recreate sync folder
@@ -407,23 +409,20 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         if (dictsFromServer.size() > 0)
         {
             auto lock = this->lockDicts();
-            for (auto& i : dictsFromServer)
+            for (auto& obj : dictsFromServer)
             {
-                if (i.is_string())
-                {
-                    if( any_of(mDicts.begin(), mDicts.end(), [&i](auto& it){
-                        return it.getName() == i;}))
-                            continue;
-                    L->info("New dictionary found: {}", i.get<string>());
+                string name = obj["name"];
+                if( any_of(mDicts.begin(), mDicts.end(), [&name](auto& it){
+                    return it.getName() == name;}))
+                        continue;
+                L->info("New dictionary found: {}", name);
 
-                    string name = i;
-                    this->mDicts.emplace_back();
-                    mDicts.back().setName(name);
-                    mDicts.back().enable(false);
-                    mDicts.back().mOnline = true;
-                    mDicts.back().setFileName(syncDirPath / name += ".dict");
-                    // no syncing yet, syncing, when user enables it
-                }
+                this->mDicts.emplace_back();
+                mDicts.back().setName(name);
+                mDicts.back().enable(false);
+                mDicts.back().mOnline = true;
+                mDicts.back().setFileName(syncDirPath / name += ".dict");
+                // no syncing yet, syncing, when user enables it
             }
         }
 
