@@ -756,6 +756,83 @@ TEST_CASE("adding to server", "[!hide][server]")
     REQUIRE(*(d.getContens()) == *(d2.getContens()));
 }
 
+TEST_CASE("change at server", "[!hide][server]")
+{
+   Dict d;
+   d.setName("testDictionary");
+   d.mOnline = true;
+   d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n five\nsechs\n six");
+   d.deleteFromServer(server).get();
+   REQUIRE(d.sync(server));
+
+   d.changeWord("ein", "jeden");
+   d.changeWord("drei", "tricet", "dreizig");
+   REQUIRE(d.sync(server));
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+   REQUIRE(d == d2);
+}
+
+TEST_CASE("delete from server", "[!hide][server]")
+{
+   Dict d;
+   d.setName("testDictionary");
+   d.mOnline = true;
+   d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n five\nsechs\n six");
+   d.deleteFromServer(server).get();
+   REQUIRE(d.sync(server));
+
+   d.deleteWord("ein");
+   d.deleteWord("fünf");
+   REQUIRE(d.sync(server));
+
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+   REQUIRE(d == d2);
+}
+
+TEST_CASE("two dicts no conflict", "[!hide][server][!mayfail]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("ein\n one\nzwei\n two\ndrei\n three");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    //d1.changeWord("katze", "kocka");
+    //d1.changeWord("drei", "30", "dreizig");
+    d1.addWord("hund", "pejsanek");
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("schaf", "ovecka");
+    d2.deleteWord("ein");
+    d2.addWord("truthahn", "krocan");
+    d2.deleteWord("schaf");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+    REQUIRE(d1.sync(server));
+
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+
+    REQUIRE(d2 == d1);
+    REQUIRE(d1 == d2);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
 
 TEST_CASE("two dicts", "[!hide][server][!mayfail]")
 {
