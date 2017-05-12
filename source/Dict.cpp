@@ -228,7 +228,7 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
             this->_deleteWord(change["word"]);
         if (change["type"] == "change")
             this->_changeWord(change["word"], change["translation"],
-                change["newTranslation"]);
+                change["newWord"]);
     }
     revision = response["revision"];
     history.clear();
@@ -810,8 +810,8 @@ TEST_CASE("two dicts no conflict", "[!hide][server]")
     REQUIRE(d1.sync(server));
 
     d1.addWord("katze", "kocicka");
-    //d1.changeWord("katze", "kocka");
-    //d1.changeWord("drei", "30", "dreizig");
+    d1.changeWord("katze", "kocka");
+    d1.changeWord("drei", "30", "dreizig");
     d1.addWord("hund", "pejsanek");
 
     Dict d2;
