@@ -32,9 +32,8 @@ NewDictWindow::NewDictWindow(Logic& logic)
 
     mCreateButton.set_hexpand();
     mCreateButton.signal_clicked().connect([this]() {
-        if (any_of(currentDicts.begin(), currentDicts.end(), [this](auto& d) {
-                return d == mDictName.get_text();
-            }))
+        if (any_of(currentDicts.begin(), currentDicts.end(),
+                [this](auto& d) { return d == mDictName.get_text(); }))
             return;
         mLogic.createDict(mDictName.get_text());
         this->hide();

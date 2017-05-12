@@ -79,6 +79,7 @@ bool Dict::open(const std::string& filename)
         metaFile >> meta;
 
         mOnline = meta.value("online", false);
+        revision = meta.value("revision", 0);
         mReadOnly = meta.value("readOnly", false);
         if (mOnline)
             mIsSynchronized = true;
@@ -99,6 +100,7 @@ void Dict::saveDictionary()
     json meta;
     meta["online"] = mOnline;
     meta["readOnly"] = mReadOnly;
+    meta["revision"] = revision;
 
     std::ofstream outMeta{mFilename + ".meta"};
     outMeta << std::setw(4) << meta << endl;
@@ -113,7 +115,8 @@ bool Dict::sync(const std::string& serverUrl)
     auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
     if (re.status_code != 200)
     {
-        L->warn("Getting list of dictionaries failed with {}, {}", re.status_code, re.text);
+        L->warn("Getting list of dictionaries failed with {}, {}",
+            re.status_code, re.text);
         return false;
     }
 
@@ -131,7 +134,8 @@ bool Dict::sync(const std::string& serverUrl)
                         cpr::Parameters{{"dict", mName}});
                 if (re2.status_code != 200)
                 {
-                    L->warn("Fetching changes failed with {}, {}", re.status_code, re.text);
+                    L->warn("Fetching changes failed with {}, {}",
+                        re.status_code, re.text);
                     return false;
                 }
                 json r2 = json::parse(re2.text);
@@ -215,7 +219,8 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
     L->debug("Response: {}", re.text);
     if (re.status_code != 200)
     {
-        L->warn("Sychronizing dict failed with {}, {}", re.status_code, re.text);
+        L->warn(
+            "Sychronizing dict failed with {}, {}", re.status_code, re.text);
         return false;
     }
 
@@ -227,8 +232,8 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
         if (change["type"] == "delete")
             this->_deleteWord(change["word"]);
         if (change["type"] == "change")
-            this->_changeWord(change["word"], change["translation"],
-                change["newWord"]);
+            this->_changeWord(
+                change["word"], change["translation"], change["newWord"]);
     }
     revision = response["revision"];
     history.clear();
@@ -318,7 +323,7 @@ bool Dict::oneWayEqualityCheck(const Dict& d1, const Dict& d2) const
 }
 bool Dict::operator==(const Dict& d) const
 {
-    return oneWayEqualityCheck(*this,d) && oneWayEqualityCheck(d,*this);
+    return oneWayEqualityCheck(*this, d) && oneWayEqualityCheck(d, *this);
 }
 bool Dict::operator!=(const Dict& d) const
 {
@@ -761,43 +766,45 @@ TEST_CASE("adding to server", "[!hide][server]")
 
 TEST_CASE("change at server", "[!hide][server]")
 {
-   Dict d;
-   d.setName("testDictionary");
-   d.mOnline = true;
-   d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n five\nsechs\n six");
-   d.deleteFromServer(server).get();
-   REQUIRE(d.sync(server));
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n "
+           "five\nsechs\n six");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
 
-   d.changeWord("ein", "jeden");
-   d.changeWord("drei", "tricet", "dreizig");
-   REQUIRE(d.sync(server));
+    d.changeWord("ein", "jeden");
+    d.changeWord("drei", "tricet", "dreizig");
+    REQUIRE(d.sync(server));
 
-   Dict d2;
-   d2.mOnline = true;
-   d2.setName("testDictionary");
-   REQUIRE(d2.sync(server));
-   REQUIRE(d == d2);
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(d == d2);
 }
 
 TEST_CASE("delete from server", "[!hide][server]")
 {
-   Dict d;
-   d.setName("testDictionary");
-   d.mOnline = true;
-   d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n five\nsechs\n six");
-   d.deleteFromServer(server).get();
-   REQUIRE(d.sync(server));
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n "
+           "five\nsechs\n six");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
 
-   d.deleteWord("ein");
-   d.deleteWord("fünf");
-   REQUIRE(d.sync(server));
+    d.deleteWord("ein");
+    d.deleteWord("fünf");
+    REQUIRE(d.sync(server));
 
 
-   Dict d2;
-   d2.mOnline = true;
-   d2.setName("testDictionary");
-   REQUIRE(d2.sync(server));
-   REQUIRE(d == d2);
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(d == d2);
 }
 
 TEST_CASE("two dicts no conflict", "[!hide][server]")

@@ -412,9 +412,9 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             for (auto& obj : dictsFromServer)
             {
                 string name = obj["name"];
-                if( any_of(mDicts.begin(), mDicts.end(), [&name](auto& it){
-                    return it.getName() == name;}))
-                        continue;
+                if (any_of(mDicts.begin(), mDicts.end(),
+                        [&name](auto& it) { return it.getName() == name; }))
+                    continue;
                 L->info("New dictionary found: {}", name);
 
                 this->mDicts.emplace_back();
