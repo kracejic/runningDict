@@ -297,10 +297,9 @@ std::string Dict::translationOfWord(const std::string& word) const
     return "";
 }
 //-----------------------------------------------------------------------------
-bool Dict::operator==(const Dict& d) const
+bool Dict::oneWayEqualityCheck(const Dict& d1, const Dict& d2) const
 {
-
-    auto holder = mContent;
+    auto holder = d1.getContens();
     std::istringstream iss{*holder};
     for (std::string line; std::getline(iss, line);)
     {
@@ -309,13 +308,17 @@ bool Dict::operator==(const Dict& d) const
         string translation;
         getline(iss, translation);
 
-        if (not d.hasWord(line))
+        if (not d2.hasWord(line))
             return false;
-        if (d.translationOfWord(line) != translation)
+        if (d2.translationOfWord(line) != translation)
             return false;
     }
 
     return true;
+}
+bool Dict::operator==(const Dict& d) const
+{
+    return oneWayEqualityCheck(*this,d) && oneWayEqualityCheck(d,*this);
 }
 bool Dict::operator!=(const Dict& d) const
 {
@@ -828,7 +831,6 @@ TEST_CASE("two dicts no conflict", "[!hide][server]")
     L->info("d1: {}", *d1.getContens());
     L->info("d2: {}", *d2.getContens());
 
-    REQUIRE(d2 == d1);
     REQUIRE(d1 == d2);
     REQUIRE(d1.getRevision() == d2.getRevision());
 }
@@ -861,7 +863,6 @@ TEST_CASE("two dicts", "[!hide][server]")
     L->info("d1: {}", *d1.getContens());
     L->info("d2: {}", *d2.getContens());
 
-    REQUIRE(d2 == d1);
     REQUIRE(d1 == d2);
     REQUIRE(d1.getRevision() == d2.getRevision());
 }
@@ -909,9 +910,6 @@ TEST_CASE("mulitiple clients", "[server]")
 
     REQUIRE(d2 == d1);
     REQUIRE(d1 == dcheck);
-    REQUIRE(d2 == dcheck);
-    REQUIRE(dcheck == d1);
-    REQUIRE(dcheck == d2);
     REQUIRE(d1.getRevision() == d2.getRevision());
     REQUIRE(dcheck.getRevision() == d1.getRevision());
 }

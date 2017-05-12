@@ -126,4 +126,5 @@ class Dict
     bool _deleteWord(const std::string& word);
 
     bool synchronizeHistory(const std::string& serverUrl);
+    bool oneWayEqualityCheck(const Dict& d1, const Dict& d2) const;
 };
