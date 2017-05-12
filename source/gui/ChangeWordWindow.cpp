@@ -52,9 +52,10 @@ ChangeWordWindow::ChangeWordWindow(Logic& logic, std::string word,
 
 
     mAddButton.signal_clicked().connect([this]() {
-        auto dict = find_if(mLogic.mDicts.begin(), mLogic.mDicts.end(),
+        auto lockedD = mLogic.getDicts();
+        auto dict = find_if(lockedD.dicts.begin(), lockedD.dicts.end(),
             [this](auto& d) { return d.getFilename() == mDictFilename; });
-        if (dict != mLogic.mDicts.end())
+        if (dict != lockedD.dicts.end())
         {
             dict->changeWord(mChangedWord, mTranslationInput.get_text(),
                 mWordInput.get_text());
@@ -66,9 +67,10 @@ ChangeWordWindow::ChangeWordWindow(Logic& logic, std::string word,
     });
 
     mDeleteButton.signal_clicked().connect([this]() {
-        auto dict = find_if(mLogic.mDicts.begin(), mLogic.mDicts.end(),
+        auto lockedD = mLogic.getDicts();
+        auto dict = find_if(lockedD.dicts.begin(), lockedD.dicts.end(),
             [this](auto& d) { return d.getFilename() == mDictFilename; });
-        if (dict != mLogic.mDicts.end())
+        if (dict != lockedD.dicts.end())
         {
             dict->deleteWord(mChangedWord);
             this->hide();

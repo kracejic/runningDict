@@ -26,10 +26,14 @@ NewDictWindow::NewDictWindow(Logic& logic)
     mDictName.set_hexpand();
     mDictName.signal_changed().connect([this]() { this->check_validity(); });
 
+    auto lockedD = mLogic.getDicts();
+    for (auto& dict : lockedD.dicts)
+        currentDicts.emplace_back(dict.getName());
+
     mCreateButton.set_hexpand();
     mCreateButton.signal_clicked().connect([this]() {
-        if (any_of(mLogic.mDicts.begin(), mLogic.mDicts.end(), [this](auto& d) {
-                return d.getFilename() == mDictName.get_text();
+        if (any_of(currentDicts.begin(), currentDicts.end(), [this](auto& d) {
+                return d == mDictName.get_text();
             }))
             return;
         mLogic.createDict(mDictName.get_text());

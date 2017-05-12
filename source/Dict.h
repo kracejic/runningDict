@@ -94,7 +94,10 @@ class Dict
     // getters, setters
     bool isEnabled();
     bool enable(bool state = true);
-    bool isLoaded(){return mIsLoaded;};
+    bool isLoaded()
+    {
+        return mIsLoaded;
+    };
     bool toogle_enable();
     void setFileName(const std::string& name);
     const std::string& getFilename() const;
@@ -103,6 +106,10 @@ class Dict
     int getRevision() const
     {
         return revision;
+    };
+    bool isDirty()
+    {
+        return history.size() > 0;
     };
 
     int mBonus{0}; ///< Lower means higher

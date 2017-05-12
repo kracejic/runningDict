@@ -119,13 +119,15 @@ SettingsWindow::SettingsWindow(Logic& logic)
 
     // deal with enabling of dicts
     dynamic_cast<Gtk::CellRendererToggle*>(
+
         mTreeView.get_column(0)->get_first_cell())
         ->signal_toggled()
         .connect([this](const std::string& path) {
             try
             {
+                auto lockedD = mLogic.getDicts();
                 int index = std::stoi(path);
-                mLogic.mDicts.at(index).toogle_enable();
+                lockedD.dicts.at(index).toogle_enable();
             }
             catch (const std::exception& e)
             {
@@ -140,11 +142,12 @@ SettingsWindow::SettingsWindow(Logic& logic)
         .connect([this](const std::string& path) {
             try
             {
+                auto lockedD = mLogic.getDicts();
                 int index = std::stoi(path);
-                if (mLogic.mDicts.at(index).mBonus < 0)
-                    mLogic.mDicts.at(index).mBonus = 0;
+                if (lockedD.dicts.at(index).mBonus < 0)
+                    lockedD.dicts.at(index).mBonus = 0;
                 else
-                    mLogic.mDicts.at(index).mBonus = -1;
+                    lockedD.dicts.at(index).mBonus = -1;
             }
             catch (const std::exception& e)
             {
@@ -160,7 +163,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     // make pulse called repeatedly every 100ms
     sigc::slot<bool> my_slot =
         sigc::bind(sigc::mem_fun(*this, &SettingsWindow::pulse), 0);
-    mPulseConnection = Glib::signal_timeout().connect(my_slot, 5000);
+    mPulseConnection = Glib::signal_timeout().connect(my_slot, 1000);
 }
 //------------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow()
@@ -237,7 +240,8 @@ bool SettingsWindow::pulse(int num)
 void SettingsWindow::refreshDicts()
 {
     mRefListStore->clear();
-    for (auto&& dict : mLogic.mDicts)
+    auto lockedD = mLogic.getDicts();
+    for (auto&& dict : lockedD.dicts)
     {
         Gtk::TreeModel::iterator iter = mRefListStore->append();
         Gtk::TreeModel::Row row = *iter;

@@ -51,6 +51,8 @@ class MainWindow : public Gtk::ApplicationWindow
     bool mIgnoreClipboardChange{true};
     Glib::ustring mOldClipboard{""};
 
+    std::future<void> mServerConnection;
+
     ModelColumns mColumns;
     Glib::RefPtr<Gtk::ListStore> mRefListStore;
     Gtk::TreeView mTreeView;

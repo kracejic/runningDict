@@ -21,6 +21,8 @@ class NewDictWindow : public Gtk::Window
     Gtk::Entry mDictName;
     Gtk::Button mCreateButton;
 
+    std::vector<std::string> currentDicts;
+
 
     /**
      * handles ESC key

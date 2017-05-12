@@ -45,7 +45,27 @@ class Logic
     std::string mServer{""};
 
     std::string mLastDictForNewWord{""};
+
+  private:
     std::vector<Dict> mDicts;
+    std::mutex dictsLock;
+    std::unique_lock<std::mutex> lockDicts()
+    {
+        return std::unique_lock<std::mutex>(dictsLock);
+    };
+
+  public:
+    struct LockedDicts
+    {
+        std::vector<Dict>& dicts;
+        std::unique_lock<std::mutex> lock;
+    };
+    LockedDicts getDicts()
+    {
+        return LockedDicts{mDicts, std::unique_lock<std::mutex>(dictsLock)};
+    };
+
+
     std::vector<std::string> mAdditionalSearchDirs;
 
     /// Returns pointer to dict or zero, only filename is checked (not
@@ -65,6 +85,8 @@ class Logic
 
     std::future<void> connectToServerAndSync(const std::string& url);
     std::future<void> connectToServerAndSync();
+    std::future<void> connectToServerAndSyncIfItIsNeccessary();
+
 
     ServerStatus mServerStatus{ServerStatus::offline};
     std::chrono::system_clock::time_point mLastServerSync;

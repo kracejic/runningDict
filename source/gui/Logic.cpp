@@ -330,6 +330,21 @@ future<void> Logic::connectToServerAndSync()
 {
     return connectToServerAndSync(mServer);
 }
+future<void> Logic::connectToServerAndSyncIfItIsNeccessary()
+{
+    bool shouldSync = false;
+    if ((std::chrono::system_clock::now() - mLastServerSync) > 10min)
+        shouldSync = true;
+
+    for (auto& dict : mDicts)
+        if (dict.isDirty())
+            shouldSync = true;
+
+    if (shouldSync)
+        return connectToServerAndSync();
+    else
+        return {};
+}
 
 future<void> Logic::connectToServerAndSync(const std::string& url)
 {
@@ -395,17 +410,21 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             fs::create_directories(syncDirPath);
 
         // setup new dictionaries
-        for (auto& i : dictsFromServer)
+        if (dictsFromServer.size() > 0)
         {
-            if (i.is_string())
+            auto lock = this->lockDicts();
+            for (auto& i : dictsFromServer)
             {
-                string name = i;
-                this->mDicts.emplace_back();
-                mDicts.back().setName(name);
-                mDicts.back().enable(false);
-                mDicts.back().mOnline = true;
-                mDicts.back().setFileName(syncDirPath / name += ".dict");
-                // no syncing yet, syncing, when user enables it
+                if (i.is_string())
+                {
+                    string name = i;
+                    this->mDicts.emplace_back();
+                    mDicts.back().setName(name);
+                    mDicts.back().enable(false);
+                    mDicts.back().mOnline = true;
+                    mDicts.back().setFileName(syncDirPath / name += ".dict");
+                    // no syncing yet, syncing, when user enables it
+                }
             }
         }
 
@@ -425,9 +444,11 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
 TEST_CASE("loading dicts")
 {
     Logic l;
-    l.mDicts.emplace_back("test.dict");
-    l.mDicts.emplace_back("../some_path/test2.dict");
-    l.mDicts.emplace_back("../some path/test3.dict");
+    auto lockedDicts = l.getDicts();
+
+    lockedDicts.dicts.emplace_back("test.dict");
+    lockedDicts.dicts.emplace_back("../some_path/test2.dict");
+    lockedDicts.dicts.emplace_back("../some path/test3.dict");
     REQUIRE(l.getDict("test.dict") != nullptr);
     REQUIRE(l.getDict("testx.dict") == nullptr);
     REQUIRE(l.getDict("test2") != nullptr);
