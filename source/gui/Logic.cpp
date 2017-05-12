@@ -421,7 +421,7 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
                 mDicts.back().setName(name);
                 mDicts.back().enable(false);
                 mDicts.back().mOnline = true;
-                mDicts.back().setFileName(syncDirPath / name += ".dict");
+                mDicts.back().setFileName( (syncDirPath / name += ".dict").string());
                 // no syncing yet, syncing, when user enables it
             }
         }
