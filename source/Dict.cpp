@@ -797,7 +797,7 @@ TEST_CASE("delete from server", "[!hide][server]")
    REQUIRE(d == d2);
 }
 
-TEST_CASE("two dicts no conflict", "[!hide][server][!mayfail]")
+TEST_CASE("two dicts no conflict", "[!hide][server]")
 {
     Dict d1;
     d1.setName("testDictionary");
@@ -834,7 +834,7 @@ TEST_CASE("two dicts no conflict", "[!hide][server][!mayfail]")
 }
 
 
-TEST_CASE("two dicts", "[!hide][server][!mayfail]")
+TEST_CASE("two dicts", "[!hide][server]")
 {
     Dict d1;
     d1.setName("testDictionary");
@@ -867,7 +867,7 @@ TEST_CASE("two dicts", "[!hide][server][!mayfail]")
 }
 
 // disabled more complex test
-TEST_CASE("mulitiple clients", "[!hide][!mayfail]")
+TEST_CASE("mulitiple clients", "[server]")
 {
     Dict d1;
     d1.setName("testDictionary");
@@ -893,10 +893,10 @@ TEST_CASE("mulitiple clients", "[!hide][!mayfail]")
     REQUIRE(d1.getRevision() == 4);
 
     REQUIRE(d2.sync(server));
-    REQUIRE(d2.getRevision() == 6);
+    REQUIRE(d2.getRevision() == 5);
 
     REQUIRE(d1.sync(server));
-    REQUIRE(d1.getRevision() == 6);
+    REQUIRE(d1.getRevision() == 5);
 
 
     Dict dcheck;
