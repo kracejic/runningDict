@@ -354,7 +354,6 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
     L->info("Trying to sync with server: {}", url);
 
     auto fut = async(launch::async, [this, url]() {
-        L->debug("Trying to sync with server: {} Thread", url);
         if (url == "")
         {
             L->warn("Server url is emtpy");
@@ -370,10 +369,6 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             return;
         }
         json r = json::parse(re.text);
-        L->debug(re.text);
-        L->debug(r.dump());
-        L->debug(r["app"].get<string>());
-        L->debug(r["version"].get<string>());
 
         // check server type and compatible versions
         if (r["app"] == "dictionaryServer" &&
@@ -387,7 +382,6 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             L->info("Server connection was not succesfull.");
             return;
         }
-        L->debug("Server connection succesfull ({})", url);
 
         // sync dictionaries
         mServerStatus = ServerStatus::synchronizing;
@@ -417,6 +411,11 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             {
                 if (i.is_string())
                 {
+                    if( any_of(mDicts.begin(), mDicts.end(), [&i](auto& it){
+                        return it.getName() == i;}))
+                            continue;
+                    L->info("New dictionary found: {}", i.get<string>());
+
                     string name = i;
                     this->mDicts.emplace_back();
                     mDicts.back().setName(name);

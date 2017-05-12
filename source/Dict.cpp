@@ -545,7 +545,7 @@ bool Dict::enable(bool state)
     {
         mEnabled = true;
         if (not mIsLoaded)
-            mEnabled = reload();
+            mEnabled = reload() || mOnline;
     }
     else
         mEnabled = false;
