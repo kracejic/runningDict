@@ -370,9 +370,11 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         }
         json r = json::parse(re.text);
 
+        string expectedversion = "0.1.";
         // check server type and compatible versions
         if (r["app"] == "dictionaryServer" &&
-            r["version"].get<string>()[0] == '0')
+            strncmp(expectedversion.c_str(), expectedversion.c_str(),
+                expectedversion.size()) == 0)
         {
             this->mServerStatus = ServerStatus::connected;
         }
@@ -397,7 +399,7 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
             L->warn("Error {} dictionary: {}", re.status_code, re.text);
             return;
         }
-        L->debug("XX: {}", re.text);
+        L->debug("List of dictionaries on server: {}", re.text);
         json dictsFromServer = json::parse(re.text);
 
         // recreate sync folder
@@ -421,7 +423,8 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
                 mDicts.back().setName(name);
                 mDicts.back().enable(false);
                 mDicts.back().mOnline = true;
-                mDicts.back().setFileName( (syncDirPath / name += ".dict").string());
+                mDicts.back().setFileName(
+                    (syncDirPath / name += ".dict").string());
                 // no syncing yet, syncing, when user enables it
             }
         }

@@ -199,11 +199,6 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
                 bundle["changes"].push_back(
                     {{"type", "delete"}, {"word", change.word}});
                 break;
-            case ChangeType::changeWord:
-                bundle["changes"].push_back({{"type", "change"},
-                    {"word", change.word}, {"translation", change.translation},
-                    {"newWord", change.wordNew}});
-                break;
         }
     }
     bundle["dict"] = mName;
@@ -231,9 +226,6 @@ bool Dict::synchronizeHistory(const std::string& serverUrl)
             this->_addWord(change["word"], change["translation"]);
         if (change["type"] == "delete")
             this->_deleteWord(change["word"]);
-        if (change["type"] == "change")
-            this->_changeWord(
-                change["word"], change["translation"], change["newWord"]);
     }
     revision = response["revision"];
     history.clear();
@@ -351,6 +343,10 @@ bool Dict::_addWord(const std::string& word, const std::string& translation)
     // Make lower case
     string wordCopy = getLowerCase2(word);
 
+    // make a copy
+    std::string _translation = translation;
+    std::replace(_translation.begin(), _translation.end(), '\n', ';');
+
     // erase whitespace on the end of mContent
     string tmp = *mContent;
     tmp.erase(std::find_if(tmp.rbegin(), tmp.rend(),
@@ -359,7 +355,7 @@ bool Dict::_addWord(const std::string& word, const std::string& translation)
         tmp.end());
 
     // add word
-    tmp.append("\n"s + wordCopy + "\n " + translation);
+    tmp.append("\n"s + wordCopy + "\n " + _translation);
     if (tmp[0] == '\n')
         tmp.erase(0, 1);
 
@@ -442,57 +438,14 @@ bool compare_weak(const std::string& lhs, const std::string& rhs)
 bool Dict::changeWord(const std::string& word,
     const std::string& newTranslation, const std::string& wordNew)
 {
-    if (_changeWord(word, newTranslation, wordNew))
-    {
-        history.emplace_back(
-            ChangeType::changeWord, word, newTranslation, wordNew);
-        return true;
-    }
-    return false;
-}
-bool Dict::_changeWord(const std::string& word,
-    const std::string& newTranslation, const std::string& wordNew)
-{
-    bool result = false;
-    auto holder = mContent;
-    std::istringstream iss{*holder};
-    string output;
-    string translation = newTranslation;
-    std::replace(translation.begin(), translation.end(), '\n', ';');
-    for (std::string line; std::getline(iss, line);)
-    {
-        // todo compare to the first non asci character
-        if (compare_weak(line, word))
-        {
-            result = true;
-            if (wordNew == "")
-                output += line + "\n";
-            else
-                output += wordNew + "\n";
-            output += " " + translation + "\n";
-            while (true)
-            {
-
-                if (std::getline(iss, line))
-                    break;
-                if (line[0] != ' ')
-                {
-                    output += line + "\n";
-                    break;
-                }
-            }
-        }
-        else
-            output += line + "\n";
-    }
-    output.erase(std::find_if(output.rbegin(), output.rend(),
-                     std::not1(std::ptr_fun<int, int>(std::isspace)))
-                     .base(),
-        output.end());
-    mContent.reset(new std::string(output));
-    this->saveDictionary();
-
-    return result;
+    string _wordNew = wordNew;
+    if (wordNew == "")
+        _wordNew = word;
+    _deleteWord(word);
+    _addWord(_wordNew, newTranslation);
+    history.emplace_back(ChangeType::deleteWord, word);
+    history.emplace_back(ChangeType::addWord, _wordNew, newTranslation);
+    return true;
 }
 //-----------------------------------------------------------------------------
 bool Dict::deleteWord(const std::string& word)
@@ -677,25 +630,24 @@ TEST_CASE("checking for a word")
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\nein\n jedna");
     d.changeWord("zwei", "dva");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n dva\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "drei\n three\nein\n jedna\nzwei\n dva");
     d.changeWord("ein", "jedno jednicka, jedna");
     REQUIRE(*(d.getContens()) ==
-            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
+            "drei\n three\nzwei\n dva\nein\n jedno jednicka, jedna");
     d.changeWord("drei", "tricet stribrnych kurat\ntricet stribrnych strech");
     REQUIRE(*(d.getContens()) ==
-            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
-            "tricet stribrnych kurat;tricet stribrnych "
+            "zwei\n dva\nein\n jedno jednicka, jedna"
+            "\ndrei\n tricet stribrnych kurat;tricet stribrnych "
             "strech");
 
     // tests with special characters
     d.fill("ein /test/\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna", "ein");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\nein\n jedna");
     d.changeWord("ein", "jeden", "eine");
-    REQUIRE(*(d.getContens()) == "eine\n jeden\nzwei\n zwei\ndrei\n three");
-    REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\neine\n jeden");
 }
 
 TEST_CASE("comparison of dictionaries")
@@ -874,8 +826,7 @@ TEST_CASE("two dicts", "[!hide][server]")
     REQUIRE(d1.getRevision() == d2.getRevision());
 }
 
-// disabled more complex test
-TEST_CASE("mulitiple clients", "[server]")
+TEST_CASE("mulitiple clients", "[!hide][server]")
 {
     Dict d1;
     d1.setName("testDictionary");

@@ -9,7 +9,6 @@ enum class ChangeType
 {
     addWord,
     deleteWord,
-    changeWord
 };
 
 
@@ -17,14 +16,11 @@ struct Change
 {
     ChangeType changeType;
     std::string word;
-    std::string wordNew{""};
     std::string translation;
 
-    Change(ChangeType _type, std::string _word, std::string _translation = "",
-        std::string _wordNew = "")
+    Change(ChangeType _type, std::string _word, std::string _translation = "")
         : changeType(_type)
         , word(_word)
-        , wordNew(_wordNew)
         , translation(_translation){};
 };
 
@@ -121,8 +117,6 @@ class Dict
 
   private:
     bool _addWord(const std::string& word, const std::string& translation);
-    bool _changeWord(const std::string& word, const std::string& newTranslation,
-        const std::string& wordNew = "");
     bool _deleteWord(const std::string& word);
 
     bool synchronizeHistory(const std::string& serverUrl);
