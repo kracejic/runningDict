@@ -277,7 +277,7 @@ bool MainWindow::pulse(int num)
     ignore_arg(num);
 
 
-    if (mLogic.mServer != "" &&
+    if (mLogic.getServer() != "" &&
         (!mServerConnection.valid() ||
             mServerConnection.wait_for(1ns) == future_status::ready))
     {

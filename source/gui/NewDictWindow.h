@@ -20,6 +20,7 @@ class NewDictWindow : public Gtk::Window
 
     Gtk::Entry mDictName;
     Gtk::Button mCreateButton;
+    Gtk::CheckButton mOnline;
 
     std::vector<std::string> currentDicts;
 

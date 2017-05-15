@@ -8,6 +8,7 @@ using namespace std;
 NewDictWindow::NewDictWindow(Logic& logic)
     : mLogic(logic)
     , mCreateButton("Create")
+    , mOnline("Synchronized with server")
 {
     this->add(mGrid);
     this->set_default_size(400, -1);
@@ -20,11 +21,15 @@ NewDictWindow::NewDictWindow(Logic& logic)
     mGrid.set_row_spacing(5);
 
     mGrid.attach(mDictName, 0, 1, 1, 1);
-    mGrid.attach(mCreateButton, 0, 2, 1, 1);
+    mGrid.attach(mOnline, 0, 2, 1, 1);
+    mGrid.attach(mCreateButton, 0, 3, 1, 1);
 
     mDictName.set_placeholder_text("Put one word here");
     mDictName.set_hexpand();
     mDictName.signal_changed().connect([this]() { this->check_validity(); });
+
+    if (logic.getServer() == "")
+        mOnline.set_active(false);
 
     auto lockedD = mLogic.getDicts();
     for (auto& dict : lockedD.dicts)
@@ -35,7 +40,10 @@ NewDictWindow::NewDictWindow(Logic& logic)
         if (any_of(currentDicts.begin(), currentDicts.end(),
                 [this](auto& d) { return d == mDictName.get_text(); }))
             return;
-        mLogic.createDict(mDictName.get_text());
+        if (this->mOnline.get_active())
+            mLogic.createDict(mDictName.get_text(), true); // online
+        else
+            mLogic.createDict(mDictName.get_text(), false); //offline
         this->hide();
     });
 

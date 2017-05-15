@@ -53,7 +53,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mServerSettingBox.pack_start(mServerStatus, false, false, 0);
     mServerStatus.override_color(Gdk::RGBA{"#909090"});
     mServer.set_placeholder_text("url");
-    if (mLogic.mServer == "")
+    if (mLogic.getServer() == "")
     {
         mServer.set_sensitive(false);
         mToogleServer.set_active(false);
@@ -62,8 +62,21 @@ SettingsWindow::SettingsWindow(Logic& logic)
     {
         mServer.set_sensitive(true);
         mToogleServer.set_active(true);
-        mServer.set_text(mLogic.mServer);
+        mServer.set_text(mLogic.getServer());
     }
+    mToogleServer.signal_toggled().connect([this]() {
+        if (!mToogleServer.get_active())
+        {
+            mServer.set_sensitive(false);
+            mServerStatus.set_text("");
+            mServer.set_text("");
+            mLogic.setServer("");
+        }
+        else
+        {
+            mServer.set_sensitive(true);
+        }
+    });
 
     // setup scrollView
     mGrid.attach(mScrollView, 0, 6, 4, 1);
@@ -180,7 +193,8 @@ bool SettingsWindow::pulse(int num)
         (!mServerConnection.valid() ||
             mServerConnection.wait_for(1ns) == future_status::ready))
     {
-        mLogic.mServer = mServer.get_text();
+        if (mLogic.getServer() != mServer.get_text())
+            mLogic.setServer(mServer.get_text());
         mServerConnection = mLogic.connectToServerAndSync();
     }
 
@@ -232,6 +246,8 @@ bool SettingsWindow::pulse(int num)
     {
         mServer.set_sensitive(false);
         mServerStatus.set_text("");
+        mServer.set_text("");
+        mLogic.setServer("");
     }
 
     return true;

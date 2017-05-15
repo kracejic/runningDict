@@ -159,19 +159,28 @@ std::string Logic::getConfigPath()
     return confdir.string();
 }
 //-----------------------------------------------------------------------------
-bool Logic::createDict(const std::string& filename)
+bool Logic::createDict(const std::string& filename, bool online)
 {
     auto confdir = fs::path(getConfigPath());
     auto userdictpath = confdir / (filename + ".dict");
+    if (online)
+        userdictpath = confdir / "sync" / (filename + ".dict");
+
     L->info("creating new empty user dict at {}", userdictpath.string());
     if (fs::exists(userdictpath))
     {
         L->warn("... file already exists");
         return false;
     }
-    std::ofstream outfile(userdictpath.string());
-    outfile.close();
-    this->refreshAvailableDicts();
+
+    std::unique_lock<std::mutex> lock( dictsLock);
+    mDicts.emplace_back();
+    mDicts.back().setName(filename);
+    mDicts.back().setFileName(userdictpath.string());
+    if(online)
+        mDicts.back().mOnline = true;
+    mDicts.back().saveDictionary();
+
     return true;
 }
 //------------------------------------------------------------------------------
@@ -410,7 +419,7 @@ future<void> Logic::connectToServerAndSync(const std::string& url)
         // setup new dictionaries
         if (dictsFromServer.size() > 0)
         {
-            auto lock = this->lockDicts();
+            std::unique_lock<std::mutex> lock(dictsLock);
             for (auto& obj : dictsFromServer)
             {
                 string name = obj["name"];

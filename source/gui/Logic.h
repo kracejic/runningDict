@@ -40,19 +40,24 @@ class Logic
 
     bool mTranslateClipboardAtStart{false};
     bool mAlwaysOnTop{true};
-    bool mDebug{false};
+    bool mDebug{false}; //< is debug logging on
 
-    std::string mServer{""};
 
+    // clang-format off
+    void setServer(const std::string& _mServer) {
+        mServerStatus = ServerStatus::offline; mServer = _mServer; };
+    const std::string& getServer() { return mServer; };
+    // clang-format on
+
+    /// last used dictionary for creating new word
     std::string mLastDictForNewWord{""};
 
   private:
     std::vector<Dict> mDicts;
     std::mutex dictsLock;
-    std::unique_lock<std::mutex> lockDicts()
-    {
-        return std::unique_lock<std::mutex>(dictsLock);
-    };
+
+    /// url of the server
+    std::string mServer{""};
 
   public:
     struct LockedDicts
@@ -81,7 +86,7 @@ class Logic
     static std::string getConfigPath();
     std::string getPackagePath();
 
-    bool createDict(const std::string& filename);
+    bool createDict(const std::string& filename, bool online);
 
     std::future<void> connectToServerAndSync(const std::string& url);
     std::future<void> connectToServerAndSync();
