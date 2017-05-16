@@ -48,6 +48,7 @@ class Logic
         mServerStatus = ServerStatus::offline; mServer = _mServer; };
     const std::string& getServer() { return mServer; };
     // clang-format on
+    void sortDicts();
 
     /// last used dictionary for creating new word
     std::string mLastDictForNewWord{""};

@@ -43,7 +43,7 @@ NewDictWindow::NewDictWindow(Logic& logic)
         if (this->mOnline.get_active())
             mLogic.createDict(mDictName.get_text(), true); // online
         else
-            mLogic.createDict(mDictName.get_text(), false); //offline
+            mLogic.createDict(mDictName.get_text(), false); // offline
         this->hide();
     });
 

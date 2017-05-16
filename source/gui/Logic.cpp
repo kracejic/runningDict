@@ -173,11 +173,11 @@ bool Logic::createDict(const std::string& filename, bool online)
         return false;
     }
 
-    std::unique_lock<std::mutex> lock( dictsLock);
+    std::unique_lock<std::mutex> lock(dictsLock);
     mDicts.emplace_back();
     mDicts.back().setName(filename);
     mDicts.back().setFileName(userdictpath.string());
-    if(online)
+    if (online)
         mDicts.back().mOnline = true;
     mDicts.back().saveDictionary();
 
@@ -334,6 +334,21 @@ void Logic::saveConfig(const std::string& filename)
     outFile << std::setw(4) << cfg << endl;
 }
 //------------------------------------------------------------------------------
+void Logic::sortDicts()
+{
+    std::unique_lock<std::mutex> lock(dictsLock);
+    sort(mDicts.begin(), mDicts.end(), [](auto& lh, auto& rh) {
+        if (lh.isEnabled() && !rh.isEnabled())
+            return true;
+        if (!lh.isEnabled() && rh.isEnabled())
+            return false;
+        if (lh.mOnline && !rh.mOnline)
+            return true;
+        if (!lh.mOnline && rh.mOnline)
+            return false;
+        return lh.getName() > rh.getName();
+    });
+}
 #include "cpr/cpr.h"
 future<void> Logic::connectToServerAndSync()
 {

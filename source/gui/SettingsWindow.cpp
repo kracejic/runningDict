@@ -169,6 +169,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
 
 
+    mLogic.sortDicts();
     this->refreshDicts();
 
     this->show_all_children();
