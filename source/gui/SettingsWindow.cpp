@@ -111,7 +111,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mTreeView.append_column("Path", mDictViewModel.mPath);
     mTreeView.get_column(1)->set_expand();
     mTreeView.append_column_editable("Priority", mDictViewModel.mBonus);
-    mTreeView.append_column("Shared", mDictViewModel.mOnline);
+    mTreeView.append_column("Properties", mDictViewModel.mStatus);
     mTreeView.set_tooltip_column(mDictViewModel.mTooltip.index());
 
 
@@ -264,7 +264,10 @@ void SettingsWindow::refreshDicts()
         row[mDictViewModel.mEnabled] = dict.isEnabled();
         row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
-        row[mDictViewModel.mOnline] = dict.mOnline;
+        if (dict.mOnline)
+            row[mDictViewModel.mStatus] = "online";
+        else
+            row[mDictViewModel.mStatus] = "";
         row[mDictViewModel.mTooltip] = dict.getFilename();
     }
 }

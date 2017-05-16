@@ -849,13 +849,13 @@ TEST_CASE("mulitiple clients", "[!hide][server]")
     d2.addWord("test", "test2");
 
     REQUIRE(d1.sync(server));
-    REQUIRE(d1.getRevision() == 4);
+    REQUIRE(d1.getRevision() == 2);
 
     REQUIRE(d2.sync(server));
-    REQUIRE(d2.getRevision() == 5);
+    REQUIRE(d2.getRevision() == 4);
 
     REQUIRE(d1.sync(server));
-    REQUIRE(d1.getRevision() == 5);
+    REQUIRE(d1.getRevision() == 4);
 
 
     Dict dcheck;
