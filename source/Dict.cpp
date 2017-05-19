@@ -871,4 +871,313 @@ TEST_CASE("mulitiple clients", "[!hide][server]")
     REQUIRE(d1.getRevision() == d2.getRevision());
     REQUIRE(dcheck.getRevision() == d1.getRevision());
 }
+
+//////////////////////////// test for conflicts //////////////////////
+
+TEST_CASE("conflicts add-add basic", "[!hide][server][!mayfail]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("new", "newTranslationD1");
+   d1.addWord("newer", "newerTranslationD1");
+   d1.addWord("random", "randomTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("new", "translationD2");
+   d2.addWord("newer", "newTranslationD2");
+   d1.addWord("whatever", "whateverTranslationD1");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(*d1.getContens() == *d2.getContens());
+   // REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts add-add", "[!hide][server][!mayfail]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("word", "translationD1");
+   d1.addWord("new", "newTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts add-change", "[!hide][server][!mayfail]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("newWord", "newTranslationD1");
+   d1.changeWord("word", "translationChangeD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("newWord", "newTranslationD2");
+   d2.addWord("word", "translationAddD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(*d1.getContens() == *d2.getContens());
+   // REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts add-delete", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.deleteWord("word");
+   d1.deleteWord("new");
+   d1.addWord("add", "addedTranslationD1");
+   d1.deleteWord("add");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+   d1.addWord("add", "addedTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts change-add", "[!hide][server][!mayfail]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+
+   d1.addWord("word", "trD1");
+   d1.addWord("newWord", "trChangeD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "trChangeD2");
+
+   d2.addWord("newWord", "newTrD2");
+   d2.changeWord("newWord", "newTrChangeD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(*d1.getContens() == *d2.getContens());
+   // REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+
+TEST_CASE("conflicts change-change basic", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.changeWord("word", "translationD1", "wort");
+
+   d1.addWord("something", "nieco");
+   d1.deleteWord("something");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "translationD2", "slovo");
+   d2.addWord("something", "nieco");
+   d2.changeWord("something", "nieco", "anything");
+
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts change-delete", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.deleteWord("word");
+   d1.addWord("new", "trChangeD1");
+   d1.deleteWord("new");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+   d2.changeWord("new", "chagedTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(*d1.getContens() == *d2.getContens());
+   // REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts delete-add", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("word", "translationD1");
+   d1.addWord("newWord", "newTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.deleteWord("word");
+   d2.deleteWord("newWord");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts delete-change", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.changeWord("word", "translationD1");
+   d1.addWord("new", "newTranslationD1");
+   d1.changeWord("new", "changedTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.deleteWord("word");
+   d2.deleteWord("new");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
 #endif
