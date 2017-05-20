@@ -113,7 +113,8 @@ class Dict
     // Helper function for tests TODO wip
     bool operator==(const Dict& d) const;
     bool operator!=(const Dict& d) const;
-    std::string translationOfWord(const std::string& word) const;
+    // std::string translationOfWord(const std::string& word) const;
+    bool checkTranslationOfWord(const std::string& word, const std::string& translation) const;
 
   private:
     bool _addWord(const std::string& word, const std::string& translation);

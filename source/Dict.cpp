@@ -281,7 +281,7 @@ bool Dict::hasWord(const std::string& word) const
     return false;
 }
 //-----------------------------------------------------------------------------
-std::string Dict::translationOfWord(const std::string& word) const
+bool Dict::checkTranslationOfWord(const std::string& word, const std::string& translation) const
 {
     auto holder = mContent;
     std::istringstream iss{*holder};
@@ -289,9 +289,10 @@ std::string Dict::translationOfWord(const std::string& word) const
         if (line == word)
         {
             std::getline(iss, line);
-            return line;
+            if (line == translation)
+                return true;
         }
-    return "";
+    return false;
 }
 //-----------------------------------------------------------------------------
 bool Dict::oneWayEqualityCheck(const Dict& d1, const Dict& d2) const
@@ -307,7 +308,7 @@ bool Dict::oneWayEqualityCheck(const Dict& d1, const Dict& d2) const
 
         if (not d2.hasWord(line))
             return false;
-        if (d2.translationOfWord(line) != translation)
+        if (!d2.checkTranslationOfWord(line, translation))
             return false;
     }
 
@@ -874,7 +875,7 @@ TEST_CASE("mulitiple clients", "[!hide][server]")
 
 //////////////////////////// test for conflicts //////////////////////
 
-TEST_CASE("conflicts add-add basic", "[!hide][server][!mayfail]")
+TEST_CASE("conflicts add-add basic", "[!hide][server]")
 {
    Dict d1;
    d1.setName("testDictionary");
@@ -903,13 +904,12 @@ TEST_CASE("conflicts add-add basic", "[!hide][server][!mayfail]")
    L->info("d1: {}", *d1.getContens());
    L->info("d2: {}", *d2.getContens());
 
-   REQUIRE(*d1.getContens() == *d2.getContens());
-   // REQUIRE(d1 == d2);
+   REQUIRE(d1 == d2);
    REQUIRE(d1.getRevision() == d2.getRevision());
 }
 
 // failing - multiple words, different order, but same dict
-TEST_CASE("conflicts add-add", "[!hide][server][!mayfail]")
+TEST_CASE("conflicts add-add", "[!hide][server]")
 {
    Dict d1;
    d1.setName("testDictionary");
@@ -941,7 +941,7 @@ TEST_CASE("conflicts add-add", "[!hide][server][!mayfail]")
 }
 
 // failing - multiple words, different order, but same dict
-TEST_CASE("conflicts add-change", "[!hide][server][!mayfail]")
+TEST_CASE("conflicts add-change", "[!hide][server]")
 {
    Dict d1;
    d1.setName("testDictionary");
@@ -968,8 +968,7 @@ TEST_CASE("conflicts add-change", "[!hide][server][!mayfail]")
    L->info("d1: {}", *d1.getContens());
    L->info("d2: {}", *d2.getContens());
 
-   REQUIRE(*d1.getContens() == *d2.getContens());
-   // REQUIRE(d1 == d2);
+   REQUIRE(d1 == d2);
    REQUIRE(d1.getRevision() == d2.getRevision());
 }
 
@@ -1003,13 +1002,12 @@ TEST_CASE("conflicts add-delete", "[!hide][server]")
    L->info("d1: {}", *d1.getContens());
    L->info("d2: {}", *d2.getContens());
 
-   // REQUIRE(*d1.getContens() == *d2.getContens());
    REQUIRE(d1 == d2);
    REQUIRE(d1.getRevision() == d2.getRevision());
 }
 
 // failing - multiple words, different order, but same dict
-TEST_CASE("conflicts change-add", "[!hide][server][!mayfail]")
+TEST_CASE("conflicts change-add", "[!hide][server][issue][!mayfail]")
 {
    Dict d1;
    d1.setName("testDictionary");
@@ -1039,9 +1037,8 @@ TEST_CASE("conflicts change-add", "[!hide][server][!mayfail]")
    L->info("d1: {}", *d1.getContens());
    L->info("d2: {}", *d2.getContens());
 
-   REQUIRE(*d1.getContens() == *d2.getContens());
-   // REQUIRE(d1 == d2);
    REQUIRE(d1.getRevision() == d2.getRevision());
+   REQUIRE(d1 == d2);
 }
 
 
