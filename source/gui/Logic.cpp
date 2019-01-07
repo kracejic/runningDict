@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <version.h>
+#include <iomanip>
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>

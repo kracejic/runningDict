@@ -29,8 +29,7 @@ void logging::init(const std::string& directory)
 #ifdef _WIN32
     sinks.push_back(make_shared<spdlog::sinks::stdout_sink_mt>());
 #else
-    auto stdout_sink = spdlog::sinks::stdout_sink_mt::instance();
-    sinks.push_back(make_shared<spdlog::sinks::ansicolor_sink>(stdout_sink));
+    sinks.push_back(make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>());
 #endif
 
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(

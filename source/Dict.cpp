@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>

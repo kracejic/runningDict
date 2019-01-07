@@ -10,7 +10,7 @@ find_package(Git REQUIRED)
 ExternalProject_Add(
     Catch
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/Catch
-    GIT_REPOSITORY https://github.com/philsquared/Catch.git
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     # For shallow git clone (without downloading whole history)
     # GIT_SHALLOW 1
     # For point at certain tag
@@ -27,7 +27,7 @@ add_custom_target(external-Catch-update
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Catch)
 # set include directory
-set(EXTERNAL_CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Catch/src/Catch/single_include" PARENT_SCOPE)
+set(EXTERNAL_CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Catch/src/Catch/single_include/catch2" PARENT_SCOPE)
 
 
 #------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ add_custom_target(external-Json-update
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Json)
 # set include directory
-set(EXTERNAL_JSON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Json/src/Json/src" PARENT_SCOPE)
+set(EXTERNAL_JSON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Json/src/Json/single_include/nlohmann" PARENT_SCOPE)
 
 
 #------------------------------------------------------------------------------
