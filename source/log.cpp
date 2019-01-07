@@ -14,7 +14,7 @@ using namespace std;
 
 std::shared_ptr<spdlog::logger> L;
 
-void logging::init(std::string directory)
+void logging::init(const std::string& directory)
 {
     static bool done = false;
     if (done == true)
@@ -22,13 +22,18 @@ void logging::init(std::string directory)
     done = true;
 
     auto filepath = fs::path(directory) / "logfile";
-    if (not fs::exists(fs::path(directory)))
+    if (directory != "" && not fs::exists(fs::path(directory)))
         create_directories(fs::path(directory));
 
     vector<spdlog::sink_ptr> sinks;
+#ifdef _WIN32
     sinks.push_back(make_shared<spdlog::sinks::stdout_sink_mt>());
+#else
+    sinks.push_back(make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>());
+#endif
+
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        filepath.string(), "log", 1048576 * 2, 3));
+        filepath.string(), 1048576 * 2, 3));
 
     L = make_shared<spdlog::logger>("main", sinks.begin(), sinks.end());
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <future>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -22,6 +23,7 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
         add(mEnabled);
         add(mPath);
         add(mBonus);
+        add(mStatus);
         add(mError);
         add(mTooltip);
     }
@@ -29,6 +31,7 @@ class ModelColumns_dicts : public Gtk::TreeModelColumnRecord
     Gtk::TreeModelColumn<bool> mEnabled;
     Gtk::TreeModelColumn<Glib::ustring> mPath;
     Gtk::TreeModelColumn<bool> mBonus;
+    Gtk::TreeModelColumn<Glib::ustring> mStatus;
     Gtk::TreeModelColumn<bool> mError;
     Gtk::TreeModelColumn<Glib::ustring> mTooltip;
 };
@@ -52,6 +55,10 @@ class SettingsWindow : public Gtk::Window
 
     std::unique_ptr<NewDictWindow> mAddDictWindow;
 
+    Gtk::Box mServerSettingBox;
+    Gtk::Label mServerStatus;
+    Gtk::CheckButton mToogleServer;
+    Gtk::Entry mServer;
 
     /**
      * handles ESC key
@@ -59,6 +66,9 @@ class SettingsWindow : public Gtk::Window
     bool on_key_press_event(GdkEventKey* key_event) override;
 
     void refreshDicts();
+    bool pulse(int num);
+    sigc::connection mPulseConnection;
+    std::future<void> mServerConnection;
 
   public:
     SettingsWindow(Logic& logic);

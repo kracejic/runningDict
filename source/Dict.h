@@ -1,76 +1,69 @@
 #pragma once
 #include <fstream>
+#include <future>
 #include <memory>
 #include <string>
+#include <vector>
 
-
-namespace Dicts
+enum class ChangeType
 {
-bool deleteWord(const std::string& word, const std::string dictname);
-bool changeWord(const std::string& word, const std::string& newTranslation,
-    const std::string dictname);
-} /* Dicts */
+    addWord,
+    deleteWord,
+};
 
+
+struct Change
+{
+    ChangeType changeType;
+    std::string word;
+    std::string translation;
+
+    Change(ChangeType _type, std::string _word, std::string _translation = "")
+        : changeType(_type)
+        , word(_word)
+        , translation(_translation){};
+};
 
 class Dict
 {
   private:
-    bool mIs_open{false};
     std::shared_ptr<const std::string> mContent;
     std::string mFilename{""};
     std::string mName{""};
-    bool mEnabled{true};
+    int revision{0};
 
-    bool is_open();
+    std::vector<Change> history;
+
+    bool mEnabled{true};
+    bool mIsLoaded{false};
+    bool mErrorState{false};
+    bool mIsSynchronized{false};
+
+  public:
+    bool mReadOnly{false};
+    bool mOnline{false};
+
+    bool isReady()
+    {
+        return mIsLoaded && (mIsSynchronized || !mOnline) && !mErrorState;
+    };
+
 
   public:
     Dict();
-    Dict(const std::string& filename);
-    Dict(const std::string& filename, int bonus, bool enabled);
+    Dict(const std::string& filename, int bonus = 0, bool enabled = true);
 
     /// Fill dictionary with custom string, usefull for testing
     void fill(const std::string& content);
 
-    /**
-     * Load the file
-     * @param  filename
-     * @return          [description]
-     */
-    bool open(const std::string& filename);
-
-    /**
-     * Is dictionary enabled (thus loaded)?
-     */
-    bool is_enabled();
-
-    /**
-     * Tries to enable or disable dict. Also loads the file if neccessary.
-     * @param  state desired state
-     * @return       returns end state
-     */
-    bool enable(bool state = true);
-
-    /**
-     * Flips enable state (if possible). Also loads the file if neccessary.
-     * @return       returns end state
-     */
-    bool toogle_enable();
-
-    /**
-     * Reloads the content from dict file.
-     */
-    bool reload();
-
+    bool hasWord(const std::string& word) const;
 
     /**
      * Add new word to dictionary.
      * This causes write to harddrive.
-     *
      * @return             was this succesfull?
      */
     bool addWord(const std::string& word, const std::string& translation);
-
-    bool hasWord(const std::string& word);
 
     /**
      * Changes the word in dictionary.
@@ -83,13 +76,50 @@ class Dict
     bool deleteWord(const std::string& word);
 
 
+    bool open(const std::string& filename);
+    bool reload();
     void saveDictionary();
 
-    const std::string& getFilename() const;
-    const std::string& getName() const;
+    bool sync(const std::string& serverUrl);
+    std::future<bool> deleteFromServer(const std::string& serverUrl);
+
+    // content getters
     std::shared_ptr<const std::string> getContens() const;
     long long getContensSize() const;
 
+    // getters, setters
+    bool isEnabled();
+    bool enable(bool state = true);
+    bool isLoaded()
+    {
+        return mIsLoaded;
+    };
+    bool toogle_enable();
+    void setFileName(const std::string& name);
+    const std::string& getFilename() const;
+    void setName(const std::string& name);
+    const std::string& getName() const;
+    int getRevision() const
+    {
+        return revision;
+    };
+    bool isDirty()
+    {
+        return history.size() > 0;
+    };
+
     int mBonus{0}; ///< Lower means higher
-    bool mErrorState{false};
+
+    // Helper function for tests TODO wip
+    bool operator==(const Dict& d) const;
+    bool operator!=(const Dict& d) const;
+    // std::string translationOfWord(const std::string& word) const;
+    bool checkTranslationOfWord(const std::string& word, const std::string& translation) const;
+
+  private:
+    bool _addWord(const std::string& word, const std::string& translation);
+    bool _deleteWord(const std::string& word);
+
+    bool synchronizeHistory(const std::string& serverUrl);
+    bool oneWayEqualityCheck(const Dict& d1, const Dict& d2) const;
 };

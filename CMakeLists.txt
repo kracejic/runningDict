@@ -4,8 +4,8 @@ message(STATUS "    == ${PROJECT_NAME} configuration ==")
 message(STATUS "")
 
 # Project setup
-project (runningdict VERSION 1.1.0)
-set(VERSION_TYPE "stable" CACHE STRING "version type" FORCE)
+project (runningdict VERSION 1.2.0)
+set(VERSION_TYPE "dev" CACHE STRING "version type" FORCE)
 site_name(VERSION_HOST)
 set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
@@ -26,27 +26,12 @@ endif()
 if (CMAKE_GENERATOR MATCHES "Makefiles")
     # Make it multithreaded
     add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
-        install -- -j WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+        install -- -j8 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 else()
     add_custom_target( Install_ COMMAND "${CMAKE_COMMAND}" --build . --target
-        install WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+        install WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 endif()
 
-
-#------------------------------------------------------------------------------
-# Dependencies for all targets
-
-# Boost instead of C++17 filesystem (MSYS2 GCC5.3 does not have filesystem TS)
-option(USE_BOOST_FILESYSTEM 
-    "whether to use boost::filesystem instead of the std::filesystem" FALSE)
-if(USE_BOOST_FILESYSTEM)
-    find_package(Boost COMPONENTS filesystem system REQUIRED)
-    add_definitions("-DUSE_BOOST_FILESYSTEM")
-    include_directories( SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
-    link_libraries(${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-else()
-    link_libraries(stdc++fs)
-endif()
 
 
 #------------------------------------------------------------------------------

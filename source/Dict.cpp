@@ -1,7 +1,11 @@
 #include "Dict.h"
+#include "cpr/cpr.h"
+#include "json.hpp"
+#include "log.h"
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -12,18 +16,11 @@ namespace fs = std::experimental::filesystem;
 #endif
 
 using namespace std;
+using json = nlohmann::json;
 
 Dict::Dict()
 {
-    // create empty string
     mContent.reset(new std::string(""));
-}
-Dict::Dict(const std::string& filename)
-{
-    mFilename = filename;
-    mName = fs::path(filename).stem().string();
-    mContent.reset(new std::string(""));
-    this->reload();
 }
 //-----------------------------------------------------------------------------
 Dict::Dict(const std::string& filename, int bonus, bool enabled)
@@ -41,56 +38,19 @@ void Dict::fill(const std::string& content)
     string temp = content;
     temp.erase(std::remove(temp.begin(), temp.end(), '\r'), temp.end());
     mContent.reset(new string(std::move(temp)));
-    mIs_open = true;
-}
-//-----------------------------------------------------------------------------
-const std::string& Dict::getName() const
-{
-    return mName;
-}
-//-----------------------------------------------------------------------------
-const std::string& Dict::getFilename() const
-{
-    return mFilename;
+    mIsLoaded = true;
 }
 //-----------------------------------------------------------------------------
 bool Dict::reload()
 {
-    if (!is_open() && mFilename == "")
+    if (not mIsLoaded && mFilename == "")
         return false;
     return (open(mFilename));
 }
 //-----------------------------------------------------------------------------
-bool Dict::is_enabled()
-{
-    return mEnabled;
-}
-//-----------------------------------------------------------------------------
-bool Dict::toogle_enable()
-{
-    return this->enable(not mEnabled);
-}
-//-----------------------------------------------------------------------------
-bool Dict::enable(bool state)
-{
-    if (state)
-    {
-        mEnabled = true;
-        if (not mIs_open)
-            mEnabled = reload();
-    }
-    else
-        mEnabled = false;
-
-    return mEnabled;
-}
-//-----------------------------------------------------------------------------
 bool Dict::open(const std::string& filename)
 {
-    // presume problems, reseted later
-    mErrorState = true;
-
-    mIs_open = false;
+    mIsLoaded = false;
     string tmp;
 
     // reopen
@@ -109,23 +69,190 @@ bool Dict::open(const std::string& filename)
     file.close();
     tmp.erase(std::remove(tmp.begin(), tmp.end(), '\r'), tmp.end());
     mContent.reset(new std::string(move(tmp)));
-    mIs_open = true;
+    mIsLoaded = true;
     mErrorState = false;
 
+    // load metadata
+    if (fs::exists(filename + ".meta"))
+    {
+        ifstream metaFile{filename + ".meta"};
+        json meta;
+        metaFile >> meta;
+
+        mOnline = meta.value("online", false);
+        revision = meta.value("revision", 0);
+        mReadOnly = meta.value("readOnly", false);
+        if (mOnline)
+            mIsSynchronized = true;
+    }
 
     return true;
 }
 //-----------------------------------------------------------------------------
-bool Dict::is_open()
+void Dict::saveDictionary()
 {
-    return mIs_open;
+    auto holder = mContent;
+    if (mFilename == "")
+        return;
+    std::ofstream outfile{mFilename};
+    outfile << *holder << endl;
+
+    // save metadata
+    json meta;
+    meta["online"] = mOnline;
+    meta["readOnly"] = mReadOnly;
+    meta["revision"] = revision;
+
+    std::ofstream outMeta{mFilename + ".meta"};
+    outMeta << std::setw(4) << meta << endl;
+}
+//-----------------------------------------------------------------------------
+bool Dict::sync(const std::string& serverUrl)
+{
+    if (not mOnline)
+        return false;
+    L->info("Synchronizing dict {} with {}", mName, serverUrl);
+
+    auto re = cpr::Get(cpr::Url{serverUrl + "/api/dictionary"});
+    if (re.status_code != 200)
+    {
+        L->warn("Getting list of dictionaries failed with {}, {}",
+            re.status_code, re.text);
+        return false;
+    }
+
+    json r = json::parse(re.text);
+    for (auto& dict : r)
+    {
+        if (mName == dict["name"].get<string>())
+        {
+            L->debug("Dictionary found on server, synchronizing");
+            if (*mContent == "")
+            {
+                L->debug("Dictionary is empty, downloading");
+                auto re2 =
+                    cpr::Get(cpr::Url{serverUrl + "/api/dictionary/" + mName},
+                        cpr::Parameters{{"dict", mName}});
+                if (re2.status_code != 200)
+                {
+                    L->warn("Fetching changes failed with {}, {}",
+                        re.status_code, re.text);
+                    return false;
+                }
+                json r2 = json::parse(re2.text);
+                fill(r2["text"]);
+                revision = r2["revision"];
+            }
+            else
+            {
+                L->debug("Dictionary is not empty, synchronizing history");
+                if (not this->synchronizeHistory(serverUrl))
+                    return false;
+            }
+            saveDictionary();
+            mIsSynchronized = true;
+            mIsLoaded = true;
+            mErrorState = false;
+            return true;
+        }
+    }
+
+    // This dictionary is not on server
+    L->debug("Uploading to server");
+    // when dictionary is not on server, it is created and filled with current
+    // data.
+
+    /// @todo fix
+    auto re3 = cpr::Post(cpr::Url{serverUrl + "/api/dictionary"},
+        cpr::Payload{{"name", mName}, {"text", *mContent}});
+    L->debug("What we are uploading: {}", *mContent);
+    L->debug("re3.text = {}", re3.text);
+    L->debug("re3.status_code = {}", re3.status_code);
+
+    if (re3.status_code != 201)
+        return false;
+
+    json r3 = json::parse(re3.text);
+    revision = r3["revision"];
+
+    saveDictionary();
+    mIsSynchronized = true;
+    mIsLoaded = true;
+    mErrorState = false;
+    return true;
+}
+//-----------------------------------------------------------------------------
+bool Dict::synchronizeHistory(const std::string& serverUrl)
+{
+    // Prepare changelist in json array
+    json bundle;
+    bundle["changes"] = json::array();
+    for (const auto& change : history)
+    {
+        switch (change.changeType)
+        {
+            case ChangeType::addWord:
+                bundle["changes"].push_back(
+                    {{"type", "add"}, {"word", change.word},
+                        {"translation", change.translation}});
+                break;
+            case ChangeType::deleteWord:
+                bundle["changes"].push_back(
+                    {{"type", "delete"}, {"word", change.word}});
+                break;
+        }
+    }
+    bundle["dict"] = mName;
+    bundle["revision"] = revision;
+
+    L->debug("Our request: {}", bundle.dump());
+
+    // Sync with server (push our changes, receive server changes)
+    auto re = cpr::Post(cpr::Url{serverUrl + "/api/sync/dictionary/" + mName},
+        cpr::Body{bundle.dump()},
+        cpr::Header{{"content-type", "application/json"}});
+
+    L->debug("Response: {}", re.text);
+    if (re.status_code != 200)
+    {
+        L->warn(
+            "Sychronizing dict failed with {}, {}", re.status_code, re.text);
+        return false;
+    }
+
+    json response = json::parse(re.text);
+    for (const auto& change : response["changes"])
+    {
+        if (change["type"] == "add")
+            this->_addWord(change["word"], change["translation"]);
+        if (change["type"] == "delete")
+            this->_deleteWord(change["word"]);
+    }
+    revision = response["revision"];
+    history.clear();
+
+    return true;
+}
+//-----------------------------------------------------------------------------
+future<bool> Dict::deleteFromServer(const std::string& serverUrl)
+{
+    return async(std::launch::async, [this, serverUrl]() {
+        if (not mOnline)
+            return false;
+        auto re = cpr::Delete(cpr::Url{serverUrl + "/api/dictionary/" + mName},
+            cpr::Parameters{{"dict", mName}});
+        if (re.status_code != 200)
+            L->debug("Delete from server for {} not succesfull: \n   {}", mName,
+                re.text);
+        return re.status_code == 200;
+    });
 }
 //-----------------------------------------------------------------------------
 std::shared_ptr<const std::string> Dict::getContens() const
 {
-    if (not mIs_open)
-        throw std::domain_error{
-            "Dictionary \"" + mFilename + "\" was not loaded."};
+    // if (not mIsLoaded)
+    //     throw std::domain_error{
+    //         "Dictionary \"" + mFilename + "\" was not loaded."};
     return mContent;
 }
 //-----------------------------------------------------------------------------
@@ -145,18 +272,82 @@ string getLowerCase2(const string& txt)
     return res;
 }
 //-----------------------------------------------------------------------------
+bool Dict::hasWord(const std::string& word) const
+{
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+        if (line == word)
+            return true;
+    return false;
+}
+//-----------------------------------------------------------------------------
+bool Dict::checkTranslationOfWord(const std::string& word, const std::string& translation) const
+{
+    auto holder = mContent;
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+        if (line == word)
+        {
+            std::getline(iss, line);
+            if (line == translation)
+                return true;
+        }
+    return false;
+}
+//-----------------------------------------------------------------------------
+bool Dict::oneWayEqualityCheck(const Dict& d1, const Dict& d2) const
+{
+    auto holder = d1.getContens();
+    std::istringstream iss{*holder};
+    for (std::string line; std::getline(iss, line);)
+    {
+        if (line[0] == ' ')
+            continue;
+        string translation;
+        getline(iss, translation);
 
+        if (not d2.hasWord(line))
+            return false;
+        if (!d2.checkTranslationOfWord(line, translation))
+            return false;
+    }
+
+    return true;
+}
+bool Dict::operator==(const Dict& d) const
+{
+    return oneWayEqualityCheck(*this, d) && oneWayEqualityCheck(d, *this);
+}
+bool Dict::operator!=(const Dict& d) const
+{
+    return not this->operator==(d);
+}
+//-----------------------------------------------------------------------------
 bool Dict::addWord(const std::string& word, const std::string& translation)
 {
-    if (not mIs_open)
+    if (_addWord(word, translation))
+    {
+        history.emplace_back(ChangeType::addWord, word, translation);
+        return true;
+    }
+    return false;
+}
+bool Dict::_addWord(const std::string& word, const std::string& translation)
+{
+    if (not mIsLoaded)
         throw std::domain_error{
             "Dictionary \"" + mFilename + "\" was not loaded."};
     // this->open(mFilename);
-    if (not mIs_open)
+    if (not mIsLoaded)
         return false;
 
     // Make lower case
     string wordCopy = getLowerCase2(word);
+
+    // make a copy
+    std::string _translation = translation;
+    std::replace(_translation.begin(), _translation.end(), '\n', ';');
 
     // erase whitespace on the end of mContent
     string tmp = *mContent;
@@ -166,7 +357,7 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
         tmp.end());
 
     // add word
-    tmp.append("\n"s + wordCopy + "\n " + translation);
+    tmp.append("\n"s + wordCopy + "\n " + _translation);
     if (tmp[0] == '\n')
         tmp.erase(0, 1);
 
@@ -175,16 +366,6 @@ bool Dict::addWord(const std::string& word, const std::string& translation)
     this->saveDictionary();
 
     return true;
-}
-//-----------------------------------------------------------------------------
-bool Dict::hasWord(const std::string& word)
-{
-    auto holder = mContent;
-    std::istringstream iss{*holder};
-    for (std::string line; std::getline(iss, line);)
-        if (line == word)
-            return true;
-    return false;
 }
 //-----------------------------------------------------------------------------
 bool myIsPunct2(char ch)
@@ -259,49 +440,27 @@ bool compare_weak(const std::string& lhs, const std::string& rhs)
 bool Dict::changeWord(const std::string& word,
     const std::string& newTranslation, const std::string& wordNew)
 {
-    bool result = false;
-    auto holder = mContent;
-    std::istringstream iss{*holder};
-    string output;
-    string translation = newTranslation;
-    std::replace(translation.begin(), translation.end(), '\n', ';');
-    for (std::string line; std::getline(iss, line);)
-    {
-        // todo compare to the first non asci character
-        if (compare_weak(line, word))
-        {
-            result = true;
-            if (wordNew == "")
-                output += line + "\n";
-            else
-                output += wordNew + "\n";
-            output += " " + translation + "\n";
-            while (true)
-            {
-
-                if (std::getline(iss, line))
-                    break;
-                if (line[0] != ' ')
-                {
-                    output += line + "\n";
-                    break;
-                }
-            }
-        }
-        else
-            output += line + "\n";
-    }
-    output.erase(std::find_if(output.rbegin(), output.rend(),
-                     std::not1(std::ptr_fun<int, int>(std::isspace)))
-                     .base(),
-        output.end());
-    mContent.reset(new std::string(output));
-    this->saveDictionary();
-    return result;
+    string _wordNew = wordNew;
+    if (wordNew == "")
+        _wordNew = word;
+    _deleteWord(word);
+    _addWord(_wordNew, newTranslation);
+    history.emplace_back(ChangeType::deleteWord, word);
+    history.emplace_back(ChangeType::addWord, _wordNew, newTranslation);
+    return true;
 }
 //-----------------------------------------------------------------------------
 bool Dict::deleteWord(const std::string& word)
 {
+    if (_deleteWord(word))
+    {
+        history.emplace_back(ChangeType::deleteWord, word);
+        return true;
+    }
+    return false;
+}
+bool Dict::_deleteWord(const std::string& word)
+{
     bool result = false;
     auto holder = mContent;
     std::istringstream iss{*holder};
@@ -332,16 +491,55 @@ bool Dict::deleteWord(const std::string& word)
         output.end());
     mContent.reset(new std::string(output));
     this->saveDictionary();
+
+    // Make it recursive
+    if (result)
+        _deleteWord(word);
     return result;
 }
 //-----------------------------------------------------------------------------
-void Dict::saveDictionary()
+bool Dict::isEnabled()
 {
-    auto holder = mContent;
-    if (mFilename == "")
-        return;
-    std::ofstream outfile{mFilename};
-    outfile << *holder << endl;
+    return mEnabled;
+}
+//-----------------------------------------------------------------------------
+bool Dict::toogle_enable()
+{
+    return this->enable(not mEnabled);
+}
+//-----------------------------------------------------------------------------
+bool Dict::enable(bool state)
+{
+    if (state)
+    {
+        mEnabled = true;
+        if (not mIsLoaded)
+            mEnabled = reload() || mOnline;
+    }
+    else
+        mEnabled = false;
+
+    return mEnabled;
+}
+//-----------------------------------------------------------------------------
+void Dict::setName(const std::string& name)
+{
+    mName = name;
+}
+//-----------------------------------------------------------------------------
+const std::string& Dict::getName() const
+{
+    return mName;
+}
+//-----------------------------------------------------------------------------
+void Dict::setFileName(const std::string& name)
+{
+    mFilename = name;
+}
+//-----------------------------------------------------------------------------
+const std::string& Dict::getFilename() const
+{
+    return mFilename;
 }
 //-----------------------------------------------------------------------------
 
@@ -434,24 +632,550 @@ TEST_CASE("checking for a word")
     Dict d;
     d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\nein\n jedna");
     d.changeWord("zwei", "dva");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n dva\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "drei\n three\nein\n jedna\nzwei\n dva");
     d.changeWord("ein", "jedno jednicka, jedna");
     REQUIRE(*(d.getContens()) ==
-            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n three");
+            "drei\n three\nzwei\n dva\nein\n jedno jednicka, jedna");
     d.changeWord("drei", "tricet stribrnych kurat\ntricet stribrnych strech");
     REQUIRE(*(d.getContens()) ==
-            "ein\n jedno jednicka, jedna\nzwei\n dva\ndrei\n "
-            "tricet stribrnych kurat;tricet stribrnych "
+            "zwei\n dva\nein\n jedno jednicka, jedna"
+            "\ndrei\n tricet stribrnych kurat;tricet stribrnych "
             "strech");
 
     // tests with special characters
     d.fill("ein /test/\n one\nzwei\n zwei\ndrei\n three");
     d.changeWord("ein", "jedna", "ein");
-    REQUIRE(*(d.getContens()) == "ein\n jedna\nzwei\n zwei\ndrei\n three");
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\nein\n jedna");
     d.changeWord("ein", "jeden", "eine");
-    REQUIRE(*(d.getContens()) == "eine\n jeden\nzwei\n zwei\ndrei\n three");
-    REQUIRE(d.changeWord("einaaaaa", "jeden", "eine") == false);
+    REQUIRE(*(d.getContens()) == "zwei\n zwei\ndrei\n three\neine\n jeden");
 }
+
+TEST_CASE("comparison of dictionaries")
+{
+    Dict d1;
+    d1.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    Dict d2;
+    d2.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    REQUIRE(d1 == d2);
+
+    Dict d3;
+    d3.fill("zwei\n zwei\nein\n one\ndrei\n three");
+    REQUIRE(d3 == d2);
+
+    Dict d4;
+    d4.fill("drei\n three\nzwei\n zwei\nein\n one\n");
+    REQUIRE(d4 == d2);
+
+    Dict d5;
+    d5.fill("drei\n three\nzwei\n zweiaa\nein\n one\n");
+    REQUIRE(d5 != d2);
+
+    Dict d6;
+    d6.fill("drei\n three\nzweiaa\n zweiaa\nein\n one\n");
+    REQUIRE(d6 != d2);
+}
+
+//-----------------------------------------------------------------------------
+// SERVER tests
+string server = "localhost:3000";
+
+TEST_CASE("syncing of dictionary with server", "[!hide][server]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
+
+    // test that server has the same dict
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(*(d.getContens()) == *(d2.getContens()));
+}
+
+TEST_CASE("adding to server", "[!hide][server]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
+
+    d.addWord("katze", "kocicka");
+    REQUIRE(d.sync(server));
+
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(*(d.getContens()) == *(d2.getContens()));
+}
+
+TEST_CASE("change at server", "[!hide][server]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n "
+           "five\nsechs\n six");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
+
+    d.changeWord("ein", "jeden");
+    d.changeWord("drei", "tricet", "dreizig");
+    REQUIRE(d.sync(server));
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(d == d2);
+}
+
+TEST_CASE("delete from server", "[!hide][server]")
+{
+    Dict d;
+    d.setName("testDictionary");
+    d.mOnline = true;
+    d.fill("ein\n one\nzwei\n two\ndrei\n three\nvier\n four\nfünf\n "
+           "five\nsechs\n six");
+    d.deleteFromServer(server).get();
+    REQUIRE(d.sync(server));
+
+    d.deleteWord("ein");
+    d.deleteWord("fünf");
+    REQUIRE(d.sync(server));
+
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+    REQUIRE(d == d2);
+}
+
+TEST_CASE("two dicts no conflict", "[!hide][server]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("ein\n one\nzwei\n two\ndrei\n three");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    d1.changeWord("katze", "kocka");
+    d1.changeWord("drei", "30", "dreizig");
+    d1.addWord("hund", "pejsanek");
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("schaf", "ovecka");
+    d2.deleteWord("ein");
+    d2.addWord("truthahn", "krocan");
+    d2.deleteWord("schaf");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+    REQUIRE(d1.sync(server));
+
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+
+    REQUIRE(d1 == d2);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+
+TEST_CASE("two dicts", "[!hide][server]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("base\n base2");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    d1.deleteWord("katze");
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("katze", "kocicka2");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+    REQUIRE(d1.sync(server));
+    REQUIRE(d2.sync(server));
+
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+
+    REQUIRE(d1 == d2);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("mulitiple clients", "[!hide][server]")
+{
+    Dict d1;
+    d1.setName("testDictionary");
+    d1.mOnline = true;
+    d1.fill("ein\n one\nzwei\n zwei\ndrei\n three");
+    d1.deleteFromServer(server).get();
+    REQUIRE(d1.sync(server));
+
+    d1.addWord("katze", "kocicka");
+    d1.deleteWord("katze");
+    d1.addWord("german", "nemecky");
+
+
+    Dict d2;
+    d2.mOnline = true;
+    d2.setName("testDictionary");
+    REQUIRE(d2.sync(server));
+
+    d2.addWord("katze", "kocicka2");
+    d2.addWord("test", "test2");
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d1.getRevision() == 2);
+
+    REQUIRE(d2.sync(server));
+    REQUIRE(d2.getRevision() == 4);
+
+    REQUIRE(d1.sync(server));
+    REQUIRE(d1.getRevision() == 4);
+
+
+    Dict dcheck;
+    dcheck.mOnline = true;
+    dcheck.setName("testDictionary");
+    REQUIRE(dcheck.sync(server));
+    L->info("d1: {}", *d1.getContens());
+    L->info("d2: {}", *d2.getContens());
+    L->info("dcheck: {}", *dcheck.getContens());
+
+    REQUIRE(d2 == d1);
+    REQUIRE(d1 == dcheck);
+    REQUIRE(d1.getRevision() == d2.getRevision());
+    REQUIRE(dcheck.getRevision() == d1.getRevision());
+}
+
+//////////////////////////// test for conflicts //////////////////////
+
+TEST_CASE("conflicts add-add basic", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("new", "newTranslationD1");
+   d1.addWord("newer", "newerTranslationD1");
+   d1.addWord("random", "randomTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("new", "translationD2");
+   d2.addWord("newer", "newTranslationD2");
+   d1.addWord("whatever", "whateverTranslationD1");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts add-add", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("word", "translationD1");
+   d1.addWord("new", "newTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts add-change", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("newWord", "newTranslationD1");
+   d1.changeWord("word", "translationChangeD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("newWord", "newTranslationD2");
+   d2.addWord("word", "translationAddD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts add-delete", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.deleteWord("word");
+   d1.deleteWord("new");
+   d1.addWord("add", "addedTranslationD1");
+   d1.deleteWord("add");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.addWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+   d1.addWord("add", "addedTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+// failing - multiple words, different order, but same dict
+TEST_CASE("conflicts change-add", "[!hide][server][issue][!mayfail]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+
+   d1.addWord("word", "trD1");
+   d1.addWord("newWord", "trChangeD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "trChangeD2");
+
+   d2.addWord("newWord", "newTrD2");
+   d2.changeWord("newWord", "newTrChangeD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(d1.getRevision() == d2.getRevision());
+   REQUIRE(d1 == d2);
+}
+
+
+TEST_CASE("conflicts change-change basic", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.changeWord("word", "translationD1", "wort");
+
+   d1.addWord("something", "nieco");
+   d1.deleteWord("something");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "translationD2", "slovo");
+   d2.addWord("something", "nieco");
+   d2.changeWord("something", "nieco", "anything");
+
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts change-delete", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.deleteWord("word");
+   d1.addWord("new", "trChangeD1");
+   d1.deleteWord("new");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.changeWord("word", "translationD2");
+   d2.addWord("new", "newTranslationD2");
+   d2.changeWord("new", "chagedTranslationD2");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   REQUIRE(*d1.getContens() == *d2.getContens());
+   // REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts delete-add", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.addWord("word", "translationD1");
+   d1.addWord("newWord", "newTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.deleteWord("word");
+   d2.deleteWord("newWord");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
+TEST_CASE("conflicts delete-change", "[!hide][server]")
+{
+   Dict d1;
+   d1.setName("testDictionary");
+   d1.mOnline = true;
+   d1.fill("base\n trBase\nword\n translation");
+   d1.deleteFromServer(server).get();
+   REQUIRE(d1.sync(server));
+
+   d1.changeWord("word", "translationD1");
+   d1.addWord("new", "newTranslationD1");
+   d1.changeWord("new", "changedTranslationD1");
+
+   Dict d2;
+   d2.mOnline = true;
+   d2.setName("testDictionary");
+   REQUIRE(d2.sync(server));
+
+   d2.deleteWord("word");
+   d2.deleteWord("new");
+
+   REQUIRE(d1.sync(server));
+   REQUIRE(d2.sync(server));
+   REQUIRE(d1.sync(server));
+
+   L->info("d1: {}", *d1.getContens());
+   L->info("d2: {}", *d2.getContens());
+
+   // REQUIRE(*d1.getContens() == *d2.getContens());
+   REQUIRE(d1 == d2);
+   REQUIRE(d1.getRevision() == d2.getRevision());
+}
+
 #endif

@@ -30,7 +30,7 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
     vector<long long> threadsForDict;
     for (auto&& dict : dicts)
     {
-        if (not dict.is_enabled())
+        if (not dict.isEnabled())
         {
             threadsForDict.push_back(0); // push empty one ;-)
             continue;
@@ -47,7 +47,7 @@ workerResult _search(std::vector<Dict>& dicts, int numthreads,
     for (int dictI = 0; dictI < (int)dicts.size(); ++dictI)
     {
         auto& dict = dicts[dictI];
-        if (not dict.is_enabled())
+        if (not dict.isEnabled())
             continue;
         long long size = dict.getContens()->size();
         for (int i = 0; i < threadsForDict[dictI]; ++i)

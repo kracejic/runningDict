@@ -10,7 +10,7 @@ find_package(Git REQUIRED)
 ExternalProject_Add(
     Catch
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/Catch
-    GIT_REPOSITORY https://github.com/philsquared/Catch.git
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     # For shallow git clone (without downloading whole history)
     # GIT_SHALLOW 1
     # For point at certain tag
@@ -27,7 +27,7 @@ add_custom_target(external-Catch-update
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Catch)
 # set include directory
-set(EXTERNAL_CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Catch/src/Catch/single_include" PARENT_SCOPE)
+set(EXTERNAL_CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Catch/src/Catch/single_include/catch2" PARENT_SCOPE)
 
 
 #------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ add_custom_target(external-Json-update
     COMMAND ${GIT_EXECUTABLE} pull
     DEPENDS Json)
 # set include directory
-set(EXTERNAL_JSON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Json/src/Json/src" PARENT_SCOPE)
+set(EXTERNAL_JSON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Json/src/Json/single_include/nlohmann" PARENT_SCOPE)
 
 
 #------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ ExternalProject_Add(
     #disable following
     CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_DIR "" INSTALL_COMMAND ""
     )
-# Update json target
+# Update spdlog target
 add_custom_target(external-spdlog-update
     COMMENT "Updated gabime/spdlog"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/spdlog/src/spdlog
@@ -83,10 +83,50 @@ add_custom_target(external-spdlog-update
 # set include directory
 set(EXTERNAL_SPDLOG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/spdlog/src/spdlog/include" PARENT_SCOPE)
 
+#------------------------------------------------------------------------------
+# whoshuu/cpr
+#  * sets EXTERNAL_CPR_INCLUDE_DIR 
+
+ExternalProject_Add(
+    Cpr-ext
+    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/cpr
+    GIT_REPOSITORY https://github.com/whoshuu/cpr.git
+    # For shallow git clone (without downloading whole history)
+    # GIT_SHALLOW 1
+    # For point at certain tag
+    # GIT_TAG 1.5.7
+    #disables auto update on every build
+    UPDATE_DISCONNECTED 1
+    #disable install step
+    INSTALL_DIR "" INSTALL_COMMAND ""
+    # BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext-build-${CMAKE_GENERATOR}"
+    CMAKE_ARGS -DCMAKE_CXX_FLAGS=-fPIC -DBUILD_CPR_TESTS=OFF
+    )
+set(CPR_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext/include CACHE
+    INTERNAL "")
+set(CPR_LIBRARIES
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext-build/lib/libcpr.a curl CACHE
+    INTERNAL "")
+
+# Update cpr target
+add_custom_target(external-cpr-update
+    COMMENT "Updated whoshuu/cpr"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cpr/src/Cpr-ext
+    COMMAND ${GIT_EXECUTABLE} pull
+    DEPENDS Cpr-ext)
+
+# Uset this with:
+# target_include_directories(your_target_name ${CPR_INCLUDE_DIRS})
+# target_link_libraries(your_target_name ${CPR_LIBRARIES})
+
 
 #------------------------------------------------------------------------------
 # Convenience update all
 add_custom_target(external-update-all
     COMMENT "Updated all external projects"
-    DEPENDS external-Catch-update external-Json-update external-spdlog-update)
+    DEPENDS external-Catch-update external-Json-update external-spdlog-update external-cpr-update)
+
+add_custom_target(update
+    COMMENT "Updated all external projects"
+    DEPENDS external-update-all)
 

@@ -6,6 +6,7 @@ int main(int argc, char* argv[])
 {
     // global setup...
     logging::init();
+    L->set_level(spdlog::level::debug);
 
     int result = Catch::Session().run(argc, argv);
 

@@ -1,12 +1,18 @@
 #include "SettingsWindow.h"
 #include "Logic.h"
+#include "log.h"
 #include "version.h"
+#include <chrono>
 #include <string>
+
+using namespace std;
 
 SettingsWindow::SettingsWindow(Logic& logic)
     : mLogic(logic)
     , mToogleFirstCatch("Translate clipboard at start")
     , mToogleAlwaysOnTop("Main window stays always on top")
+    , mServerStatus("")
+    , mToogleServer("Synchronization server")
 {
     this->set_position(Gtk::WIN_POS_MOUSE);
     this->set_border_width(10);
@@ -22,8 +28,8 @@ SettingsWindow::SettingsWindow(Logic& logic)
     if (mLogic.mAlwaysOnTop)
         mToogleAlwaysOnTop.set_active();
 
-    mGrid.attach(mAddDictButton, 1, 0, 2, 2);
-    mAddDictButton.set_label("New dict");
+    mGrid.attach(mAddDictButton, 3, 0, 1, 2);
+    mAddDictButton.set_label("New dictionary");
     mAddDictButton.signal_clicked().connect([this]() {
         if (mAddDictWindow)
             return;
@@ -38,8 +44,42 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
     });
 
+
+    // server settings
+    mGrid.attach(mServerSettingBox, 0, 3, 3, 1);
+    // mServerSettingBox.set_margin_top(10);
+    mServerSettingBox.pack_start(mToogleServer, false, false, 0);
+    mServerSettingBox.pack_start(mServer, false, false, 10);
+    mServerSettingBox.pack_start(mServerStatus, false, false, 0);
+    mServerStatus.override_color(Gdk::RGBA{"#909090"});
+    mServer.set_placeholder_text("url");
+    if (mLogic.getServer() == "")
+    {
+        mServer.set_sensitive(false);
+        mToogleServer.set_active(false);
+    }
+    else
+    {
+        mServer.set_sensitive(true);
+        mToogleServer.set_active(true);
+        mServer.set_text(mLogic.getServer());
+    }
+    mToogleServer.signal_toggled().connect([this]() {
+        if (!mToogleServer.get_active())
+        {
+            mServer.set_sensitive(false);
+            mServerStatus.set_text("");
+            mServer.set_text("");
+            mLogic.setServer("");
+        }
+        else
+        {
+            mServer.set_sensitive(true);
+        }
+    });
+
     // setup scrollView
-    mGrid.attach(mScrollView, 0, 6, 2, 1);
+    mGrid.attach(mScrollView, 0, 6, 4, 1);
     mScrollView.set_hexpand();
     mScrollView.set_vexpand();
     mScrollView.set_policy(
@@ -49,15 +89,16 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mScrollView.set_min_content_width(400);
     mScrollView.set_min_content_height(200);
 
-    mGrid.attach(mWebSiteLabel, 0, 8, 1, 1);
+    mGrid.attach(mWebSiteLabel, 1, 8, 1, 1);
     mWebSiteLabel.set_hexpand();
     mWebSiteLabel.set_margin_top(10);
     mWebSiteLabel.set_text("https://github.com/kracejic/runningDict");
 
-    mGrid.attach(mVersionLabel, 1, 8, 1, 1);
+    mGrid.attach(mVersionLabel, 2, 8, 2, 1);
     mVersionLabel.set_hexpand();
     mVersionLabel.set_margin_top(10);
     mVersionLabel.set_text(Version::getVersionShort());
+    mVersionLabel.set_halign(Gtk::Align::ALIGN_END);
 
     // dict treeView
     mRefListStore = Gtk::ListStore::create(mDictViewModel);
@@ -70,6 +111,7 @@ SettingsWindow::SettingsWindow(Logic& logic)
     mTreeView.append_column("Path", mDictViewModel.mPath);
     mTreeView.get_column(1)->set_expand();
     mTreeView.append_column_editable("Priority", mDictViewModel.mBonus);
+    mTreeView.append_column("Properties", mDictViewModel.mStatus);
     mTreeView.set_tooltip_column(mDictViewModel.mTooltip.index());
 
 
@@ -90,13 +132,15 @@ SettingsWindow::SettingsWindow(Logic& logic)
 
     // deal with enabling of dicts
     dynamic_cast<Gtk::CellRendererToggle*>(
+
         mTreeView.get_column(0)->get_first_cell())
         ->signal_toggled()
         .connect([this](const std::string& path) {
             try
             {
+                auto lockedD = mLogic.getDicts();
                 int index = std::stoi(path);
-                mLogic.mDicts.at(index).toogle_enable();
+                lockedD.dicts.at(index).toogle_enable();
             }
             catch (const std::exception& e)
             {
@@ -111,11 +155,12 @@ SettingsWindow::SettingsWindow(Logic& logic)
         .connect([this](const std::string& path) {
             try
             {
+                auto lockedD = mLogic.getDicts();
                 int index = std::stoi(path);
-                if (mLogic.mDicts.at(index).mBonus < 0)
-                    mLogic.mDicts.at(index).mBonus = 0;
+                if (lockedD.dicts.at(index).mBonus < 0)
+                    lockedD.dicts.at(index).mBonus = 0;
                 else
-                    mLogic.mDicts.at(index).mBonus = -1;
+                    lockedD.dicts.at(index).mBonus = -1;
             }
             catch (const std::exception& e)
             {
@@ -124,9 +169,15 @@ SettingsWindow::SettingsWindow(Logic& logic)
         });
 
 
+    mLogic.sortDicts();
     this->refreshDicts();
 
     this->show_all_children();
+
+    // make pulse called repeatedly every 100ms
+    sigc::slot<bool> my_slot =
+        sigc::bind(sigc::mem_fun(*this, &SettingsWindow::pulse), 0);
+    mPulseConnection = Glib::signal_timeout().connect(my_slot, 1000);
 }
 //------------------------------------------------------------------------------
 SettingsWindow::~SettingsWindow()
@@ -135,17 +186,89 @@ SettingsWindow::~SettingsWindow()
     mLogic.mAlwaysOnTop = mToogleAlwaysOnTop.get_active();
 }
 //------------------------------------------------------------------------------
+bool SettingsWindow::pulse(int num)
+{
+    ignore_arg(num);
+
+    if (mToogleServer.get_active() &&
+        (!mServerConnection.valid() ||
+            mServerConnection.wait_for(1ns) == future_status::ready))
+    {
+        if (mLogic.getServer() != mServer.get_text())
+            mLogic.setServer(mServer.get_text());
+        mServerConnection = mLogic.connectToServerAndSync();
+    }
+
+    if (mToogleServer.get_active())
+    {
+        mServerStatus.set_text("");
+
+        mServer.set_sensitive(true);
+        // Compute last contact with server
+        auto now = std::chrono::system_clock::now();
+        int diff =
+            chrono::duration_cast<chrono::seconds>(now - mLogic.mLastServerSync)
+                .count();
+
+        string textDiff = to_string(diff) + "seconds ago";
+        if (diff > 60)
+            textDiff = to_string(diff / 60) + "minutes ago";
+        if (diff > 3600)
+            textDiff = to_string(diff / 3600) + "hours ago";
+        if (diff > 3600 * 24 + 365)
+            textDiff = "not available";
+
+        mServerStatus.set_tooltip_text(
+            "Last contact with server was: " + textDiff);
+
+        switch (mLogic.mServerStatus)
+        {
+            case ServerStatus::offline:
+                mServerStatus.set_text("offline");
+                break;
+            case ServerStatus::serverNotAvailable:
+                mServerStatus.set_text("server offline");
+                break;
+            case ServerStatus::serverError:
+                mServerStatus.set_text("server error");
+                break;
+            case ServerStatus::connecting:
+                mServerStatus.set_text("connecting");
+                break;
+            case ServerStatus::connected:
+                mServerStatus.set_text("connected");
+                break;
+            case ServerStatus::synchronizing:
+                mServerStatus.set_text("synchronizing");
+                break;
+        }
+    }
+    else
+    {
+        mServer.set_sensitive(false);
+        mServerStatus.set_text("");
+        mServer.set_text("");
+        mLogic.setServer("");
+    }
+
+    return true;
+}
+//-----------------------------------------------------------------------------
 void SettingsWindow::refreshDicts()
 {
     mRefListStore->clear();
-    for (auto&& dict : mLogic.mDicts)
+    auto lockedD = mLogic.getDicts();
+    for (auto&& dict : lockedD.dicts)
     {
         Gtk::TreeModel::iterator iter = mRefListStore->append();
         Gtk::TreeModel::Row row = *iter;
-        row[mDictViewModel.mEnabled] = dict.is_enabled();
+        row[mDictViewModel.mEnabled] = dict.isEnabled();
         row[mDictViewModel.mPath] = dict.getName();
         row[mDictViewModel.mBonus] = (dict.mBonus < 0);
-        row[mDictViewModel.mError] = dict.mErrorState;
+        if (dict.mOnline)
+            row[mDictViewModel.mStatus] = "online";
+        else
+            row[mDictViewModel.mStatus] = "";
         row[mDictViewModel.mTooltip] = dict.getFilename();
     }
 }

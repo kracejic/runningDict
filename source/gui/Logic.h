@@ -1,4 +1,6 @@
 #pragma once
+#include <chrono>
+#include <future>
 #include <string>
 
 #include "Dict.h"
@@ -12,6 +14,16 @@ template <class T>
 void ignore_arg(const T&)
 {
 }
+
+enum class ServerStatus
+{
+    offline,
+    serverNotAvailable,
+    serverError,
+    connecting,
+    connected,
+    synchronizing
+};
 
 class Logic
 {
@@ -28,9 +40,38 @@ class Logic
 
     bool mTranslateClipboardAtStart{false};
     bool mAlwaysOnTop{true};
+    bool mDebug{false}; //< is debug logging on
 
+
+    // clang-format off
+    void setServer(const std::string& _mServer) {
+        mServerStatus = ServerStatus::offline; mServer = _mServer; };
+    const std::string& getServer() { return mServer; };
+    // clang-format on
+    void sortDicts();
+
+    /// last used dictionary for creating new word
     std::string mLastDictForNewWord{""};
+
+  private:
     std::vector<Dict> mDicts;
+    std::mutex dictsLock;
+
+    /// url of the server
+    std::string mServer{""};
+
+  public:
+    struct LockedDicts
+    {
+        std::vector<Dict>& dicts;
+        std::unique_lock<std::mutex> lock;
+    };
+    LockedDicts getDicts()
+    {
+        return LockedDicts{mDicts, std::unique_lock<std::mutex>(dictsLock)};
+    };
+
+
     std::vector<std::string> mAdditionalSearchDirs;
 
     /// Returns pointer to dict or zero, only filename is checked (not
@@ -46,7 +87,15 @@ class Logic
     static std::string getConfigPath();
     std::string getPackagePath();
 
-    bool createDict(const std::string& filename);
+    bool createDict(const std::string& filename, bool online);
+
+    std::future<void> connectToServerAndSync(const std::string& url);
+    std::future<void> connectToServerAndSync();
+    std::future<void> connectToServerAndSyncIfItIsNeccessary();
+
+
+    ServerStatus mServerStatus{ServerStatus::offline};
+    std::chrono::system_clock::time_point mLastServerSync;
 
   private:
     std::string mConfigFilename;

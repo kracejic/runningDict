@@ -45,11 +45,12 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
 
     mAddButton.signal_clicked().connect([this]() {
         // TODO fix mLastDictForNewWord for something else
+        auto lockedD = mLogic.getDicts();
         auto dict = find_if(
-            mLogic.mDicts.begin(), mLogic.mDicts.end(), [this](auto& d) {
+            lockedD.dicts.begin(), lockedD.dicts.end(), [this](auto& d) {
                 return d.getFilename() == mLogic.mLastDictForNewWord;
             });
-        if (dict != mLogic.mDicts.end())
+        if (dict != lockedD.dicts.end())
         {
             if (dict->addWord(
                     mWordInput.get_text(), mTranslationInput.get_text()))
@@ -71,11 +72,14 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         mCombobox.pack_start(mDictModel.mPath);
 
         // set first dictionary as a target for new word if not set
-        if (mLogic.mLastDictForNewWord == "" && (not mLogic.mDicts.empty()))
-            mLogic.mLastDictForNewWord = mLogic.mDicts[0].getFilename();
+        auto lockedD = mLogic.getDicts();
+        if (mLogic.mLastDictForNewWord == "" && (not lockedD.dicts.empty()))
+            mLogic.mLastDictForNewWord = lockedD.dicts[0].getFilename();
 
-        for (auto&& dict : mLogic.mDicts)
+        for (auto&& dict : lockedD.dicts)
         {
+            if (not dict.isReady())
+                continue;
             Gtk::TreeModel::iterator iter = mRefListStore->append();
             Gtk::TreeModel::Row row = *iter;
             row[mDictModel.mPath] = dict.getFilename();
@@ -86,7 +90,7 @@ NewWordWindow::NewWordWindow(Logic& logic, std::string word)
         }
         // if nothing selected, select first
         if ((mCombobox.get_active_row_number() == -1) &&
-            (not mLogic.mDicts.empty()))
+            (not lockedD.dicts.empty()))
             mCombobox.set_active(0);
 
         mCombobox.signal_changed().connect([this]() {

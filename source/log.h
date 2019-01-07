@@ -3,7 +3,7 @@
 
 namespace logging
 {
-void init(std::string directory = ".");
+void init(const std::string& directory = "./");
 }
 
 extern std::shared_ptr<spdlog::logger> L;

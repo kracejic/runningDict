@@ -104,6 +104,8 @@ config file and adding absolute path into *additionalSearchDirs* array.
 * Gtkmm3 for standalone gui application
 * git for downloading dependencies
 
+    TODO libcurl4-openssl-dev libssh2-1-dev libssl-dev
+
 #### Prerequisites on Linux
 
 * Arch Linux: `sudo pacman -S cmake g++ graphviz git clang clang-tools-extra cppcheck java-runtime-common extra/gtkmm3`
@@ -111,13 +113,17 @@ config file and adding absolute path into *additionalSearchDirs* array.
 
 * Ubuntu 16.04: `sudo apt-get install cmake g++ graphviz plantuml git clang clang-tidy clang-format libgtkmm-3.0-dev`
 
+* TODO curl-devel (open)ssl-devel
+
 #### Prerequisites on Windows
 
 * Install msys2 and install these packages:
-    * Minimal: `pacman -S cmake g++ git mingw-w64-x86_64-gtkmm3`
-    * Additional software `pacman -S mingw-w64-x86_64-clang mingw-w64-x86_64-clang-tools-extra mingw-w64-x86_64-clang-analyzer doxygen`
+    * Minimal: `mingw32/mingw-w64-i686-gcc mingw32/mingw-w64-i686-gtkmm3 mingw32/mingw-w64-i686-cmake git mingw32/mingw-w64-i686-make msys/make`
+    * Additional software `pacman -S mingw-w64-i686-clang mingw-w64-i686-clang-tools-extra mingw-w64-i686-clang-analyzer doxygen`
     * For graphs in documentation install Graphviz (to `c:\Program Files\Graphviz`, so scripts can find it) and add its `bin` subdirectory to *PATH*, install java (have it on *PATH*), download PlantUML jar file and have it on *PATH*.
 
+
+pacman -S mingw32/mingw-w64-i686-cmake msys/make mingw32/mingw-w64-i686-boost mingw32/mingw-w64-i686-gtkmm3 mingw32/mingw-w64-i686-gtk3 mingw32/mingw-w64-i686-pkg-config
 
 
 ### CMake options
@@ -139,7 +145,7 @@ config file and adding absolute path into *additionalSearchDirs* array.
 | all             | build all                                       |
 | install         | install to install prefix location              |
 | package         | generates packages (DEB, RPM, MSI, etc.)        |
-| gui-run run     | install and run gui standalone gui application  |
+| gui-run run     | run gui standalone gui application              |
 | gdb             | runs gdb on gui app                             |
 | doc             | produce doxygen documentation                   |
 | unit            | run unit tests only                             |
@@ -151,6 +157,7 @@ config file and adding absolute path into *additionalSearchDirs* array.
 | clean           | clean build files                               |
 | external-update | clean build files                               |
 
+Note: You need to run **update** target first in order to download external dependencies, this is enough to do once from start.
 
 ### Build on linux
 
@@ -177,6 +184,8 @@ cmake ..
 make check
 ~~~
 
+Update is needed only once for downloading of dependencies.
+
 If you want to install the software, do this:
 
 ~~~
@@ -198,14 +207,14 @@ On windows prefer Ninja since it is **MUCH** faster than make.
 With gcc build and install (default is build/dist):
 ~~~
 mkdir build ; cd build
-cmake -GNinja ..
-ninja install
+cmake -G "MSYS Makefiles" -DUSE_BOOST_FILESYSTEM=TRUE ..
+make install
 ~~~
 
 With clang++, build executable, doxygen documentation and install:
 ~~~
 mkdir build ; cd build
-cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" ..
+cmake -GNinja -DCMAKE_CXX_COMPILER="clang++" -DUSE_BOOST_FILESYSTEM=TRUE ..
 ninja all doc install
 ~~~
 
@@ -226,7 +235,7 @@ this:
 ~~~
 mkdir buildmsvc
 cd buildmsvc
-cmake -G "Visual Studio 14 2015" ..
+cmake -G "Visual Studio 14 2015"  -DUSE_BOOST_FILESYSTEM=TRUE ..
 ~~~
 
 and you can now open a `.sln` file with Visual Studio. You need to RMB click on
@@ -291,7 +300,7 @@ from build system in sublime-project file.
 
 # License
 
-> Copyright (c) 2016 Kracejic
+> Copyright (c) 2017 Kracejic
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 >

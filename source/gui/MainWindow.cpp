@@ -276,6 +276,14 @@ bool MainWindow::pulse(int num)
 {
     ignore_arg(num);
 
+
+    if (mLogic.getServer() != "" &&
+        (!mServerConnection.valid() ||
+            mServerConnection.wait_for(1ns) == future_status::ready))
+    {
+        mServerConnection = mLogic.connectToServerAndSyncIfItIsNeccessary();
+    }
+
     // check if text has changed
     Glib::ustring tmp = mWordInput.get_text();
     if (mOldTextInEntry != tmp)
@@ -365,7 +373,9 @@ void MainWindow::searchThread()
         numthreads = (numthreads > 1) ? numthreads : 1; // fallback
         std::vector<string> words = Processer::splitToWords(text.c_str());
 
-        workerResult results = _search(mLogic.mDicts, numthreads, words, false);
+        auto lockedDicts = mLogic.getDicts();
+        workerResult results =
+            _search(lockedDicts.dicts, numthreads, words, false);
         // cout << "results are here" << endl;
         // for(auto &&w : words)
         // {

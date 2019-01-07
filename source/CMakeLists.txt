@@ -13,8 +13,26 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/source
 )
 
+#------------------------------------------------------------------------------
+# Dependencies for all targets
+
+# Boost instead of C++17 filesystem (MSYS2 GCC5.3 does not have filesystem TS)
+option(USE_BOOST_FILESYSTEM 
+    "whether to use boost::filesystem instead of the std::filesystem" FALSE)
+if(USE_BOOST_FILESYSTEM)
+    find_package(Boost COMPONENTS filesystem system REQUIRED)
+    add_definitions("-DUSE_BOOST_FILESYSTEM")
+    include_directories( SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
+    link_libraries(${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+else()
+    link_libraries(stdc++fs)
+endif()
+
+#------------------------------------------------------------------------------
+# Targets
+
 set(SRCS
-    ${PROJECT_BINARY_DIR}/source/version.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
     Dict.cpp
     Worker.cpp
     Search.cpp
@@ -34,14 +52,17 @@ set(HEADERS
 
 find_package (Threads)
 add_executable(runningDict main.cpp ${SRCS} ${HEADERS})
-target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (runningDict ${CMAKE_THREAD_LIBS_INIT} ${CPR_LIBRARIES})
 set_property(TARGET runningDict PROPERTY CXX_STANDARD 14) # we want C++14
-add_dependencies(runningDict Json spdlog)
+add_dependencies(runningDict Json spdlog Cpr-ext)
+target_include_directories(runningDict SYSTEM PRIVATE ${CPR_INCLUDE_DIRS}
+    ${EXTERNAL_JSON_INCLUDE_DIR})
 
 add_library(libRunningDict SHARED LibInterface.cpp ${SRCS} ${HEADERS} LibInterface.h)
-target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (libRunningDict ${CMAKE_THREAD_LIBS_INIT} ${CPR_LIBRARIES})
 set_property(TARGET libRunningDict PROPERTY CXX_STANDARD 14) # we want C++14
-add_dependencies(libRunningDict Json spdlog)
+add_dependencies(libRunningDict Json spdlog Cpr-ext)
+target_include_directories(libRunningDict SYSTEM PRIVATE ${CPR_INCLUDE_DIRS} ${EXTERNAL_JSON_INCLUDE_DIR})
 
 
 
@@ -95,7 +116,7 @@ set(GUISRC
     gui/Logic.cpp
 )
 
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3MM gtkmm-3.0)
 
 if(GTK3MM_FOUND)
@@ -111,12 +132,12 @@ if(GTK3MM_FOUND)
     else()
         add_executable(runningDictGui ${GUISRC} ${SRCS} ${WINDOWS_ICON_RESOURCE})
     endif()
-    add_dependencies(runningDictGui Json spdlog)
+    add_dependencies(runningDictGui Json spdlog Cpr-ext)
 
     add_custom_target(gui-run
 	WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
 	COMMAND ./runningDictGui
-	DEPENDS runningDictGui Install_)
+	DEPENDS runningDictGui)
     add_custom_target(run DEPENDS gui-run)
 
 
@@ -126,15 +147,16 @@ if(GTK3MM_FOUND)
         add_custom_target(gdb
             WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin
             COMMAND ${GDB_PATH} ./runningDictGui
-            DEPENDS runningDictGui Install_)
+            DEPENDS runningDictGui)
     endif()
     
 
     target_include_directories(runningDictGui SYSTEM PRIVATE 
         ${GTK3MM_INCLUDE_DIRS} 
-        ${EXTERNAL_JSON_INCLUDE_DIR})
+        ${EXTERNAL_JSON_INCLUDE_DIR}
+        ${CPR_INCLUDE_DIRS})
     target_link_libraries (runningDictGui
-        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES})
+        ${CMAKE_THREAD_LIBS_INIT} ${GTK3MM_LIBRARIES} ${CPR_LIBRARIES})
     set_property(TARGET runningDictGui PROPERTY CXX_STANDARD 14) # we want C++14
 
     install(TARGETS runningDictGui DESTINATION bin)
@@ -176,6 +198,23 @@ if(GTK3MM_FOUND)
         installMSYS2lib("libpng16-16.dll")
         installMSYS2lib("libsigc-2.0-0.dll")
         installMSYS2lib("zlib1.dll")
+        installMSYS2lib("libcurl-4.dll")
+        installMSYS2lib("libssh2-1.dll")
+        installMSYS2lib("libeay32.dll")
+        installMSYS2lib("libssleay.dll")
+        installMSYS2lib("libcurl-4.dll")
+        installMSYS2lib("libcurl-4.dll")
+        installMSYS2lib("libnghttp2-14.dll")
+        installMSYS2lib("librtmp-1.dll")
+        installMSYS2lib("libgmp-10.dll")
+        installMSYS2lib("libgnutls-30.dll")
+        installMSYS2lib("libhogweed-4.dll")
+        installMSYS2lib("libnettle-6.dll")
+        installMSYS2lib("libidn-11.dll")
+        installMSYS2lib("libp11-kit-0.dll")
+        installMSYS2lib("libtasn1-6.dll")
+        installMSYS2lib("libunistring-2.dll")
+        installMSYS2lib("ssleay32.dll")
     endif(MINGW)
 
 
@@ -184,6 +223,10 @@ else()
 endif()
 
 
+#------------------------------------------------------------------------------
+# Unit test
+
+add_subdirectory(unittest)
 
 #------------------------------------------------------------------------------
 # Other targets

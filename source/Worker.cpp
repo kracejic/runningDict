@@ -1,6 +1,5 @@
 #include "Worker.h"
 #include <algorithm>
-#include <algorithm>
 #include <codecvt>
 #include <iostream>
 #include <locale>
